@@ -1,4 +1,7 @@
 # Changelog
+## [0.3](../../tree/v0.3) *(2019-09-29)*
+*   performance of setInterval
+*   design improvements on Chrome
 ## [0.2](../../tree/v0.2) *(2019-09-29)*
 *   volume bar on album page
 *   rememeber volume
