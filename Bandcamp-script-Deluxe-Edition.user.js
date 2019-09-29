@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.1
+// @version       0.2
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -17,14 +17,9 @@
 // @author        cuzi
 // ==/OpenUserJS==
 
-/* globals JSON5, GM */
+/* globals JSON5, GM, MouseEvent */
 
-// TODO show volume bar if other script is not installed
-// TODO test preorder albums and albums that are not streamable
-// TODO do mp3 urls expire?
-// TODO export list of listened albums
-
-var player, audio, currentDuration, timeline, playhead
+var player, audio, currentDuration, timeline, playhead, bufferbar
 var onPlayHead = false
 
 function humanDuration (duration) {
@@ -117,6 +112,44 @@ function findUserProfileUrl () {
   return 'https://bandcamp.com/login'
 }
 
+var ivRestoreVolume
+function getStoredVolume (callbackIfVolumeExists) {
+  GM.getValue('volume', '0.7').then(str => {
+    return parseFloat(str)
+  }).then(function (volume) {
+    if (!Number.isNaN(volume) && volume > 0.0) {
+      callbackIfVolumeExists(volume)
+    }
+  })
+}
+function restoreVolume () {
+  getStoredVolume(function (volume) {
+    const restoreVolumeInterval = function () {
+      const audios = document.querySelectorAll('audio')
+      if (audios.length > 0) {
+        let paused = true
+        audios.forEach(function (audio) {
+          paused = paused && audio.paused
+          audio.volume = volume
+        })
+        if (!paused) {
+          // Clear interval once audio is actually playing
+          window.clearInterval(ivRestoreVolume)
+        }
+        // Update volume bar on tag player (by double clicking mute button)
+        const muteWrapper = document.querySelector('.vol-icon-wrapper')
+        if (muteWrapper) {
+          const mouseDownEvent = new MouseEvent('mousedown', { view: window, bubbles: true, cancelable: true })
+          muteWrapper.dispatchEvent(mouseDownEvent)
+          muteWrapper.dispatchEvent(mouseDownEvent)
+        }
+      }
+    }
+    restoreVolumeInterval()
+    ivRestoreVolume = window.setInterval(restoreVolumeInterval, 500)
+  })
+}
+
 function findPreviousAlbumCover (currentUrl) {
   const currentKey = albumKey(currentUrl)
   const as = document.querySelectorAll('.music-grid .music-grid-item a[href^="/album/"],.music-grid .music-grid-item a[href^="/track/"]')
@@ -176,6 +209,13 @@ function musicPlayerPlaySong (next) {
   player.querySelector('.durationDisplay .current').innerHTML = '-'
   player.querySelector('.durationDisplay .total').innerHTML = humanDuration(currentDuration)
   audio.src = next.dataset.file
+  bufferbar.classList.remove('bufferbaranimation')
+  window.setTimeout(function () {
+    bufferbar.style.width = '0px'
+    window.setTimeout(function () {
+      bufferbar.classList.add('bufferbaranimation')
+    }, 0)
+  }, 0)
 
   const key = albumKey(next.dataset.albumUrl)
 
@@ -322,6 +362,19 @@ function musicPlayerOnTimeUpdate (ev) {
   }
   player.querySelector('.durationDisplay .current').innerHTML = humanDuration(audio.currentTime)
 }
+
+function musicPlayerUpdateBufferBar () {
+  if (currentDuration) {
+    if(audio.buffered.length > 0) {
+      bufferbar.style.width = Math.min(100, 1 + parseInt(100 * audio.buffered.end(0) / currentDuration)) + '%'
+    } else {
+      bufferbar.style.width = '100%'
+    }
+  } else {
+    bufferbar.style.width = '0px'
+  }
+}
+
 function musicPlayerShowBusy (ev) {
   const playpause = player.querySelector('.playpause')
   playpause.querySelector('.play').style.display = 'none'
@@ -367,16 +420,19 @@ function musicPlayerOnVolumeClick (ev) {
   const sliderWidth = volSlider.offsetWidth
   const percent = (ev.clientX - volSlider.getBoundingClientRect().left) / sliderWidth
   audio.volume = percent > 0.9 ? 1.0 : percent
+  GM.setValue('volume', audio.volume)
 }
 function musicPlayerOnVolumeWheel (ev) {
   ev.preventDefault()
   const direction = Math.min(Math.max(-1.0, ev.deltaY), 1.0)
   audio.volume = Math.min(Math.max(0.0, audio.volume - 0.05 * direction), 1.0)
+  GM.setValue('volume', audio.volume)
 }
 function musicPlayerOnMuteClick (ev) {
   if (audio.volume < 0.01) {
     if ('lastvolume' in audio.dataset && audio.dataset.lastvolume) {
       audio.volume = audio.dataset.lastvolume
+      GM.setValue('volume', audio.volume)
     } else {
       audio.volume = 1.0
     }
@@ -550,6 +606,7 @@ function musicPlayerCreate () {
   <audio autoplay="autoplay" preload="auto"></audio>
   <div class="audioplayer">
     <div id="timeline">
+      <div id="bufferbar" class="bufferbaranimation"></div>
       <div id="playhead"></div>
     </div>
     <div class="controls">
@@ -763,8 +820,17 @@ function musicPlayerCreate () {
   width:10px;
   height:10px;
   border-radius: 50%;
-  background:rgba(50,50,50,1.0);
+  background:rgba(50,50,50,1.0);;
   cursor:pointer;
+}
+.bufferbaranimation{
+  transition: width 1s;
+}
+#bufferbar{
+  position:absolute;
+  width:0px;
+  height:10px;
+  background:rgba(0,0,0,0.1);
 }
 #discographyplayer .playlist{
   width:100%;
@@ -915,7 +981,9 @@ function musicPlayerCreate () {
 `
 
   audio = player.querySelector('audio')
+  getStoredVolume(function (volume) { audio.volume = volume })
   playhead = player.querySelector('#playhead')
+  bufferbar = player.querySelector('#bufferbar')
   timeline = player.querySelector('#timeline')
 
   audio.addEventListener('ended', musicPlayerOnEnded)
@@ -942,6 +1010,8 @@ function musicPlayerCreate () {
 
   player.querySelector('.collect-wishlist').addEventListener('click', musicPlayerCollectWishlistClick)
   player.querySelector('.collect-listened').addEventListener('click', musicPlayerCollectListenedClick)
+
+  window.setInterval(musicPlayerUpdateBufferBar, 1000)
 }
 
 function addHeadingToPlaylist (title, url) {
@@ -1636,6 +1706,168 @@ async function showListenedListTab () {
   }
 }
 
+function addVolumeBarToAlbumPage () {
+  // Do not add if one of these scripts already added a volume bar
+  // https://openuserjs.org/scripts/cuzi/Bandcamp_Volume_Bar
+  // https://openuserjs.org/scripts/Mranth0ny62/Bandcamp_Volume_Bar
+  // https://openuserjs.org/scripts/ArtificialInput/Bandcamp_Volume_Bar
+  // https://greasyfork.org/en/scripts/11047-bandcamp-volume-bar/
+  // https://greasyfork.org/en/scripts/38012-bandcamp-volume-bar/
+  if (document.querySelector('.volumeControl')) {
+    return false
+  }
+
+  document.head.appendChild(document.createElement('style')).innerHTML = `
+    .volumeButton {
+      display: inline-block;
+      user-select:none;
+      background: #fff;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      cursor: pointer;
+      min-height: 50px;
+      min-width: 54px;
+      text-align:center;
+      margin-top:5px;
+    }
+
+    .volumeSymbol {
+      margin-top: 16px;
+      font-size: 30px;
+      color:#222;
+      font-weight:bolder;
+      transform: rotate(-90deg);
+      text-shadow: rgb(255, 255, 255) 0px 0px 0px;
+      transition: text-shadow linear 300ms;
+    }
+    .volumeControl {
+      display:inline-block;
+      user-select:none;
+      top:5px;
+    }
+    .volumeLabel {
+      display:inline-block;
+    }
+  `
+
+  const playbutton = document.querySelector('#trackInfoInner .playbutton')
+  const volumeButton = playbutton.cloneNode(true)
+  document.querySelector('#trackInfoInner .inline_player').appendChild(volumeButton)
+  volumeButton.classList.replace('playbutton', 'volumeButton')
+  volumeButton.style.width = playbutton.clientWidth + 'px'
+  const volumeSymbol = volumeButton.appendChild(document.createElement('div'))
+  volumeSymbol.className = 'volumeSymbol'
+  volumeSymbol.appendChild(document.createTextNode('\u23F2'))
+
+  const progbar = document.querySelector('#trackInfoInner .progbar_cell .progbar')
+  const volumeBar = progbar.cloneNode(true)
+  document.querySelector('#trackInfoInner .inline_player').appendChild(volumeBar)
+  volumeBar.classList.add('volumeControl')
+  volumeBar.style.width = progbar.clientWidth + 'px'
+  const thumb = volumeBar.querySelector('.thumb')
+  thumb.setAttribute('id', 'deluxe_thumb')
+  const progbarFill = volumeBar.querySelector('.progbar_fill')
+
+  const volumeLabel = document.createElement('div')
+  document.querySelector('#trackInfoInner .inline_player').appendChild(volumeLabel)
+  volumeLabel.classList.add('volumeLabel')
+
+  let dragging = false
+  let dragPos
+  const width100 = volumeBar.clientWidth - (thumb.clientWidth + 2) // 2px border
+  const rot0 = -90
+  const rot100 = 265 - rot0
+  const blue0 = 180
+  const blue100 = 255
+  const green0 = 90
+  const green100 = 230
+
+  const displayVolume = function () {
+    const level = document.querySelector('audio').volume
+    volumeLabel.innerHTML = parseInt(level * 100.0) + '%'
+    thumb.style.left = (width100 * level) + 'px'
+    progbarFill.style.width = parseInt(level * 100.0) + '%'
+    volumeSymbol.style.transform = 'rotate(' + ((level * rot100) + rot0) + 'deg)'
+    if(level > 0.005) {
+      volumeSymbol.style.textShadow = 'rgb(0, ' + ((level * green100) + green0) + ', ' + ((level * blue100) + blue0) + ') 0px 0px 2px'
+    } else {
+      volumeSymbol.style.textShadow = 'rgb(255, 255, 255) 0px 0px 0px'
+    }
+  }
+
+  thumb.addEventListener('mousedown', function (ev) {
+    if (ev.button === 0) {
+      dragging = true
+      dragPos = ev.offsetX
+    }
+  })
+  volumeBar.addEventListener('mouseup', function (ev) {
+    if (ev.button !== 0) {
+      return
+    }
+    ev.preventDefault()
+    ev.stopPropagation()
+    const audio = document.querySelector('audio')
+    if (!dragging) {
+      // Click on volume bar without dragging:
+      const pos = volumeBar.getBoundingClientRect()
+      audio.muted = false
+      audio.volume = Math.max(0.0, Math.min(1.0, (ev.pageX - pos.left) / width100))
+      displayVolume()
+    }
+    GM.setValue('volume', audio.volume)
+    dragging = false
+  })
+  document.addEventListener('mouseup', function (ev) {
+    if (ev.button === 0 && dragging) {
+      ev.preventDefault()
+      ev.stopPropagation()
+      GM.setValue('volume', document.querySelector('audio').volume)
+      dragging = false
+    }
+  })
+  document.addEventListener('mousemove', function (ev) {
+    if (ev.button === 0 && dragging) {
+      ev.preventDefault()
+      ev.stopPropagation()
+      const audio = document.querySelector('audio')
+      const pos = volumeBar.getBoundingClientRect()
+      audio.muted = false
+      audio.volume = Math.max(0.0, Math.min(1.0, ((ev.pageX - pos.left) - dragPos) / width100))
+      displayVolume()
+    }
+  })
+  const onWheel = function (ev) {
+    ev.preventDefault()
+    const direction = Math.min(Math.max(-1.0, ev.deltaY), 1.0)
+    const audio = document.querySelector('audio')
+    audio.volume = Math.min(Math.max(0.0, audio.volume - 0.05 * direction), 1.0)
+    displayVolume()
+    GM.setValue('volume', audio.volume)
+  }
+  volumeButton.addEventListener('wheel', onWheel, false)
+  volumeBar.addEventListener('wheel', onWheel, false)
+  volumeButton.addEventListener('click', function (ev) {
+    const audio = document.querySelector('audio')
+    if (audio.volume < 0.01) {
+      if ('lastvolume' in audio.dataset && audio.dataset.lastvolume) {
+        audio.volume = audio.dataset.lastvolume
+        GM.setValue('volume', audio.volume)
+      } else {
+        audio.volume = 1.0
+      }
+    } else {
+      audio.dataset.lastvolume = audio.volume
+      audio.volume = 0.0
+    }
+    displayVolume()
+  })
+
+  displayVolume()
+
+  window.clearInterval(ivRestoreVolume)
+}
+
 function clickAddToWishlist () {
   const wishButton = document.querySelector('#collect-item>*')
   if (!wishButton) {
@@ -1657,6 +1889,7 @@ if (document.querySelector('.music-grid .music-grid-item a[href^="/album/"] img'
 if (document.querySelector('.inline_player')) {
   // Album page with player
   removeTheTimeHasComeToOpenThyHeartWallet()
+  window.setTimeout(addVolumeBarToAlbumPage, 3000)
 }
 
 if (document.querySelector('.share-panel-wrapper-desktop')) {
@@ -1678,5 +1911,7 @@ if (document.querySelector('ol#grid-tabs li') && document.querySelector('.fan-bi
     }, 500)
   }
 }
+
+restoreVolume()
 
 makeAlbumLinksGreat()
