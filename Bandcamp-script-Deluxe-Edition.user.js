@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.3
+// @version       0.4
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -553,6 +553,9 @@ function musicPlayerCookieChannel (onStopEventCb) {
     && event.data.discographyplayerCookiechannelPlaylist === 'sendstop') {
       channel.send('stop')
     }
+  })
+  window.addEventListener('unload', function(event) {
+    channel.cleanup()
   })
   `
   document.head.appendChild(script)
@@ -1759,7 +1762,7 @@ function addVolumeBarToAlbumPage () {
   volumeButton.style.width = playbutton.clientWidth + 'px'
   const volumeSymbol = volumeButton.appendChild(document.createElement('div'))
   volumeSymbol.className = 'volumeSymbol'
-  volumeSymbol.appendChild(document.createTextNode(firefox?'\u23F2':'\uD83D\uDD5B'))
+  volumeSymbol.appendChild(document.createTextNode(firefox ? '\u23F2' : '\uD83D\uDD5B'))
 
   const progbar = document.querySelector('#trackInfoInner .progbar_cell .progbar')
   const volumeBar = progbar.cloneNode(true)
@@ -1777,8 +1780,8 @@ function addVolumeBarToAlbumPage () {
   let dragging = false
   let dragPos
   const width100 = volumeBar.clientWidth - (thumb.clientWidth + 2) // 2px border
-  const rot0 = firefox?-90:-180
-  const rot100 = firefox?265 - rot0:350
+  const rot0 = firefox ? -90 : -180
+  const rot100 = firefox ? 265 - rot0 : 350
   const blue0 = 180
   const blue100 = 75
   const green0 = 90
