@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.4
+// @version       0.5
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -605,7 +605,7 @@ function musicPlayerCreate () {
     </div>
   </div>
 </div>
-<div class="col col25">
+<div class="col col25 colcontrols">
   <audio autoplay="autoplay" preload="auto"></audio>
   <div class="audioplayer">
     <div id="timeline">
@@ -643,7 +643,7 @@ function musicPlayerCreate () {
 <div class="col col35">
   <ol class="playlist"></ol>
 </div>
-<div class="col col15">
+<div class="col col15 colcontrols colvolumecontrols">
 
   <div class="vol">
       <div class="vol-icon-wrapper" title="Mute">
@@ -980,7 +980,12 @@ function musicPlayerCreate () {
 #discographyplayer .col20 {
   width: 20%;
 }
-
+#discographyplayer .colcontrols {
+  user-select: none
+}
+#discographyplayer .colvolumecontrols {
+  margin-left:10px
+}
 `
 
   audio = player.querySelector('audio')
