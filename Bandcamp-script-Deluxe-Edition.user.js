@@ -4,11 +4,14 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.5
+// @version       0.6
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
 // @grant         GM.getValue
+// @grant         GM.notification
+// @grant         GM.download
+// @grant         unsafeWindow
 // @include       https://bandcamp.com/*
 // @include       https://*.bandcamp.com/*
 // ==/UserScript==
@@ -17,7 +20,53 @@
 // @author        cuzi
 // ==/OpenUserJS==
 
-/* globals JSON5, GM, MouseEvent */
+/* globals JSON5, GM, unsafeWindow, MouseEvent, Response */
+
+const BACKUP_REMINDER_DAYS = 35
+const TRALBUM_CACHE_HOURS = 2
+
+const allFeatures = {
+  discographyplayer: {
+    name: 'Enable player on discography page',
+    default: true
+  },
+  albumPageVolumeBar: {
+    name: 'Enable volume slider on album page',
+    default: true
+  },
+  markasplayed: {
+    name: 'Show "mark as played" link on discography player',
+    default: true
+  },
+  markasplayedEverywhere: {
+    name: 'Show "mark as played" link everywhere',
+    default: true
+  },
+  /* markasplayedAuto: {
+    name: '(NOT YET IMPLEMENTED) Automatically "mark as played" once a song was played for',
+    default: false
+  }, */
+  thetimehascome: {
+    name: 'Circumvent "The time has come to open thy wallet" limit',
+    default: true
+  },
+  albumPageDownloadLinks: {
+    name: 'Show download links on album page',
+    default: true
+  },
+  discographyplayerDownloadLink: {
+    name: 'Show download link on discography player',
+    default: true
+  },
+  backupReminder: {
+    name: 'Remind me to backup my played albums every month',
+    default: true
+  },
+  nextSongNotifications: {
+    name: 'Show a notification when a new song starts',
+    default: false
+  }
+}
 
 var player, audio, currentDuration, timeline, playhead, bufferbar
 var onPlayHead = false
@@ -39,6 +88,52 @@ function humanDuration (duration) {
   }
   seconds = (seconds < 10 ? '0' : '') + seconds
   return `${hours}${minutes}:${seconds}`
+}
+
+function padd (n, width, filler) {
+  let s
+  for (s = n.toString(); s.length < width; s = filler + s) {}
+  return s
+}
+
+function metricPrefix (n, decimals, k) {
+  // From http://stackoverflow.com/a/18650828
+  if (n <= 0) {
+    return String(n)
+  }
+  k = k || 1000
+  const dm = decimals <= 0 ? 0 : decimals || 2
+  const sizes = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+  const i = Math.floor(Math.log(n) / Math.log(k))
+  return parseFloat((n / Math.pow(k, i)).toFixed(dm)) + sizes[i]
+}
+
+function base64encode (s) {
+  // from https://gist.github.com/stubbetje/229984
+  const base64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='.split('')
+  const l = s.length
+  let o = ''
+  for (let i = 0; i < l; i++) {
+    const byte0 = s.charCodeAt(i++) & 0xff
+    const byte1 = s.charCodeAt(i++) & 0xff
+    const byte2 = s.charCodeAt(i) & 0xff
+    o += base64[byte0 >> 2]
+    o += base64[((byte0 & 0x3) << 4) | (byte1 >> 4)]
+    const t = i - l
+    if (t >= 0) {
+      if (t === 0) {
+        o += base64[((byte1 & 0x0f) << 2) | (byte2 >> 6)]
+        o += base64[64]
+      } else {
+        o += base64[64]
+        o += base64[64]
+      }
+    } else {
+      o += base64[((byte1 & 0x0f) << 2) | (byte2 >> 6)]
+      o += base64[byte2 & 0x3f]
+    }
+  }
+  return o
 }
 
 function timeSince (date) {
@@ -105,6 +200,23 @@ function dateFormaterRelease (date) {
   return date.toLocaleDateString(undefined, _dateOptionsWithoutYear) + ', ' + date.getFullYear()
 }
 
+function getEnabledFeatures (enabledFeaturesValue) {
+  for (const feature in allFeatures) {
+    allFeatures[feature].enabled = allFeatures[feature].default
+  }
+  if (enabledFeaturesValue !== false) {
+    const enabledFeatures = JSON.parse(enabledFeaturesValue)
+    if (enabledFeatures.constructor === Object) {
+      for (const feature in enabledFeatures) {
+        if (feature in allFeatures) {
+          allFeatures[feature].enabled = enabledFeatures[feature].enabled
+        }
+      }
+    }
+  }
+  return allFeatures
+}
+
 function findUserProfileUrl () {
   if (document.querySelector('#collection-main a')) {
     return document.querySelector('#collection-main a').href
@@ -146,8 +258,11 @@ function restoreVolume () {
       }
     }
     restoreVolumeInterval()
-    ivRestoreVolume = window.setInterval(restoreVolumeInterval, 700)
+    ivRestoreVolume = window.setInterval(restoreVolumeInterval, 3000)
   })
+  window.setTimeout(function () {
+    window.clearInterval(ivRestoreVolume)
+  }, 10000)
 }
 
 function findPreviousAlbumCover (currentUrl) {
@@ -173,7 +288,8 @@ function findNextAlbumCover (currentUrl) {
   let isNext = false
   for (let i = 0; i < as.length; i++) {
     if (isNext) {
-      return playAlbumFromCover.apply(as[i], null)
+      playAlbumFromCover.apply(as[i], null)
+      return true
     }
     if (albumKey(as[i].href) === currentKey) {
       isNext = true
@@ -249,21 +365,48 @@ function musicPlayerPlaySong (next) {
 
   // Played/Listened
   const collectListened = player.querySelector('.collect-listened')
-  collectListened.dataset.albumUrl = next.dataset.albumUrl
-  player.querySelectorAll('.collect-listened>*').forEach(function (e) { e.style.display = 'none' })
-  GM.getValue('myalbums', '{}').then(function (str) {
-    const myalbums = JSON.parse(str)
-    if (key in myalbums && 'listened' in myalbums[key] && myalbums[key].listened) {
-      player.querySelector('.collect-listened .listened').style.display = 'inline-block'
-      const date = new Date(myalbums[key].listened)
-      const since = timeSince(date)
-      player.querySelector('.collect-listened .listened').title = since + ' ago\nClick to mark as NOT played'
-      collectListened.dataset.listened = myalbums[key].listened
-    } else {
-      player.querySelector('.collect-listened .mark-listened').style.display = 'inline-block'
-      collectListened.dataset.listened = false
-    }
-  })
+  if (allFeatures.markasplayed.enabled && collectListened) {
+    collectListened.dataset.albumUrl = next.dataset.albumUrl
+    player.querySelectorAll('.collect-listened>*').forEach(function (e) { e.style.display = 'none' })
+    GM.getValue('myalbums', '{}').then(function (str) {
+      const myalbums = JSON.parse(str)
+      if (key in myalbums && 'listened' in myalbums[key] && myalbums[key].listened) {
+        player.querySelector('.collect-listened .listened').style.display = 'inline-block'
+        const date = new Date(myalbums[key].listened)
+        const since = timeSince(date)
+        player.querySelector('.collect-listened .listened').title = since + ' ago\nClick to mark as NOT played'
+        collectListened.dataset.listened = myalbums[key].listened
+      } else {
+        player.querySelector('.collect-listened .mark-listened').style.display = 'inline-block'
+        collectListened.dataset.listened = false
+      }
+    })
+  } else if (collectListened) {
+    collectListened.remove()
+  }
+
+  // Notification
+  if (allFeatures.nextSongNotifications.enabled && 'notification' in GM) {
+    GM.notification({
+      title: document.location.host,
+      text: next.dataset.title + '\nby ' + next.dataset.artist + '\nfrom ' + next.dataset.album,
+      image: next.dataset.albumCover,
+      highlight: false,
+      silent: true,
+      timeout: 3000,
+      onclick: musicPlayerNext
+    })
+  }
+
+  // Download link
+  const downloadLink = player.querySelector('.downloadlink')
+  if (allFeatures.discographyplayerDownloadLink.enabled) {
+    downloadLink.href = next.dataset.file
+    downloadLink.download = next.dataset.trackNumber > 9 ? '' : '0' + next.dataset.trackNumber + '. ' + next.dataset.artist + ' - ' + next.dataset.title + '.mp3'
+    downloadLink.style.display = 'block'
+  } else {
+    downloadLink.style.display = 'none'
+  }
 
   // Animate
   currentlyPlaying.style.marginLeft = -parseInt(currentlyPlaying.clientWidth + 1) + 'px'
@@ -325,7 +468,11 @@ function musicPlayerNextAlbum () {
   audio.pause()
   window.setTimeout(function () {
     musicPlayerShowBusy()
-    findNextAlbumCover(player.querySelector('.playlist .playing').dataset.albumUrl)
+    const r = findNextAlbumCover(player.querySelector('.playlist .playing').dataset.albumUrl)
+    if (r === false) {
+      audio.play()
+      window.alert('End of playlist reached')
+    }
   }, 10)
 }
 
@@ -564,8 +711,26 @@ function musicPlayerCookieChannelSendStop (onStopEventCb) {
   window.postMessage({ discographyplayerCookiechannelPlaylist: 'sendstop' }, document.location.href)
 }
 
+function musicPlayerToggleMinimize () {
+  if (player.style.bottom !== '-57px') {
+    player.style.bottom = '-57px'
+  } else {
+    player.style.bottom = '0px'
+  }
+}
+
+function musicPlayerClose () {
+  if (player) {
+    player.style.display = 'none'
+  }
+  if (audio) {
+    audio.pause()
+  }
+}
+
 function musicPlayerCreate () {
   if (player) {
+    player.style.display = 'block'
     return
   }
 
@@ -637,7 +802,11 @@ function musicPlayerCreate () {
       </div>
     </div>
     <div class="durationDisplay"><span class="current">-</span>/<span class="total">-</span></div>
-    <br class="cll">
+
+    <a class="downloadlink" title="Download mp3">
+      ⭳
+    </a>
+    <br class="clb">
   </div>
 </div>
 <div class="col col35">
@@ -694,12 +863,15 @@ function musicPlayerCreate () {
   </div>
 
   <br class="cll">
-
+  <div class="closebutton" title="Minimize player&#13;Right click: Close">&#9421;</div>
 </div>`
 
   document.head.appendChild(document.createElement('style')).innerHTML = `
 .cll{
   clear:left;
+}
+.clb{
+  clear:both;
 }
 #discographyplayer{
   z-index:1010;
@@ -745,7 +917,30 @@ function musicPlayerCreate () {
   transition: width 6s ease-in-out;
 }
 #discographyplayer .durationDisplay{
-  margin-top:24px
+  margin-top:24px;
+  float:left;
+}
+#discographyplayer .downloadlink:link{
+  display:block;
+  float:right;
+  margin-top: 10px;
+  font-size:15px;
+  padding: 0px 3px;
+  border:1px solid rgb(6, 135, 245);
+  transition: color 300ms ease-in-out, border-color 300ms ease-in-out;
+}
+#discographyplayer .downloadlink:hover{
+  text-decoration:none
+}
+#discographyplayer .downloadlink.downloading{
+  color:#f0f;
+  border-color:#f0f;
+  animation: downloadrotation 3s infinite linear;
+  cursor:wait;
+}
+@keyframes downloadrotation {
+  from {transform: rotate(0deg)}
+  to {transform: rotate(359deg)}
 }
 #discographyplayer .controls{
   margin-top: 10px;
@@ -757,7 +952,7 @@ function musicPlayerCreate () {
   cursor: pointer;
   border: 1px solid #d9d9d9;
   padding: 11px;
-  margin-right: 14px;
+  margin-right: 4px;
   height: 18px;
   width: 17px;
 }
@@ -960,6 +1155,21 @@ function musicPlayerCreate () {
 #discographyplayer .collect .mark-listened:hover .mark-listened-label {
   text-decoration:underline;
 }
+#discographyplayer .closebutton {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  border: 1px solid #505958;
+  color: #505958;
+  font-size: 10px;
+  box-shadow: 0px 0px 2px #505958;
+  cursor: pointer;
+  opacity:0.0;
+  transition: opacity 300ms;
+}
+#discographyplayer:hover .closebutton {
+  opacity:1.0
+}
 #discographyplayer .col {
   float: left;
   min-height: 1px;
@@ -986,18 +1196,25 @@ function musicPlayerCreate () {
 #discographyplayer .colvolumecontrols {
   margin-left:10px
 }
+
 `
 
   audio = player.querySelector('audio')
-  getStoredVolume(function (volume) { audio.volume = volume })
+  getStoredVolume(function setVolumeCallback (volume) { audio.volume = volume })
   playhead = player.querySelector('#playhead')
   bufferbar = player.querySelector('#bufferbar')
   timeline = player.querySelector('#timeline')
 
+  player.querySelector('.closebutton').addEventListener('click', musicPlayerToggleMinimize)
+  player.querySelector('.closebutton').addEventListener('contextmenu', function onContextMenu (ev) {
+    ev.preventDefault()
+    musicPlayerClose()
+  })
+
   audio.addEventListener('ended', musicPlayerOnEnded)
   audio.addEventListener('timeupdate', musicPlayerOnTimeUpdate)
   audio.addEventListener('volumechange', musicPlayerOnVolumeChanged)
-  audio.addEventListener('canplaythrough', function () {
+  audio.addEventListener('canplaythrough', function onCanPlayThrough () {
     currentDuration = audio.duration
     player.querySelector('.durationDisplay .total').innerHTML = humanDuration(currentDuration)
   })
@@ -1018,6 +1235,12 @@ function musicPlayerCreate () {
 
   player.querySelector('.collect-wishlist').addEventListener('click', musicPlayerCollectWishlistClick)
   player.querySelector('.collect-listened').addEventListener('click', musicPlayerCollectListenedClick)
+
+  player.querySelector('.downloadlink').addEventListener('click', function (ev) {
+    const addSpinner = (el) => el.classList.add('downloading')
+    const removeSpinner = (el) => el.classList.remove('downloading')
+    downloadMp3FromLink(ev, this, addSpinner, removeSpinner)
+  })
 
   window.setInterval(musicPlayerUpdateBufferBar, 1200)
 }
@@ -1159,24 +1382,27 @@ function albumKey (url) {
 }
 
 async function storeTralbumData (TralbumData) {
+  const expires = TRALBUM_CACHE_HOURS * 3600000
   const cache = JSON.parse(await GM.getValue('tralbumdata', '{}'))
   for (const prop in cache) {
     // Delete cached values, that are older than 2 hours
-    if ((new Date()).getTime() - (new Date(cache[prop].time)).getTime() > 2 * 60 * 60 * 1000) {
+    if ((new Date()).getTime() - (new Date(cache[prop].time)).getTime() > expires) {
       delete cache[prop]
     }
   }
   TralbumData.time = (new Date()).toJSON()
   cache[albumKey(TralbumData.url)] = TralbumData
-  await GM.setValue('hovercache', JSON.stringify(cache))
+  await GM.setValue('tralbumdata', JSON.stringify(cache))
+  await GM.setValue('hovercache', '') // TODO remove this line in next version
 }
 
 async function cachedTralbumData (url) {
+  const expires = TRALBUM_CACHE_HOURS * 3600000
   const key = albumKey(url)
   const cache = JSON.parse(await GM.getValue('tralbumdata', '{}'))
   for (const prop in cache) {
     // Delete cached values, that are older than 2 hours
-    if ((new Date()).getTime() - (new Date(cache[prop].time)).getTime() > 2 * 60 * 60 * 1000) {
+    if ((new Date()).getTime() - (new Date(cache[prop].time)).getTime() > expires) {
       delete cache[prop]
       continue
     }
@@ -1198,6 +1424,7 @@ function playAlbumFromCover (ev) {
 
   // Check if already in playlist
   if (player) {
+    musicPlayerCreate()
     const lis = player.querySelectorAll('.playlist .playlistentry')
     for (let i = 0; i < lis.length; i++) {
       if (lis[i].dataset.albumUrl === url) {
@@ -1370,7 +1597,10 @@ async function makeAlbumLinksGreat () {
     for (let j = 0; parent.tagName !== 'A' && j < 20; j++) {
       parent = parent.parentNode
     }
-    setTimeout(function () { parent.style.cursor = 'wait'; parent.querySelector('.bdp_check_container').innerHTML = 'Saving...' }, 0)
+    setTimeout(function () {
+      parent.style.cursor = 'wait'
+      parent.querySelector('.bdp_check_container').innerHTML = 'Saving...'
+    }, 0)
 
     const url = parent.href
     let albumData = await myAlbumsGetAlbum(url)
@@ -1391,7 +1621,10 @@ async function makeAlbumLinksGreat () {
     for (let j = 0; parent.tagName !== 'A' && j < 20; j++) {
       parent = parent.parentNode
     }
-    setTimeout(function () { parent.style.cursor = 'wait'; parent.querySelector('.bdp_check_container').innerHTML = 'Saving...' }, 0)
+    setTimeout(function () {
+      parent.style.cursor = 'wait'
+      parent.querySelector('.bdp_check_container').innerHTML = 'Saving...'
+    }, 0)
 
     const url = parent.href
     const albumData = await myAlbumsGetAlbum(url)
@@ -1622,6 +1855,7 @@ function makeListenedListTabLink () {
   inner.innerHTML = 'Loading...'
 
   const li = document.querySelector('ol#grid-tabs').appendChild(document.createElement('li'))
+  li.id = 'listenedlisttablink'
   li.dataset.tab = 'listened'
   li.setAttribute('data-grid-id', 'listened-grid')
   const span = li.appendChild(document.createElement('span'))
@@ -1650,6 +1884,19 @@ async function showListenedListTab () {
   if (document.getElementById('wishlist-controls')) document.getElementById('wishlist-controls').style.display = 'none'
 
   const grid = document.getElementById('listened-grid')
+  const gridActive = document.querySelector('#grids .grid.active')
+  if (gridActive && gridActive !== grid) {
+    gridActive.classList.remove('active')
+  }
+  grid.classList.add('active')
+
+  const tabLink = document.getElementById('listenedlisttablink')
+  const tabLinkActive = document.querySelector('#grid-tab li.active')
+  if (tabLinkActive && tabLinkActive !== tabLink) {
+    tabLinkActive.classList.remove('active')
+  }
+  tabLink.classList.add('active')
+
   if (grid.querySelector('.collection-items')) {
     return
   }
@@ -1694,7 +1941,7 @@ async function showListenedListTab () {
           <img class="collection-item-art" alt="" src="${albumCover}">
         </div>
         <div class="collection-title-details">
-          <a target="_blank" href="${url}" class="item-link">
+          <a target="_blank" href="https://${url}" class="item-link">
             <div class="collection-item-title">${title}</div>
             <div class="collection-item-artist">by ${artist}</div>
           </a>
@@ -1890,37 +2137,907 @@ function clickAddToWishlist () {
   }
 }
 
-if (document.querySelector('.music-grid .music-grid-item a[href^="/album/"] img')) {
-  // Discography page
-  makeAlbumCoversGreat()
+function mainMenu (startBackup) {
+  document.head.appendChild(document.createElement('style')).innerHTML = `
+    .deluxemenu {
+      position:fixed;
+      height:auto;
+      overflow:auto;
+      top:20px;
+      left:20px;
+      z-index:200;
+      padding:5px;
+      transition: left 1s;
+      border:2px solid black;
+      border-radius:10px;
+      color:black;
+      background:white;
+    }
+    .deluxemenu input{
+      box-shadow: 2px 2px 5px #5555;
+      transition: box-shadow 500ms;
+    }
+  `
+
+  if (startBackup === true) {
+    exportMenu()
+    return
+  }
+
+  // Blur background
+  if (document.getElementById('centerWrapper')) { document.getElementById('centerWrapper').style.filter = 'blur(4px)' }
+
+  const main = document.body.appendChild(document.createElement('div'))
+  main.className = 'deluxemenu'
+  main.innerHTML = `<h2>Bandcamp script (Deluxe Edition)</h2>
+  Source code license: <a href="https://github.com/cvzi/Bandcamp-script-deluxe-edition/blob/master/LICENSE">MIT</a><br>
+  Support: <a href="https://github.com/cvzi/Bandcamp-script-deluxe-edition">github.com/cvzi/Bandcamp-script-deluxe-edition</a><br>
+  OUJS.org: <a href="https://openuserjs.org/scripts/cuzi/Bandcamp_script_(Deluxe_Edition)">openuserjs.org/scripts/cuzi/Bandcamp_script_(Deluxe_Edition)</a><br>
+  Libraries used:<br>
+   * <a href="https://json5.org/">JSON5 - JSON for Humans</a> (MIT license)
+   <h3>Options</h3>
+  `
+
+  window.setTimeout(function () {
+    main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
+    main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
+    main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
+  }, 0)
+
+  Promise.all([
+    GM.getValue('volume', '0.7'),
+    GM.getValue('myalbums', '{}'),
+    GM.getValue('tralbumdata', '{}'),
+    GM.getValue('enabledFeatures', false),
+    GM.getValue('markasplayedThreshold', '10s')
+  ]).then(function (values) {
+    // let volume = parseFloat(values[0])
+    // volume = Number.isNaN(volume) ? 0.7 : volume
+    const myalbums = JSON.parse(values[1])
+    const tralbumdata = JSON.parse(values[2])
+    getEnabledFeatures(values[3])
+    const markasplayedThreshold = values[4]
+
+    const checkboxOnChange = async function onCheckboxChange () {
+      const input = this
+      getEnabledFeatures(await GM.getValue('enabledFeatures', false))
+      allFeatures[input.name].enabled = input.checked
+      await GM.setValue('enabledFeatures', JSON.stringify(allFeatures))
+      input.style.boxShadow = '2px 2px 5px #0a0f'
+      window.setTimeout(function () {
+        input.style.boxShadow = ''
+      }, 3000)
+    }
+
+    const thresholdOnChange = async function onThresholdChange () {
+      const input = this
+      let value = input.value.trim()
+      const m = value.match(/^(\d+)(s|%)$/)
+      if (m && parseInt(m[1]) >= 0 && (m[2] === 's' || parseInt(m[1]) <= 100)) {
+        value = m[1] + m[2]
+      } else if (value.match(/^\d+$/) && parseInt(value.split('\n')[0]) >= 0) {
+        value = value.split('\n')[0] + 's'
+      } else {
+        window.alert('Format does not match!\nChoose either a time in seconds e.g. 10s or a percentage e.g. 50%')
+        return
+      }
+
+      await GM.setValue('markasplayedThreshold', value)
+      input.value = value
+      input.style.boxShadow = '2px 2px 5px #0a0f'
+      window.setTimeout(function () {
+        input.style.boxShadow = ''
+      }, 3000)
+    }
+
+    for (const feature in allFeatures) {
+      const div = main.appendChild(document.createElement('div'))
+      const checkbox = div.appendChild(document.createElement('input'))
+      checkbox.type = 'checkbox'
+      checkbox.id = 'feature_' + feature
+      checkbox.name = feature
+      checkbox.checked = allFeatures[feature].enabled
+      const label = div.appendChild(document.createElement('label'))
+      label.setAttribute('for', 'feature_' + feature)
+      label.innerHTML = allFeatures[feature].name
+      checkbox.addEventListener('change', checkboxOnChange)
+
+      if (feature === 'markasplayedAuto') {
+        main.appendChild(document.createTextNode(' '))
+        const inputThreshold = div.appendChild(document.createElement('input'))
+        inputThreshold.type = 'text'
+        inputThreshold.value = markasplayedThreshold
+        inputThreshold.size = 3
+        inputThreshold.title = 'For example: 10s or 50%'
+        inputThreshold.id = 'feature_' + feature + '_threshold'
+        div.appendChild(document.createTextNode(' '))
+        const label = div.appendChild(document.createElement('label'))
+        label.setAttribute('for', 'feature_' + feature + '_threshold')
+        label.innerHTML = 'seconds or percentage.'
+        inputThreshold.addEventListener('change', thresholdOnChange)
+      }
+    }
+
+    // Bottom buttons
+    main.appendChild(document.createElement('br'))
+    main.appendChild(document.createElement('br'))
+    const buttons = main.appendChild(document.createElement('div'))
+
+    const closeButton = buttons.appendChild(document.createElement('button'))
+    closeButton.appendChild(document.createTextNode('Close'))
+    closeButton.style.color = 'black'
+    closeButton.addEventListener('click', function onCloseButtonClick () {
+      document.querySelector('.deluxemenu').remove()
+      // Un-blur background
+      if (document.getElementById('centerWrapper')) {
+        document.getElementById('centerWrapper').style.filter = ''
+      }
+    })
+
+    const bytes = metricPrefix(JSON.stringify(tralbumdata).length - 2, 1, 1024) + 'Bytes'
+    const clearCacheButton = buttons.appendChild(document.createElement('button'))
+    clearCacheButton.appendChild(document.createTextNode('Clear cache (' + bytes + ')'))
+    clearCacheButton.style.color = 'black'
+    clearCacheButton.addEventListener('click', function onClearCacheButtonClick () {
+      GM.setValue('tralbumdata', '{}').then(function () {
+        clearCacheButton.innerHTML = 'Cleared'
+      })
+    })
+
+    let myalbumsLength = 0
+    for (const key in myalbums) {
+      if (myalbums[key].listened) {
+        myalbumsLength++
+      }
+    }
+    const exportButton = buttons.appendChild(document.createElement('button'))
+    exportButton.appendChild(document.createTextNode('Export played albums (' + myalbumsLength + ')'))
+    exportButton.style.color = 'black'
+    exportButton.addEventListener('click', function onExportButtonClick () {
+      document.querySelector('.deluxemenu').remove()
+      exportMenu()
+    })
+  })
+  window.setTimeout(function () {
+    main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
+    main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
+    main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
+  }, 0)
 }
 
-if (document.querySelector('.inline_player')) {
-  // Album page with player
-  removeTheTimeHasComeToOpenThyHeartWallet()
-  window.setTimeout(addVolumeBarToAlbumPage, 3000)
+function exportMenu (showClearButton) {
+  document.head.appendChild(document.createElement('style')).innerHTML = `
+    .deluxeexportmenu table {
+    }
+
+    .deluxeexportmenu table tr>td {
+      color:black
+    }
+    .deluxeexportmenu table tr>td:nth-child(3) {
+      color:silver
+    }
+    .deluxeexportmenu textarea.animated{
+      box-shadow: 2px 2px 5px #5555;
+      transition: box-shadow 500ms;
+    }
+    .deluxeexportmenu .drophint {
+      position:absolute;
+      top:10%;
+      left:30%;
+      color:#0097ff;
+      font-size:3em;
+      display:none;
+    }
+  `
+
+  // Blur background
+  if (document.getElementById('centerWrapper')) { document.getElementById('centerWrapper').style.filter = 'blur(4px)' }
+
+  const main = document.body.appendChild(document.createElement('div'))
+  main.className = 'deluxeexportmenu deluxemenu'
+  main.innerHTML = `<h2>Export played albums</h2>
+  <h1 class="drophint">Drop to restore from backup</h1>
+  Available fields per album:<br>
+  <table>
+    <tr>
+      <td>%artist%</td>
+      <td>Artist name</td>
+      <td>Jay-X</td>
+    </tr>
+    <tr>
+      <td>%title%</td>
+      <td>Song title</td>
+      <td>Classic song</td>
+    </tr>
+    <tr>
+      <td>%cover%</td>
+      <td>Cover image url</td>
+      <td>https://f4.bcbits.com/img/a2588527047_2.jpg</td>
+    </tr>
+    <tr>
+      <td>%url%</td>
+      <td>Album url</td>
+      <td>petrolgirls.bandcamp.com/album/cut-stitch</td>
+    </tr>
+    <tr>
+      <td>%releaseDate% / %releaseUnix% / %releaseTimestamp%</td>
+      <td>Release date</td>
+      <td>2019-02-07T14:01:59.100Z / 1549548119 / 1549548119100</td>
+    </tr>
+    <tr>
+      <td>%listenedDate% / %listenedUnix% / %listenedTimestamp%</td>
+      <td>Played/Listened date</td>
+      <td>2019-02-07T02:17:21.315Z / 1549505841 / 1549505841315</td>
+    </tr>
+    <tr>
+      <td>%releaseY% / %releaseYYYY%</td>
+      <td>Release: Year</td>
+      <td>19 / 2019</td>
+    </tr>
+    <tr>
+      <td>%releaseM% / %releaseMM% / %releaseMon% / %releaseMonth%</td>
+      <td>Release: Month</td>
+      <td>2 / 02 / Feb / February</td>
+    </tr>
+    <tr>
+      <td>%releaseD% / %releaseDD%</td>
+      <td>Release: Day of month</td>
+      <td>7 / 07</td>
+    </tr>
+    <tr>
+      <td>%releaseDay%</td>
+      <td>Release: Day of week</td>
+      <td>Friday</td>
+    </tr>
+    <tr>
+      <td>%listenedY% / %listenedYYYY%</td>
+      <td>Played: Year</td>
+      <td>19 / 2019</td>
+    </tr>
+    <tr>
+      <td>%listenedM% / %listenedMM% / %listenedMon% / %listenedMonth%</td>
+      <td>Played: Month</td>
+      <td>2 / 02 / Feb / February</td>
+    </tr>
+    <tr>
+      <td>%listenedD% / %listenedDD%</td>
+      <td>Played: Day of month</td>
+      <td>7 / 07</td>
+    </tr>
+    <tr>
+      <td>%listenedDay%</td>
+      <td>Played: Day of week</td>
+      <td>Friday</td>
+    </tr>
+
+  </table>
+  `
+  const drophint = main.querySelector('.drophint')
+
+  window.setTimeout(function () {
+    main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
+    main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
+    main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
+  }, 0)
+
+  GM.getValue('myalbums', '{}').then(function (myalbumsStr) {
+    const myalbums = JSON.parse(myalbumsStr)
+    const listenedAlbums = []
+    for (const key in myalbums) {
+      if (myalbums[key].listened) {
+        listenedAlbums.push(myalbums[key])
+      }
+    }
+    main.querySelector('h2').appendChild(document.createTextNode(' (' + listenedAlbums.length + ' records)'))
+
+    let format = '%artist% - %title%'
+
+    const formatAlbum = function (format, myAlbum) {
+      const releaseDate = new Date(myAlbum.releaseDate)
+      const listenedDate = new Date(myAlbum.listened)
+      const fields = {
+        '%artist%': () => myAlbum.artist,
+        '%title%': () => myAlbum.title,
+        '%cover%': () => myAlbum.albumCover,
+        '%url%': () => myAlbum.url,
+        '%releaseDate%': () => releaseDate.toISOString(),
+        '%listenedDate%': () => listenedDate.toISOString(),
+        '%releaseUnix%': () => parseInt(releaseDate.getTime() / 1000),
+        '%listenedUnix%': () => parseInt(listenedDate.getTime() / 1000),
+        '%releaseTimestamp%': () => releaseDate.getTime(),
+        '%listenedTimestamp%': () => listenedDate.getTime(),
+        '%releaseY%': () => releaseDate.getFullYear().toString().substring(2),
+        '%releaseYYYY%': () => releaseDate.getFullYear(),
+        '%releaseM%': () => releaseDate.getMonth() + 1,
+        '%releaseMM%': () => padd(releaseDate.getMonth() + 1, 2, '0'),
+        '%releaseMon%': () => releaseDate.toLocaleString(undefined, { month: 'short' }),
+        '%releaseMonth%': () => releaseDate.toLocaleString(undefined, { month: 'long' }),
+        '%releaseD%': () => releaseDate.getDate(),
+        '%releaseDD%': () => padd(releaseDate.getDate(), 2, '0'),
+        '%releaseDay%': () => releaseDate.toLocaleString(undefined, { weekday: 'long' }),
+        '%listenedY%': () => listenedDate.getFullYear().toString().substring(2),
+        '%listenedYYYY%': () => listenedDate.getFullYear(),
+        '%listenedM%': () => listenedDate.getMonth() + 1,
+        '%listenedMM%': () => padd(listenedDate.getMonth() + 1, 2, '0'),
+        '%listenedMon%': () => listenedDate.toLocaleString(undefined, { month: 'short' }),
+        '%listenedMonth%': () => listenedDate.toLocaleString(undefined, { month: 'long' }),
+        '%listenedD%': () => listenedDate.getDate(),
+        '%listenedDD%': () => padd(listenedDate.getDate(), 2, '0'),
+        '%listenedDay%': () => listenedDate.toLocaleString(undefined, { weekday: 'long' }),
+        '%json%': () => JSON.stringify(myAlbum),
+        '%json5%': () => JSON5.stringify(myAlbum)
+      }
+
+      for (const field in fields) {
+        if (format.includes(field)) {
+          try {
+            format = format.replace(field, fields[field]())
+          } catch (e) {
+            console.log('Could not format replace "' + field + '": ' + e)
+          }
+        }
+      }
+      return format
+    }
+
+    const sortBy = function (sortKey) {
+      const cmps = {
+        playedAsc: function playedAsc (a, b) {
+          return -cmps.playedDesc(a, b)
+        },
+        playedDesc: function playedDesc (a, b) {
+          try {
+            return new Date(b.listened) - new Date(a.listened)
+          } catch (e) {
+            return 0
+          }
+        },
+        releasedAsc: function releasedAsc (a, b) {
+          return -cmps.releasedDesc(a, b)
+        },
+        releasedDesc: function releasedDesc (a, b) {
+          try {
+            return new Date(b.releaseDate) - new Date(a.releaseDate)
+          } catch (e) {
+            return 0
+          }
+        },
+        artist: function artist (a, b, fallbackToTitle) {
+          const d = a.artist.localeCompare(b.artist)
+          if (d === 0 && fallbackToTitle) {
+            return cmps.title(a, b, false)
+          } else {
+            return d
+          }
+        },
+        title: function title (a, b, fallbackToArtist) {
+          const d = a.title.localeCompare(b.title)
+          if (d === 0 && fallbackToArtist) {
+            return cmps.artist(a, b, false)
+          } else {
+            return d
+          }
+        }
+      }
+
+      listenedAlbums.sort(cmps[sortKey])
+    }
+
+    const generate = function () {
+      const textarea = document.getElementById('export_output')
+      window.setTimeout(function () {
+        textarea.classList.remove('animated')
+        textarea.style.boxShadow = '2px 2px 5px #00af'
+      }, 0)
+
+      let str
+      if (format === '%backup%') {
+        str = myalbumsStr
+      } else {
+        const sortSelect = document.getElementById('sort_select')
+        sortBy(sortSelect.options[sortSelect.selectedIndex].value)
+
+        str = []
+        for (let i = 0; i < listenedAlbums.length; i++) {
+          str.push(formatAlbum(format, listenedAlbums[i]))
+        }
+        str = str.join(navigator.platform.startsWith('Win') ? '\r\n' : '\n')
+      }
+      window.setTimeout(function () {
+        textarea.value = str
+        textarea.classList.add('animated')
+        textarea.style.boxShadow = '2px 2px 5px #0a0f'
+      }, 50)
+
+      window.setTimeout(function () {
+        textarea.style.boxShadow = ''
+      }, 3000)
+      return str
+    }
+
+    const inputFormatOnChange = async function onInputFormatChange () {
+      const input = this
+      const formatExample = document.getElementById('format_example')
+      format = input.value
+
+      formatExample.value = listenedAlbums.length > 0 ? formatAlbum(format, listenedAlbums[0]) : ''
+      formatExample.style.boxShadow = '2px 2px 5px #0a0f'
+
+      window.setTimeout(function () {
+        formatExample.style.boxShadow = ''
+      }, 3000)
+    }
+
+    const importData = function (data) {
+      GM.getValue('myalbums', '{}').then(function (myalbumsStr) {
+        let myalbums = JSON.parse(myalbumsStr)
+        myalbums = Object.assign(myalbums, data)
+        return GM.setValue('myalbums', JSON.stringify(myalbums))
+      }).then(function () {
+        document.getElementById('exportmenu_close').click()
+        window.setTimeout(() => exportMenu(true), 50)
+      })
+    }
+    const handleFiles = async function (fileList) {
+      if (fileList.length === 0) {
+        console.log('fileList is empty')
+        return
+      }
+
+      let data
+      try {
+        data = await (new Response(fileList[0])).json()
+      } catch (e) {
+        window.alert('Could not load file:\n' + e)
+        return
+      }
+
+      const n = Object.keys(data).length
+      if (window.confirm('Found ' + n + ' albums. Continue import and overwrite existing albums?')) {
+        importData(data)
+      }
+    }
+
+    const inputTable = main.appendChild(document.createElement('table'))
+    let tr
+    let td
+
+    tr = inputTable.appendChild(document.createElement('tr'))
+    td = tr.appendChild(document.createElement('td'))
+    const label = td.appendChild(document.createElement('label'))
+    label.setAttribute('for', 'export_format')
+    label.appendChild(document.createTextNode('Format:'))
+
+    td = tr.appendChild(document.createElement('td'))
+    const inputFormat = td.appendChild(document.createElement('input'))
+    inputFormat.type = 'text'
+    inputFormat.value = format
+    inputFormat.id = 'export_format'
+    inputFormat.style.width = '600px'
+    inputFormat.addEventListener('change', inputFormatOnChange)
+    inputFormat.addEventListener('keyup', inputFormatOnChange)
+
+    tr = inputTable.appendChild(document.createElement('tr'))
+
+    td = tr.appendChild(document.createElement('td'))
+    td.appendChild(document.createTextNode('Example:'))
+
+    td = tr.appendChild(document.createElement('td'))
+    const inputExample = td.appendChild(document.createElement('input'))
+    inputExample.type = 'text'
+    inputExample.value = listenedAlbums.length > 0 ? formatAlbum(format, listenedAlbums[0]) : ''
+    inputExample.readonly = true
+    inputExample.id = 'format_example'
+    inputExample.style.width = '600px'
+
+    td = tr.appendChild(document.createElement('td'))
+    td.appendChild(document.createTextNode('Sort by:'))
+
+    td = tr.appendChild(document.createElement('td'))
+    const sortSelect = td.appendChild(document.createElement('select'))
+    sortSelect.id = 'sort_select'
+    sortSelect.innerHTML = `
+      <option value="playedDesc">Recent play first</option>
+      <option value="playedAsc">Recent play last</option>
+      <option value="releasedDesc">Recent release first</option>
+      <option value="releasedAsc">Recent release last</option>
+      <option value="artist">Artist A-Z</option>
+      <option value="title">Title A-Z</option>
+    `
+
+    tr = inputTable.appendChild(document.createElement('tr'))
+    td = tr.appendChild(document.createElement('td'))
+    td.setAttribute('colspan', '2')
+    const generateButton = td.appendChild(document.createElement('button'))
+    generateButton.appendChild(document.createTextNode('Generate'))
+    generateButton.addEventListener('click', (ev) => generate())
+    const exportButton = td.appendChild(document.createElement('button'))
+    exportButton.appendChild(document.createTextNode('Export to file'))
+    exportButton.addEventListener('click', function onExportFileButtonClick () {
+      const dateSuffix = (new Date()).toISOString().split('T')[0]
+      document.getElementById('export_download_link').download = 'bandcampPlayedAlbums_' + dateSuffix + '.txt'
+      document.getElementById('export_download_link').href = 'data:text/plain,' + encodeURIComponent(generate())
+      window.setTimeout(() => document.getElementById('export_download_link').click(), 50)
+    })
+    const backupButton = td.appendChild(document.createElement('button'))
+    backupButton.appendChild(document.createTextNode('Backup'))
+    backupButton.addEventListener('click', function onBackupButtonClick () {
+      format = '%backup%'
+      document.getElementById('export_format').value = format
+      document.getElementById('format_example').value = 'JSON dictionary'
+      const dateSuffix = (new Date()).toISOString().split('T')[0]
+      document.getElementById('export_download_link').download = 'bandcampPlayedAlbums_' + dateSuffix + '.json'
+      document.getElementById('export_download_link').href = 'data:application/json,' + encodeURIComponent(generate())
+      document.getElementById('export_clear_button').style.display = ''
+      GM.setValue('myalbums_lastbackup', Object.keys(myalbums).length + '#####' + (new Date()).toJSON())
+      window.setTimeout(() => document.getElementById('export_download_link').click(), 50)
+    })
+    const restoreButton = td.appendChild(document.createElement('button'))
+    restoreButton.appendChild(document.createTextNode('Restore'))
+    restoreButton.addEventListener('click', function onBackupButtonClick () {
+      inputFile.click()
+    })
+
+    const clearButton = td.appendChild(document.createElement('button'))
+    clearButton.appendChild(document.createTextNode('Clear played albums'))
+    clearButton.id = 'export_clear_button'
+    if (showClearButton !== true) {
+      clearButton.style.display = 'none'
+    }
+    clearButton.addEventListener('click', function onClearButtonClick () {
+      if (window.confirm('Remove all played albums?\n\nThis cannot be undone.')) {
+        if (window.confirm('Are you sure? Delete all played albums?')) {
+          GM.setValue('myalbums', '{}').then(function () {
+            document.getElementById('exportmenu_close').click()
+            window.setTimeout(exportMenu, 50)
+          })
+        }
+      }
+    })
+
+    const downloadA = td.appendChild(document.createElement('a'))
+    downloadA.id = 'export_download_link'
+    downloadA.href = '#'
+    downloadA.download = 'bandcamp_played_albums.txt'
+    downloadA.target = '_blank'
+
+    const inputFile = td.appendChild(document.createElement('input'))
+    inputFile.type = 'file'
+    inputFile.id = 'input_file'
+    inputFile.accept = '.txt,plain/text,.json,application/json'
+    inputFile.style.display = 'none'
+    inputFile.addEventListener('change', function (ev) {
+      handleFiles(this.files)
+    }, false)
+    main.addEventListener('dragenter', function dragenter (ev) {
+      ev.stopPropagation()
+      ev.preventDefault()
+      main.style.backgroundColor = '#c6daf9'
+      drophint.style.left = (main.clientWidth / 2 - drophint.clientWidth / 2) + 'px'
+      drophint.style.display = 'block'
+    }, false)
+    main.addEventListener('dragleave', function dragleave (ev) {
+      main.style.backgroundColor = 'white'
+      drophint.style.display = 'none'
+    }, false)
+    main.addEventListener('dragover', function dragover (ev) {
+      ev.stopPropagation()
+      ev.preventDefault()
+      main.style.backgroundColor = '#c6daf9'
+      drophint.style.display = 'block'
+    }, false)
+    main.addEventListener('drop', function drop (ev) {
+      ev.stopPropagation()
+      ev.preventDefault()
+      main.style.backgroundColor = 'white'
+      drophint.style.display = 'none'
+      handleFiles(ev.dataTransfer.files)
+    }, false)
+
+    tr = inputTable.appendChild(document.createElement('tr'))
+    td = tr.appendChild(document.createElement('td'))
+    td.setAttribute('colspan', '3')
+    const textarea = td.appendChild(document.createElement('textarea'))
+    textarea.id = 'export_output'
+    textarea.style.width = Math.max(500, main.clientWidth - 50) + 'px'
+
+    // Bottom buttons
+    main.appendChild(document.createElement('br'))
+    main.appendChild(document.createElement('br'))
+    const buttons = main.appendChild(document.createElement('div'))
+
+    const closeButton = buttons.appendChild(document.createElement('button'))
+    closeButton.appendChild(document.createTextNode('Close'))
+    closeButton.id = 'exportmenu_close'
+    closeButton.style.color = 'black'
+    closeButton.addEventListener('click', function onCloseButtonClick () {
+      document.querySelector('.deluxeexportmenu').remove()
+      // Un-blur background
+      if (document.getElementById('centerWrapper')) {
+        document.getElementById('centerWrapper').style.filter = ''
+      }
+    })
+  })
+  window.setTimeout(function () {
+    main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
+    main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
+    main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
+  }, 0)
 }
 
-if (document.querySelector('.share-panel-wrapper-desktop')) {
-  // Album page with Share,Embed,Wishlist links
-  addListenedButtonToCollectControls()
-  if (document.location.hash === '#collect-wishlist') {
-    clickAddToWishlist()
+function checkBackupStatus () {
+  GM.getValue('myalbums_lastbackup', '').then(function (value) {
+    if (!value || !value.includes('#####')) {
+      // Set current date (install date) as initial value
+      GM.setValue('myalbums_lastbackup', '0#####' + (new Date()).toJSON())
+      return
+    }
+    const parts = value.split('#####')
+    const n0 = parseInt(parts[0])
+    const lastBackup = new Date(parts[1])
+    if ((new Date()) - lastBackup > BACKUP_REMINDER_DAYS * 86400000) {
+      GM.getValue('myalbums', '{}').then(function (str) {
+        const n1 = Object.keys(JSON.parse(str)).length
+        if (Math.abs(n0 - n1) > 10) {
+          showBackupHint(lastBackup, Math.abs(n0 - n1))
+        }
+      })
+    }
+  })
+}
+
+function showBackupHint (lastBackup, changedRecords) {
+  const since = timeSince(lastBackup)
+
+  document.head.appendChild(document.createElement('style')).innerHTML = `
+    .backupreminder {
+      position:fixed;
+      height:auto;
+      overflow:auto;
+      top:110%;
+      left:40%;
+      z-index:200;
+      padding:5px;
+      transition: top 1s;
+      border:2px solid black;
+      border-radius:10px;
+      color:black;
+      background:white;
+    }
+  `
+
+  // Blur background
+  if (document.getElementById('centerWrapper')) { document.getElementById('centerWrapper').style.filter = 'blur(4px)' }
+
+  const main = document.body.appendChild(document.createElement('div'))
+  main.className = 'backupreminder'
+  main.innerHTML = `<h2>Bandcamp script (Deluxe Edition)</h2>
+  <h1>Backup reminder</h1>
+  <p>
+    Your last backup was ${since} ago. Since then, you played ${changedRecords} albums.
+  </p>
+  `
+
+  main.appendChild(document.createElement('br'))
+  const buttons = main.appendChild(document.createElement('div'))
+
+  const closeButton = buttons.appendChild(document.createElement('button'))
+  closeButton.appendChild(document.createTextNode('Close'))
+  closeButton.id = 'backupreminder_close'
+  closeButton.style.color = 'black'
+  closeButton.addEventListener('click', function onCloseButtonClick () {
+    document.querySelector('.backupreminder').remove()
+    // Un-blur background
+    if (document.getElementById('centerWrapper')) {
+      document.getElementById('centerWrapper').style.filter = ''
+    }
+  })
+
+  buttons.appendChild(document.createTextNode(' '))
+
+  const backupButton = buttons.appendChild(document.createElement('button'))
+  backupButton.appendChild(document.createTextNode('Start backup'))
+  backupButton.style.color = '#0687f5'
+  backupButton.addEventListener('click', function () {
+    document.getElementById('backupreminder_close').click()
+    mainMenu(true)
+  })
+
+  buttons.appendChild(document.createTextNode(' '))
+
+  const ignoreButton = buttons.appendChild(document.createElement('button'))
+  ignoreButton.appendChild(document.createTextNode('Disable reminder'))
+  ignoreButton.style.color = 'black'
+  ignoreButton.addEventListener('click', async function () {
+    getEnabledFeatures(await GM.getValue('enabledFeatures', false))
+    if (allFeatures.backupReminder.enabled) {
+      allFeatures.backupReminder.enabled = false
+    }
+    await GM.setValue('enabledFeatures', JSON.stringify(allFeatures))
+    document.getElementById('backupreminder_close').click()
+  })
+
+  window.setTimeout(function () {
+    main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
+    main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
+    main.style.left = Math.max(20, 0.5 * (document.documentElement.clientWidth - main.clientWidth)) + 'px'
+    main.style.top = Math.max(20, 0.3 * document.documentElement.clientHeight) + 'px'
+  }, 0)
+}
+
+function downloadMp3FromLink (ev, a, addSpinner, removeSpinner) {
+  const url = a.href
+
+  if (GM.download) {
+    // Use Tampermonkey GM.download function
+    ev.preventDefault()
+    addSpinner(a)
+    GM.download({
+      url: url,
+      name: a.download || 'default.mp3',
+      onerror: function () {
+        window.alert('Could not download via GM.download')
+        document.location.href = url
+      },
+      ontimeout: function () {
+        window.alert('Could not download via GM.download. Time out.')
+        document.location.href = url
+      },
+      onload: function () {
+        window.setTimeout(() => removeSpinner(a), 500)
+      }
+    })
+  }
+
+  if (!url.startsWith('http') || navigator.userAgent.indexOf('Chrome') !== -1) {
+    // Just open the link normally (no prevent default)
+    addSpinner(a)
+    window.setTimeout(() => removeSpinner(a), 1000)
+    return
+  }
+
+  // Use GM.xmlHttpRequest to download and offer data uri
+  ev.preventDefault()
+
+  addSpinner(a)
+
+  GM.xmlHttpRequest({
+    method: 'GET',
+    overrideMimeType: 'text/plain; charset=x-user-defined',
+    url: url,
+    onload: function (response) {
+      a.href = 'data:audio/mpeg;base64,' + base64encode(response.responseText)
+      window.setTimeout(() => a.click(), 10)
+    },
+    onerror: function (response) {
+      window.alert('Could not download via GM.xmlHttpRequest')
+      document.location.href = url
+    }
+  })
+}
+
+function addDownloadLinksToAlbumPage () {
+  document.head.appendChild(document.createElement('style')).innerHTML = `
+  .download-col .downloaddisk:hover {
+    text-decoration:none
+  }
+  /* From http://www.designcouch.com/home/why/2013/05/23/dead-simple-pure-css-loading-spinner/ */
+  .downspinner {
+    height:16px;
+    width:16px;
+    margin:0px auto;
+    position:relative;
+    display:inline-block;
+    animation: spinnerrotation 3s infinite linear;
+    cursor:wait;
+  }
+  @keyframes spinnerrotation {
+    from {transform: rotate(0deg)}
+    to {transform: rotate(359deg)}
+  }`
+
+  const addSpiner = function downloadLinksOnAlbumPageAddSpinner (el) {
+    el.style = ''
+    el.classList.add('downspinner')
+  }
+
+  const removeSpinner = function downloadLinksOnAlbumPageRemoveSpinner (el) {
+    el.classList.remove('downspinner')
+    el.style = 'background:#1cea1c; border-radius:5px; padding:1px; opacity:0.5'
+  }
+
+  const TralbumData = unsafeWindow.TralbumData
+  if (TralbumData && TralbumData.hasAudio && !TralbumData.freeDownloadPage && TralbumData.trackinfo) {
+    var hoverdiv = document.querySelectorAll('.download-col div')
+    for (let i = 0; i < TralbumData.trackinfo.length; i++) {
+      const t = TralbumData.trackinfo[i]
+      for (var prop in t.file) {
+        var mp3 = t.file[prop].replace(/^\/\//, 'http://')
+        var a = document.createElement('a')
+        a.className = 'downloaddisk'
+        a.href = mp3
+        a.download = t.track_num > 9 ? '' : '0' + t.track_num + '. ' + TralbumData.artist + ' - ' + t.title + '.mp3'
+        a.title = 'Download ' + prop
+        a.appendChild(document.createTextNode('\uD83D\uDCBE'))
+        a.addEventListener('click', function (ev) {
+          downloadMp3FromLink(ev, this, addSpiner, removeSpinner)
+        })
+        hoverdiv[i].appendChild(a)
+        break
+      }
+    }
   }
 }
 
-if (document.querySelector('ol#grid-tabs li') && document.querySelector('.fan-bio-pic-upload-container')) {
-  const listenedTabLink = makeListenedListTabLink()
-  if (document.location.hash === '#listened-tab') {
-    window.setTimeout(function () {
-      document.querySelector('#grid-tabs .active').classList.remove('active')
-      document.querySelector('#grids .grid.active').classList.remove('active')
-      listenedTabLink.classList.add('active')
-      listenedTabLink.click()
-    }, 500)
-  }
+function addMainMenuButtonToUserNav () {
+  const userNav = document.getElementById('user-nav')
+  const li = userNav.insertBefore(document.createElement('li'), userNav.firstChild)
+  li.className = 'menubar-item hoverable'
+  li.title = 'userscript settings - Bandcamp script (Deluxe Edition)'
+  const a = li.appendChild(document.createElement('a'))
+  a.style.fontSize = '24px'
+  a.appendChild(document.createTextNode('\u2699\uFE0F'))
+  li.addEventListener('click', () => mainMenu())
 }
 
-restoreVolume()
+GM.getValue('enabledFeatures', false).then(function (value) {
+  getEnabledFeatures(value)
 
-makeAlbumLinksGreat()
+  if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href^="/album/"] img')) {
+    // Discography page
+    makeAlbumCoversGreat()
+  }
+
+  if (document.querySelector('.inline_player')) {
+    // Album page with player
+    if (allFeatures.thetimehascome.enabled) {
+      removeTheTimeHasComeToOpenThyHeartWallet()
+    }
+    if (allFeatures.albumPageVolumeBar.enabled) {
+      window.setTimeout(addVolumeBarToAlbumPage, 3000)
+    }
+    if (allFeatures.albumPageDownloadLinks.enabled) {
+      window.setTimeout(addDownloadLinksToAlbumPage, 500)
+    }
+  }
+
+  if (document.querySelector('.share-panel-wrapper-desktop')) {
+    // Album page with Share,Embed,Wishlist links
+
+    if (allFeatures.markasplayedEverywhere.enabled) {
+      addListenedButtonToCollectControls()
+    }
+
+    if (document.location.hash === '#collect-wishlist') {
+      clickAddToWishlist()
+    }
+  }
+
+  if (document.getElementById('user-nav')) {
+    addMainMenuButtonToUserNav()
+  }
+
+  if (document.querySelector('ol#grid-tabs li') && document.querySelector('.fan-bio-pic-upload-container')) {
+    const listenedTabLink = makeListenedListTabLink()
+    if (document.location.hash === '#listened-tab') {
+      window.setTimeout(function () {
+        document.querySelector('#grid-tabs .active').classList.remove('active')
+        document.querySelector('#grids .grid.active').classList.remove('active')
+        listenedTabLink.classList.add('active')
+        listenedTabLink.click()
+      }, 500)
+    }
+  }
+
+  if (allFeatures.albumPageVolumeBar.enabled) {
+    restoreVolume()
+  }
+
+  if (allFeatures.markasplayedEverywhere.enabled) {
+    makeAlbumLinksGreat()
+  }
+
+  if (allFeatures.backupReminder.enabled) {
+    checkBackupStatus()
+  }
+})
