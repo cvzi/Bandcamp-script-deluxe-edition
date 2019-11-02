@@ -4,13 +4,14 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.6
+// @version       0.7
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
 // @grant         GM.getValue
 // @grant         GM.notification
 // @grant         GM.download
+// @grant         GM.openInTab
 // @grant         unsafeWindow
 // @include       https://bandcamp.com/*
 // @include       https://*.bandcamp.com/*
@@ -24,6 +25,8 @@
 
 const BACKUP_REMINDER_DAYS = 35
 const TRALBUM_CACHE_HOURS = 2
+const CHROME = navigator.userAgent.indexOf('Chrome') !== -1
+const NOEMOJI = CHROME && navigator.userAgent.match(/Windows (NT)? [4-9]/i)
 
 const allFeatures = {
   discographyplayer: {
@@ -65,7 +68,11 @@ const allFeatures = {
   nextSongNotifications: {
     name: 'Show a notification when a new song starts',
     default: false
-  }
+  },
+  discographyplayerPersist: {
+    name: '(Work in Progress) Discography player stays open in a popup',
+    default: false
+  },
 }
 
 var player, audio, currentDuration, timeline, playhead, bufferbar
@@ -643,8 +650,6 @@ async function musicPlayerCollectListenedClick (ev) {
 
   const collectListened = player.querySelector('.collect-listened')
 
-  const listened = collectListened.dataset.listened !== 'false'
-
   const url = collectListened.dataset.albumUrl
 
   setTimeout(function () {
@@ -657,19 +662,22 @@ async function musicPlayerCollectListenedClick (ev) {
   if (!albumData) {
     albumData = await myAlbumsNewFromUrl(url, {})
   }
-  if (listened) {
+
+  if (albumData.listened) {
     albumData.listened = false
   } else {
     albumData.listened = (new Date()).toJSON()
   }
 
+  collectListened.dataset.listened = albumData.listened
+
   await myAlbumsUpdateAlbum(albumData)
 
   player.querySelectorAll('.collect-listened>*').forEach(function (e) { e.style.display = 'none' })
-  if (listened) {
-    player.querySelector('.collect-listened .mark-listened').style.display = 'inline-block'
-  } else {
+  if (albumData.listened) {
     player.querySelector('.collect-listened .listened').style.display = 'inline-block'
+  } else {
+    player.querySelector('.collect-listened .mark-listened').style.display = 'inline-block'
   }
   player.querySelector('.collect-listened').style.cursor = ''
 
@@ -714,8 +722,10 @@ function musicPlayerCookieChannelSendStop (onStopEventCb) {
 function musicPlayerToggleMinimize () {
   if (player.style.bottom !== '-57px') {
     player.style.bottom = '-57px'
+    this.classList.add('minimized')
   } else {
     player.style.bottom = '0px'
+    this.classList.remove('minimized')
   }
 }
 
@@ -863,7 +873,11 @@ function musicPlayerCreate () {
   </div>
 
   <br class="cll">
-  <div class="closebutton" title="Minimize player&#13;Right click: Close">&#9421;</div>
+  <div class="minimizebutton">
+    <span class="minimized" title="Maximize player">&uarr;</span>
+    <span class="maximized" title="Minimize player">&darr;</span>
+  </div>
+  <div class="closebutton" title="Close player">x</div>
 </div>`
 
   document.head.appendChild(document.createElement('style')).innerHTML = `
@@ -1155,7 +1169,7 @@ function musicPlayerCreate () {
 #discographyplayer .collect .mark-listened:hover .mark-listened-label {
   text-decoration:underline;
 }
-#discographyplayer .closebutton {
+#discographyplayer .closebutton,#discographyplayer .minimizebutton {
   position: absolute;
   top: 1px;
   right: 1px;
@@ -1166,8 +1180,23 @@ function musicPlayerCreate () {
   cursor: pointer;
   opacity:0.0;
   transition: opacity 300ms;
+  min-width:8px;
+  min-height:13px;
+  text-align:center;
 }
-#discographyplayer:hover .closebutton {
+#discographyplayer .minimizebutton {
+  right:13px;
+}
+#discographyplayer .minimizebutton .minimized {
+  display:none
+}
+#discographyplayer .minimizebutton.minimized .maximized {
+  display:none
+}
+#discographyplayer .minimizebutton.minimized .minimized {
+  display:inline
+}
+#discographyplayer:hover .closebutton, #discographyplayer:hover .minimizebutton {
   opacity:1.0
 }
 #discographyplayer .col {
@@ -1205,11 +1234,8 @@ function musicPlayerCreate () {
   bufferbar = player.querySelector('#bufferbar')
   timeline = player.querySelector('#timeline')
 
-  player.querySelector('.closebutton').addEventListener('click', musicPlayerToggleMinimize)
-  player.querySelector('.closebutton').addEventListener('contextmenu', function onContextMenu (ev) {
-    ev.preventDefault()
-    musicPlayerClose()
-  })
+  player.querySelector('.minimizebutton').addEventListener('click', musicPlayerToggleMinimize)
+  player.querySelector('.closebutton').addEventListener('click', musicPlayerClose)
 
   audio.addEventListener('ended', musicPlayerOnEnded)
   audio.addEventListener('timeupdate', musicPlayerOnTimeUpdate)
@@ -1240,6 +1266,20 @@ function musicPlayerCreate () {
     const addSpinner = (el) => el.classList.add('downloading')
     const removeSpinner = (el) => el.classList.remove('downloading')
     downloadMp3FromLink(ev, this, addSpinner, removeSpinner)
+  })
+  if (NOEMOJI) {
+    player.querySelector('.downloadlink').innerHTML = '↓'
+  }
+
+  window.addEventListener('unload', function (ev) {
+    if (allFeatures.discographyplayerPersist.enabled && player.style.display !== 'none') {
+      if (CHROME) {
+        const tab = GM.openInTab('https://bandcamp.com/robots.txt#src=' + encodeURIComponent(audio.src) + '&currentTime=' + audio.currentTime, {'active' : false, insert: true, setParent: true})
+      } else {
+        const popup = window.open('https://bandcamp.com/robots.txt#src=' + encodeURIComponent(audio.src) + '&currentTime=' + audio.currentTime, 'playerpopup', 'height=70,width=300')
+      }
+      //audio.pause()
+    }
   })
 
   window.setInterval(musicPlayerUpdateBufferBar, 1200)
@@ -1330,7 +1370,7 @@ function addAlbumToPlaylist (TralbumData, startPlaybackIndex) {
   }
   if (streamable === 0) {
     const li = document.createElement('li')
-    li.appendChild(document.createTextNode('\uD83D\uDE22 Album is not streamable'))
+    li.appendChild(document.createTextNode((NOEMOJI ? '\u27C1' : '\uD83D\uDE22') + ' Album is not streamable'))
     player.querySelector('.playlist').appendChild(li)
   }
 }
@@ -1651,7 +1691,7 @@ async function makeAlbumLinksGreat () {
     }, 1000)
   }
   const mouseOverDivCheck = function (ev) {
-    this.querySelector('.bdp_check_onlinkhover_symbol').innerText = '\uD83D\uDDF9'
+    this.querySelector('.bdp_check_onlinkhover_symbol').innerText = NOEMOJI ? '\u2611' : '\uD83D\uDDF9'
   }
   const mouseOutDivCheck = function (ev) {
     this.querySelector('.bdp_check_onlinkhover_symbol').innerText = '\u2610'
@@ -2005,8 +2045,6 @@ function addVolumeBarToAlbumPage () {
     }
   `
 
-  const firefox = navigator.userAgent.indexOf('Chrome') === -1
-
   const playbutton = document.querySelector('#trackInfoInner .playbutton')
   const volumeButton = playbutton.cloneNode(true)
   document.querySelector('#trackInfoInner .inline_player').appendChild(volumeButton)
@@ -2014,7 +2052,7 @@ function addVolumeBarToAlbumPage () {
   volumeButton.style.width = playbutton.clientWidth + 'px'
   const volumeSymbol = volumeButton.appendChild(document.createElement('div'))
   volumeSymbol.className = 'volumeSymbol'
-  volumeSymbol.appendChild(document.createTextNode(firefox ? '\u23F2' : '\uD83D\uDD5B'))
+  volumeSymbol.appendChild(document.createTextNode(CHROME ? (NOEMOJI ? '\u29BD' : '\uD83D\uDD5B') : '\u23F2'))
 
   const progbar = document.querySelector('#trackInfoInner .progbar_cell .progbar')
   const volumeBar = progbar.cloneNode(true)
@@ -2032,8 +2070,8 @@ function addVolumeBarToAlbumPage () {
   let dragging = false
   let dragPos
   const width100 = volumeBar.clientWidth - (thumb.clientWidth + 2) // 2px border
-  const rot0 = firefox ? -90 : -180
-  const rot100 = firefox ? 265 - rot0 : 350
+  const rot0 = CHROME ? -180 : -90
+  const rot100 = CHROME ? 350 : 265 - rot0
   const blue0 = 180
   const blue100 = 75
   const green0 = 90
@@ -2958,7 +2996,7 @@ function addDownloadLinksToAlbumPage () {
         a.href = mp3
         a.download = t.track_num > 9 ? '' : '0' + t.track_num + '. ' + TralbumData.artist + ' - ' + t.title + '.mp3'
         a.title = 'Download ' + prop
-        a.appendChild(document.createTextNode('\uD83D\uDCBE'))
+        a.appendChild(document.createTextNode(NOEMOJI ? '\u2193' : '\uD83D\uDCBE'))
         a.addEventListener('click', function (ev) {
           downloadMp3FromLink(ev, this, addSpiner, removeSpinner)
         })
@@ -2976,9 +3014,30 @@ function addMainMenuButtonToUserNav () {
   li.title = 'userscript settings - Bandcamp script (Deluxe Edition)'
   const a = li.appendChild(document.createElement('a'))
   a.style.fontSize = '24px'
-  a.appendChild(document.createTextNode('\u2699\uFE0F'))
+  if (NOEMOJI) {
+    a.appendChild(document.createTextNode('\u26ED'))
+  } else {
+    a.appendChild(document.createTextNode('\u2699\uFE0F'))
+  }
   li.addEventListener('click', () => mainMenu())
 }
+
+if (document.location.href.startsWith('https://bandcamp.com/robots.txt') && document.location.hash) {
+  if (document.location.hash.indexOf('src=') !== -1) {
+    const src = decodeURIComponent(document.location.hash.split('src=')[1].split('&')[0])
+    document.body.innerHTML = ''
+    const audio = document.createElement('audio')
+    audio.autoplay = 'autoplay'
+    audio.preload = 'auto'
+    audio.controls = 'controls'
+    if (document.location.hash.indexOf('currentTime=') !== -1) {
+      audio.currentTime = parseInt(decodeURIComponent(document.location.hash.split('currentTime=')[1].split('&')[0]))
+    }
+    audio.src = src
+    document.body.appendChild(audio)
+  }
+}
+
 
 GM.getValue('enabledFeatures', false).then(function (value) {
   getEnabledFeatures(value)

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7](../../tree/v0.7) *(2019-11-02)*
+*   Emoji replaced on older Windows versions
+*   Fix "mark played" on discography player
+*   Minimize button
+*   First test of popup solution for persistent player
 ## [0.6](../../tree/v0.6) *(2019-10-20)*
 *   Settings to disable individual functions
 *   Export/backup listened albums
