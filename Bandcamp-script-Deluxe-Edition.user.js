@@ -72,7 +72,7 @@ const allFeatures = {
   discographyplayerPersist: {
     name: '(Work in Progress) Discography player stays open in a popup',
     default: false
-  },
+  }
 }
 
 var player, audio, currentDuration, timeline, playhead, bufferbar
@@ -1273,12 +1273,13 @@ function musicPlayerCreate () {
 
   window.addEventListener('unload', function (ev) {
     if (allFeatures.discographyplayerPersist.enabled && player.style.display !== 'none') {
+      const url = 'https://bandcamp.com/robots.txt#currentTime=' + audio.currentTime + '&autoplay=' + (audio.paused ? 'false' : 'true') + '&src=' + encodeURIComponent(audio.src)
       if (CHROME) {
-        const tab = GM.openInTab('https://bandcamp.com/robots.txt#src=' + encodeURIComponent(audio.src) + '&currentTime=' + audio.currentTime, {'active' : false, insert: true, setParent: true})
+        const tab = GM.openInTab(url, { active: false, insert: true, setParent: true })
       } else {
-        const popup = window.open('https://bandcamp.com/robots.txt#src=' + encodeURIComponent(audio.src) + '&currentTime=' + audio.currentTime, 'playerpopup', 'height=70,width=300')
+        const popup = window.open(url, 'playerpopup', 'height=70,width=300')
       }
-      //audio.pause()
+      // audio.pause()
     }
   })
 
@@ -3025,9 +3026,12 @@ function addMainMenuButtonToUserNav () {
 if (document.location.href.startsWith('https://bandcamp.com/robots.txt') && document.location.hash) {
   if (document.location.hash.indexOf('src=') !== -1) {
     const src = decodeURIComponent(document.location.hash.split('src=')[1].split('&')[0])
+    const autoplay = (document.location.hash.indexOf('autoplay=') !== -1 ? decodeURIComponent(document.location.hash.split('autoplay=')[1].split('&')[0]) : false) === 'true'
     document.body.innerHTML = ''
     const audio = document.createElement('audio')
-    audio.autoplay = 'autoplay'
+    if (autoplay) {
+      audio.autoplay = 'autoplay'
+    }
     audio.preload = 'auto'
     audio.controls = 'controls'
     if (document.location.hash.indexOf('currentTime=') !== -1) {
@@ -3037,7 +3041,6 @@ if (document.location.href.startsWith('https://bandcamp.com/robots.txt') && docu
     document.body.appendChild(audio)
   }
 }
-
 
 GM.getValue('enabledFeatures', false).then(function (value) {
   getEnabledFeatures(value)
