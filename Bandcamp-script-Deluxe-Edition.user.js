@@ -3071,71 +3071,76 @@ function addMainMenuButtonToUserNav () {
   li.addEventListener('click', () => mainMenu())
 }
 
-GM.getValue('enabledFeatures', false).then(function (value) {
-  getEnabledFeatures(value)
+const maintenanceContent = document.querySelector('.content')
+if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') !== -1) {
+  console.log('Maintenance detected')
+} else {
+  GM.getValue('enabledFeatures', false).then(function (value) {
+    getEnabledFeatures(value)
 
-  if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href^="/album/"] img')) {
-    // Discography page
-    makeAlbumCoversGreat()
-  }
-
-  if (document.querySelector('.inline_player')) {
-    // Album page with player
-    if (allFeatures.thetimehascome.enabled) {
-      removeTheTimeHasComeToOpenThyHeartWallet()
+    if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href^="/album/"] img')) {
+      // Discography page
+      makeAlbumCoversGreat()
     }
+
+    if (document.querySelector('.inline_player')) {
+      // Album page with player
+      if (allFeatures.thetimehascome.enabled) {
+        removeTheTimeHasComeToOpenThyHeartWallet()
+      }
+      if (allFeatures.albumPageVolumeBar.enabled) {
+        window.setTimeout(addVolumeBarToAlbumPage, 3000)
+      }
+      if (allFeatures.albumPageDownloadLinks.enabled) {
+        window.setTimeout(addDownloadLinksToAlbumPage, 500)
+      }
+    }
+
+    if (document.querySelector('.share-panel-wrapper-desktop')) {
+      // Album page with Share,Embed,Wishlist links
+
+      if (allFeatures.markasplayedEverywhere.enabled) {
+        addListenedButtonToCollectControls()
+      }
+
+      if (document.location.hash === '#collect-wishlist') {
+        clickAddToWishlist()
+      }
+    }
+
+    if (document.getElementById('user-nav')) {
+      addMainMenuButtonToUserNav()
+    }
+
+    if (document.querySelector('ol#grid-tabs li') && document.querySelector('.fan-bio-pic-upload-container')) {
+      const listenedTabLink = makeListenedListTabLink()
+      if (document.location.hash === '#listened-tab') {
+        window.setTimeout(function () {
+          document.querySelector('#grid-tabs .active').classList.remove('active')
+          document.querySelector('#grids .grid.active').classList.remove('active')
+          listenedTabLink.classList.add('active')
+          listenedTabLink.click()
+        }, 500)
+      }
+    }
+
     if (allFeatures.albumPageVolumeBar.enabled) {
-      window.setTimeout(addVolumeBarToAlbumPage, 3000)
+      restoreVolume()
     }
-    if (allFeatures.albumPageDownloadLinks.enabled) {
-      window.setTimeout(addDownloadLinksToAlbumPage, 500)
-    }
-  }
-
-  if (document.querySelector('.share-panel-wrapper-desktop')) {
-    // Album page with Share,Embed,Wishlist links
 
     if (allFeatures.markasplayedEverywhere.enabled) {
-      addListenedButtonToCollectControls()
+      makeAlbumLinksGreat()
     }
 
-    if (document.location.hash === '#collect-wishlist') {
-      clickAddToWishlist()
+    if (allFeatures.backupReminder.enabled) {
+      checkBackupStatus()
     }
-  }
 
-  if (document.getElementById('user-nav')) {
-    addMainMenuButtonToUserNav()
-  }
-
-  if (document.querySelector('ol#grid-tabs li') && document.querySelector('.fan-bio-pic-upload-container')) {
-    const listenedTabLink = makeListenedListTabLink()
-    if (document.location.hash === '#listened-tab') {
-      window.setTimeout(function () {
-        document.querySelector('#grid-tabs .active').classList.remove('active')
-        document.querySelector('#grids .grid.active').classList.remove('active')
-        listenedTabLink.classList.add('active')
-        listenedTabLink.click()
-      }, 500)
-    }
-  }
-
-  if (allFeatures.albumPageVolumeBar.enabled) {
-    restoreVolume()
-  }
-
-  if (allFeatures.markasplayedEverywhere.enabled) {
-    makeAlbumLinksGreat()
-  }
-
-  if (allFeatures.backupReminder.enabled) {
-    checkBackupStatus()
-  }
-
-  GM.getValue('musicPlayerState', '{}').then(function(s) {
-    if (s !== '{}') {
-      GM.setValue('musicPlayerState', '{}')
-      musicPlayerRestoreState(JSON.parse(s))
-    }
+    GM.getValue('musicPlayerState', '{}').then(function(s) {
+      if (s !== '{}') {
+        GM.setValue('musicPlayerState', '{}')
+        musicPlayerRestoreState(JSON.parse(s))
+      }
+    })
   })
-})
+}
