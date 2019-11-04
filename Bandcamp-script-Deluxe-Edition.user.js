@@ -736,11 +736,11 @@ function musicPlayerSaveState () {
   }
   const startPlaybackTime = audio.currentTime
   return GM.setValue('musicPlayerState', JSON.stringify({
-    time : (new Date().getTime()),
-    htmlPlaylist : player.querySelector('.playlist').innerHTML,
-    startPlayback : !audio.paused,
-    startPlaybackIndex : startPlaybackIndex,
-    startPlaybackTime : startPlaybackTime,
+    time: (new Date().getTime()),
+    htmlPlaylist: player.querySelector('.playlist').innerHTML,
+    startPlayback: !audio.paused,
+    startPlaybackIndex: startPlaybackIndex,
+    startPlaybackTime: startPlaybackTime
   }))
 }
 
@@ -748,7 +748,7 @@ function musicPlayerRestoreState (state) {
   if (!allFeatures.discographyplayerPersist.enabled) {
     return
   }
-  if(state.time + 1000*30 < (new Date().getTime())) {
+  if (state.time + 1000 * 30 < (new Date().getTime())) {
     // Saved state expires after 30 seconds
     return
   }
@@ -3140,7 +3140,7 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
       checkBackupStatus()
     }
 
-    GM.getValue('musicPlayerState', '{}').then(function(s) {
+    GM.getValue('musicPlayerState', '{}').then(function restoreState(s) {
       if (s !== '{}') {
         GM.setValue('musicPlayerState', '{}')
         musicPlayerRestoreState(JSON.parse(s))
