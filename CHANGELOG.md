@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.8](../../tree/v0.7) *(2019-11-02)*
+*   Recover player after page load
 ## [0.7](../../tree/v0.7) *(2019-11-02)*
 *   Emoji replaced on older Windows versions
 *   Fix "mark played" on discography player

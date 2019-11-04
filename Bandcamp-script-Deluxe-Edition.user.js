@@ -238,15 +238,15 @@ var ivRestoreVolume
 function getStoredVolume (callbackIfVolumeExists) {
   GM.getValue('volume', '0.7').then(str => {
     return parseFloat(str)
-  }).then(function (volume) {
+  }).then(function storedVolumeLoaded (volume) {
     if (!Number.isNaN(volume) && volume > 0.0) {
       callbackIfVolumeExists(volume)
     }
   })
 }
 function restoreVolume () {
-  getStoredVolume(function (volume) {
-    const restoreVolumeInterval = function () {
+  getStoredVolume(function getStoredVolumeCallback (volume) {
+    const restoreVolumeInterval = function restoreInterval() {
       const audios = document.querySelectorAll('audio')
       if (audios.length > 0) {
         let paused = true
@@ -270,7 +270,7 @@ function restoreVolume () {
     restoreVolumeInterval()
     ivRestoreVolume = window.setInterval(restoreVolumeInterval, 3000)
   })
-  window.setTimeout(function () {
+  window.setTimeout(function clearRestoreInterval() {
     window.clearInterval(ivRestoreVolume)
   }, 10000)
 }
@@ -339,9 +339,9 @@ function musicPlayerPlaySong (next, startTime) {
     audio.currentTime = startTime
   }
   bufferbar.classList.remove('bufferbaranimation')
-  window.setTimeout(function () {
+  window.setTimeout(function bufferbaranimationWidth () {
     bufferbar.style.width = '0px'
-    window.setTimeout(function () {
+    window.setTimeout(function bufferbaranimationClass () {
       bufferbar.classList.add('bufferbaranimation')
     }, 0)
   }, 0)
@@ -381,7 +381,7 @@ function musicPlayerPlaySong (next, startTime) {
   if (allFeatures.markasplayed.enabled && collectListened) {
     collectListened.dataset.albumUrl = next.dataset.albumUrl
     player.querySelectorAll('.collect-listened>*').forEach(function (e) { e.style.display = 'none' })
-    GM.getValue('myalbums', '{}').then(function (str) {
+    GM.getValue('myalbums', '{}').then(function myalbumsLoaded (str) {
       const myalbums = JSON.parse(str)
       if (key in myalbums && 'listened' in myalbums[key] && myalbums[key].listened) {
         player.querySelector('.collect-listened .listened').style.display = 'inline-block'
@@ -427,7 +427,7 @@ function musicPlayerPlaySong (next, startTime) {
 
   clearTimeout(ivSlideInNextSong)
 
-  ivSlideInNextSong = window.setTimeout(function () {
+  ivSlideInNextSong = window.setTimeout(function slideInSongInterval() {
     currentlyPlaying.remove()
     const clone = nextInRow.cloneNode(true)
     clone.style.width = '0%'
@@ -472,14 +472,14 @@ function musicPlayerNext () {
 }
 function musicPlayerPrevAlbum () {
   audio.pause()
-  window.setTimeout(function () {
+  window.setTimeout(function musicPlayerPrevAlbumTimeout () {
     musicPlayerShowBusy()
     findPreviousAlbumCover(player.querySelector('.playlist .playing').dataset.albumUrl)
   }, 10)
 }
 function musicPlayerNextAlbum () {
   audio.pause()
-  window.setTimeout(function () {
+  window.setTimeout(function musicPlayerNextAlbumTimeout () {
     musicPlayerShowBusy()
     const r = findNextAlbumCover(player.querySelector('.playlist .playing').dataset.albumUrl)
     if (r === false) {
@@ -658,7 +658,7 @@ async function musicPlayerCollectListenedClick (ev) {
 
   const url = collectListened.dataset.albumUrl
 
-  setTimeout(function () {
+  setTimeout(function musicPlayerCollectListenedResetTimeout() {
     player.querySelectorAll('.collect-listened>*').forEach(function (e) { e.style.display = 'none' })
     player.querySelector('.collect-listened .listened-saving').style.display = 'inline-block'
     player.querySelector('.collect-listened').style.cursor = 'wait'
@@ -1316,7 +1316,7 @@ function musicPlayerCreate () {
   player.querySelector('.collect-wishlist').addEventListener('click', musicPlayerCollectWishlistClick)
   player.querySelector('.collect-listened').addEventListener('click', musicPlayerCollectListenedClick)
 
-  player.querySelector('.downloadlink').addEventListener('click', function (ev) {
+  player.querySelector('.downloadlink').addEventListener('click', function onDownloadLinkClick (ev) {
     const addSpinner = (el) => el.classList.add('downloading')
     const removeSpinner = (el) => el.classList.remove('downloading')
     downloadMp3FromLink(ev, this, addSpinner, removeSpinner)
@@ -1325,7 +1325,7 @@ function musicPlayerCreate () {
     player.querySelector('.downloadlink').innerHTML = '↓'
   }
 
-  window.addEventListener('unload', function (ev) {
+  window.addEventListener('unload', function onPageUnLoad(ev) {
     if (allFeatures.discographyplayerPersist.enabled && player.style.display !== 'none' && !audio.paused) {
       musicPlayerSaveState()
     }
@@ -1425,16 +1425,16 @@ function addAlbumToPlaylist (TralbumData, startPlaybackIndex) {
 }
 
 function getTralbumData (url, cb) {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function getTralbumDataPromise (resolve, reject) {
     GM.xmlHttpRequest({
       method: 'GET',
       url: url,
-      onload: function (response) {
+      onload: function getTralbumDataOnLoad (response) {
         const TralbumData = JSON5.parse(response.responseText.split('var TralbumData =')[1].split('\n};\n')[0].replace(/"\s+\+\s+"/, '') + '\n}')
         correctTralbumData(TralbumData)
         resolve(TralbumData)
       },
-      onerror: function (response) {
+      onerror: function getTralbumDataOnError (response) {
         console.log('getTralbumData(' + url + ') Error: ' + response.status + '\nResponse:\n' + response.responseText)
         reject(response)
       }
@@ -1524,7 +1524,7 @@ function playAlbumFromCover (ev) {
   }
 
   // Load data
-  cachedTralbumData(url).then(function (TralbumData) {
+  cachedTralbumData(url).then(function onCachedTralbumDataLoaded (TralbumData) {
     if (TralbumData) {
       addAlbumToPlaylist(TralbumData, 0)
     } else {
@@ -1534,10 +1534,10 @@ function playAlbumFromCover (ev) {
 }
 
 function playAlbumFromUrl (url) {
-  getTralbumData(url).then(function (TralbumData) {
+  getTralbumData(url).then(function onGetTralbumDataLoaded (TralbumData) {
     storeTralbumData(TralbumData)
     addAlbumToPlaylist(TralbumData, 0)
-  }).catch(function (e) {
+  }).catch(function onGetTralbumDataError (e) {
     window.alert('Could not load album data from url:\n' + url + '\n' + e)
   })
 }
@@ -1679,14 +1679,14 @@ async function makeAlbumLinksGreat () {
   <span class="bdp_check_onchecked_symbol">\u2611</span> TITLE <div class="bdp_check_container bdp_check_onchecked_container"><span class="bdp_check_onchecked_text">Played</span></div>
   */
 
-  const onClickSetListened = async function (ev) {
+  const onClickSetListened = async function onClickSetListenedAsync (ev) {
     ev.preventDefault()
 
     let parent = this
     for (let j = 0; parent.tagName !== 'A' && j < 20; j++) {
       parent = parent.parentNode
     }
-    setTimeout(function () {
+    setTimeout(function showSavingLabel () {
       parent.style.cursor = 'wait'
       parent.querySelector('.bdp_check_container').innerHTML = 'Saving...'
     }, 0)
@@ -1703,14 +1703,14 @@ async function makeAlbumLinksGreat () {
     makeAlbumLinksGreat()
     parent.style.cursor = ''
   }
-  const onClickRemoveListened = async function (ev) {
+  const onClickRemoveListened = async function onClickRemoveListenedAsync (ev) {
     ev.preventDefault()
 
     let parent = this
     for (let j = 0; parent.tagName !== 'A' && j < 20; j++) {
       parent = parent.parentNode
     }
-    setTimeout(function () {
+    setTimeout(function showSavingLabel () {
       parent.style.cursor = 'wait'
       parent.querySelector('.bdp_check_container').innerHTML = 'Saving...'
     }, 0)
@@ -1725,24 +1725,24 @@ async function makeAlbumLinksGreat () {
     makeAlbumLinksGreat()
     parent.style.cursor = ''
   }
-  const mouseOverLink = function (ev) {
+  const mouseOverLink = function onMouseOverLink(ev) {
     if (this.querySelector('.bdp_check_onlinkhover_container')) {
       this.querySelector('.bdp_check_onlinkhover_container').className += ' bdp_check_onlinkhover_container_shown'
     }
   }
-  const mouseOutLink = function (ev) {
+  const mouseOutLink = function onMouseOutLink (ev) {
     const a = this
-    setTimeout(function () {
+    setTimeout(function mouseOutLinkTimeout () {
       const div = a.querySelector('.bdp_check_onlinkhover_container')
       if (div) {
         div.className = div.className.replace(' bdp_check_onlinkhover_container_shown', '')
       }
     }, 1000)
   }
-  const mouseOverDivCheck = function (ev) {
+  const mouseOverDivCheck = function onMouseOverDivCheck (ev) {
     this.querySelector('.bdp_check_onlinkhover_symbol').innerText = NOEMOJI ? '\u2611' : '\uD83D\uDDF9'
   }
-  const mouseOutDivCheck = function (ev) {
+  const mouseOutDivCheck = function onMouseOutDivCheck (ev) {
     this.querySelector('.bdp_check_onlinkhover_symbol').innerText = '\u2610'
   }
   const divCheck = document.createElement('div')
@@ -1847,14 +1847,14 @@ async function addListenedButtonToCollectControls () {
   const key = albumKey(document.location.href)
   const listened = key in myalbums && 'listened' in myalbums[key] && myalbums[key].listened
 
-  const onClickSetListened = async function (ev) {
+  const onClickSetListened = async function onClickSetListenedAsync (ev) {
     ev.preventDefault()
 
     let parent = this
     for (let j = 0; parent.tagName !== 'LI' && j < 20; j++) {
       parent = parent.parentNode
     }
-    setTimeout(function () { parent.style.cursor = 'wait'; parent.innerHTML = 'Saving...' }, 0)
+    setTimeout(function showSavingLabel () { parent.style.cursor = 'wait'; parent.innerHTML = 'Saving...' }, 0)
 
     const url = document.location.href
     let albumData = await myAlbumsGetAlbum(url)
@@ -1867,14 +1867,14 @@ async function addListenedButtonToCollectControls () {
 
     addListenedButtonToCollectControls()
   }
-  const onClickRemoveListened = async function (ev) {
+  const onClickRemoveListened = async function onClickRemoveListenedAsync (ev) {
     ev.preventDefault()
 
     let parent = this
     for (let j = 0; parent.tagName !== 'LI' && j < 20; j++) {
       parent = parent.parentNode
     }
-    setTimeout(function () { parent.style.cursor = 'wait'; parent.innerHTML = 'Saving...' }, 0)
+    setTimeout(function showSavingLabel () { parent.style.cursor = 'wait'; parent.innerHTML = 'Saving...' }, 0)
 
     const url = document.location.href
     const albumData = await myAlbumsGetAlbum(url)
@@ -1953,7 +1953,7 @@ function makeListenedListTabLink () {
 
   const count = span.appendChild(document.createElement('span'))
   count.className = 'count'
-  GM.getValue('myalbums', '{}').then(function (str) {
+  GM.getValue('myalbums', '{}').then(function myalbumsLoaded (str) {
     let n = 0
     const myalbums = JSON.parse(str)
     for (const key in myalbums) {
@@ -2128,7 +2128,7 @@ function addVolumeBarToAlbumPage () {
   const audioAlbumPage = document.querySelector('audio')
   const volumeBarPos = volumeBar.getBoundingClientRect().left
 
-  const displayVolume = function () {
+  const displayVolume = function updateDisplayVolume() {
     const level = audioAlbumPage.volume
     volumeLabel.innerHTML = parseInt(level * 100.0) + '%'
     thumb.style.left = (width100 * level) + 'px'
@@ -2143,13 +2143,13 @@ function addVolumeBarToAlbumPage () {
     }
   }
 
-  thumb.addEventListener('mousedown', function (ev) {
+  thumb.addEventListener('mousedown', function thumbMouseDown (ev) {
     if (ev.button === 0) {
       dragging = true
       dragPos = ev.offsetX
     }
   })
-  volumeBar.addEventListener('mouseup', function (ev) {
+  volumeBar.addEventListener('mouseup', function thumbMouseUp (ev) {
     if (ev.button !== 0) {
       return
     }
@@ -2165,7 +2165,7 @@ function addVolumeBarToAlbumPage () {
     dragging = false
     GM.setValue('volume', audio.volume)
   })
-  document.addEventListener('mouseup', function (ev) {
+  document.addEventListener('mouseup', function documentMouseUp (ev) {
     if (ev.button === 0 && dragging) {
       dragging = false
       ev.preventDefault()
@@ -2173,7 +2173,7 @@ function addVolumeBarToAlbumPage () {
       GM.setValue('volume', audioAlbumPage.volume)
     }
   })
-  document.addEventListener('mousemove', function (ev) {
+  document.addEventListener('mousemove', function documentMouseMove (ev) {
     if (ev.button === 0 && dragging) {
       ev.preventDefault()
       ev.stopPropagation()
@@ -2182,7 +2182,7 @@ function addVolumeBarToAlbumPage () {
       displayVolume()
     }
   })
-  const onWheel = function (ev) {
+  const onWheel = function onMouseWheel (ev) {
     ev.preventDefault()
     const direction = Math.min(Math.max(-1.0, ev.deltaY), 1.0)
     audioAlbumPage.volume = Math.min(Math.max(0.0, audioAlbumPage.volume - 0.05 * direction), 1.0)
@@ -2191,7 +2191,7 @@ function addVolumeBarToAlbumPage () {
   }
   volumeButton.addEventListener('wheel', onWheel, false)
   volumeBar.addEventListener('wheel', onWheel, false)
-  volumeButton.addEventListener('click', function (ev) {
+  volumeButton.addEventListener('click', function onVolumeButtonClick (ev) {
     if (audioAlbumPage.volume < 0.01) {
       if ('lastvolume' in audioAlbumPage.dataset && audioAlbumPage.dataset.lastvolume) {
         audioAlbumPage.volume = audioAlbumPage.dataset.lastvolume
@@ -2269,7 +2269,7 @@ function mainMenu (startBackup) {
    <h3>Options</h3>
   `
 
-  window.setTimeout(function () {
+  window.setTimeout(function moveMenuIntoView () {
     main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
     main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
     main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
@@ -2281,7 +2281,7 @@ function mainMenu (startBackup) {
     GM.getValue('tralbumdata', '{}'),
     GM.getValue('enabledFeatures', false),
     GM.getValue('markasplayedThreshold', '10s')
-  ]).then(function (values) {
+  ]).then(function allPromisesLoaded (values) {
     // let volume = parseFloat(values[0])
     // volume = Number.isNaN(volume) ? 0.7 : volume
     const myalbums = JSON.parse(values[1])
@@ -2295,7 +2295,7 @@ function mainMenu (startBackup) {
       allFeatures[input.name].enabled = input.checked
       await GM.setValue('enabledFeatures', JSON.stringify(allFeatures))
       input.style.boxShadow = '2px 2px 5px #0a0f'
-      window.setTimeout(function () {
+      window.setTimeout(function resetBoxShadowTimeout () {
         input.style.boxShadow = ''
       }, 3000)
     }
@@ -2316,7 +2316,7 @@ function mainMenu (startBackup) {
       await GM.setValue('markasplayedThreshold', value)
       input.value = value
       input.style.boxShadow = '2px 2px 5px #0a0f'
-      window.setTimeout(function () {
+      window.setTimeout(function resetBoxShadowTimeout () {
         input.style.boxShadow = ''
       }, 3000)
     }
@@ -2370,7 +2370,7 @@ function mainMenu (startBackup) {
     clearCacheButton.appendChild(document.createTextNode('Clear cache (' + bytes + ')'))
     clearCacheButton.style.color = 'black'
     clearCacheButton.addEventListener('click', function onClearCacheButtonClick () {
-      GM.setValue('tralbumdata', '{}').then(function () {
+      GM.setValue('tralbumdata', '{}').then(function showClearedLabel() {
         clearCacheButton.innerHTML = 'Cleared'
       })
     })
@@ -2389,7 +2389,7 @@ function mainMenu (startBackup) {
       exportMenu()
     })
   })
-  window.setTimeout(function () {
+  window.setTimeout(function moveMenuIntoView () {
     main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
     main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
     main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
@@ -2505,13 +2505,13 @@ function exportMenu (showClearButton) {
   `
   const drophint = main.querySelector('.drophint')
 
-  window.setTimeout(function () {
+  window.setTimeout(function moveMenuIntoView () {
     main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
     main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
     main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
   }, 0)
 
-  GM.getValue('myalbums', '{}').then(function (myalbumsStr) {
+  GM.getValue('myalbums', '{}').then(function myalbumsLoaded (myalbumsStr) {
     const myalbums = JSON.parse(myalbumsStr)
     const listenedAlbums = []
     for (const key in myalbums) {
@@ -2523,7 +2523,7 @@ function exportMenu (showClearButton) {
 
     let format = '%artist% - %title%'
 
-    const formatAlbum = function (format, myAlbum) {
+    const formatAlbum = function formatAlbumStr (format, myAlbum) {
       const releaseDate = new Date(myAlbum.releaseDate)
       const listenedDate = new Date(myAlbum.listened)
       const fields = {
@@ -2571,7 +2571,7 @@ function exportMenu (showClearButton) {
       return format
     }
 
-    const sortBy = function (sortKey) {
+    const sortBy = function sortByCmp (sortKey) {
       const cmps = {
         playedAsc: function playedAsc (a, b) {
           return -cmps.playedDesc(a, b)
@@ -2614,9 +2614,9 @@ function exportMenu (showClearButton) {
       listenedAlbums.sort(cmps[sortKey])
     }
 
-    const generate = function () {
+    const generate = function generateStr () {
       const textarea = document.getElementById('export_output')
-      window.setTimeout(function () {
+      window.setTimeout(function generateStrAnimation () {
         textarea.classList.remove('animated')
         textarea.style.boxShadow = '2px 2px 5px #00af'
       }, 0)
@@ -2634,13 +2634,13 @@ function exportMenu (showClearButton) {
         }
         str = str.join(navigator.platform.startsWith('Win') ? '\r\n' : '\n')
       }
-      window.setTimeout(function () {
+      window.setTimeout(function generateStrAnimationSuccess () {
         textarea.value = str
         textarea.classList.add('animated')
         textarea.style.boxShadow = '2px 2px 5px #0a0f'
       }, 50)
 
-      window.setTimeout(function () {
+      window.setTimeout(function generateStrResetAnimation () {
         textarea.style.boxShadow = ''
       }, 3000)
       return str
@@ -2654,22 +2654,22 @@ function exportMenu (showClearButton) {
       formatExample.value = listenedAlbums.length > 0 ? formatAlbum(format, listenedAlbums[0]) : ''
       formatExample.style.boxShadow = '2px 2px 5px #0a0f'
 
-      window.setTimeout(function () {
+      window.setTimeout(function resetBoxShadow () {
         formatExample.style.boxShadow = ''
       }, 3000)
     }
 
-    const importData = function (data) {
-      GM.getValue('myalbums', '{}').then(function (myalbumsStr) {
+    const importData = function importDate (data) {
+      GM.getValue('myalbums', '{}').then(function myalbumsLoaded (myalbumsStr) {
         let myalbums = JSON.parse(myalbumsStr)
         myalbums = Object.assign(myalbums, data)
         return GM.setValue('myalbums', JSON.stringify(myalbums))
-      }).then(function () {
+      }).then(function myalbumsSaved () {
         document.getElementById('exportmenu_close').click()
         window.setTimeout(() => exportMenu(true), 50)
       })
     }
-    const handleFiles = async function (fileList) {
+    const handleFiles = async function handleFilesAsync (fileList) {
       if (fileList.length === 0) {
         console.log('fileList is empty')
         return
@@ -2778,7 +2778,7 @@ function exportMenu (showClearButton) {
     clearButton.addEventListener('click', function onClearButtonClick () {
       if (window.confirm('Remove all played albums?\n\nThis cannot be undone.')) {
         if (window.confirm('Are you sure? Delete all played albums?')) {
-          GM.setValue('myalbums', '{}').then(function () {
+          GM.setValue('myalbums', '{}').then(function myalbumsSaved () {
             document.getElementById('exportmenu_close').click()
             window.setTimeout(exportMenu, 50)
           })
@@ -2797,7 +2797,7 @@ function exportMenu (showClearButton) {
     inputFile.id = 'input_file'
     inputFile.accept = '.txt,plain/text,.json,application/json'
     inputFile.style.display = 'none'
-    inputFile.addEventListener('change', function (ev) {
+    inputFile.addEventListener('change', function onFileChanged (ev) {
       handleFiles(this.files)
     }, false)
     main.addEventListener('dragenter', function dragenter (ev) {
@@ -2849,7 +2849,7 @@ function exportMenu (showClearButton) {
       }
     })
   })
-  window.setTimeout(function () {
+  window.setTimeout(function moveMenuIntoView () {
     main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
     main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
     main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
@@ -2857,7 +2857,7 @@ function exportMenu (showClearButton) {
 }
 
 function checkBackupStatus () {
-  GM.getValue('myalbums_lastbackup', '').then(function (value) {
+  GM.getValue('myalbums_lastbackup', '').then(function myalbumsLastBackupLoaded (value) {
     if (!value || !value.includes('#####')) {
       // Set current date (install date) as initial value
       GM.setValue('myalbums_lastbackup', '0#####' + (new Date()).toJSON())
@@ -2867,7 +2867,7 @@ function checkBackupStatus () {
     const n0 = parseInt(parts[0])
     const lastBackup = new Date(parts[1])
     if ((new Date()) - lastBackup > BACKUP_REMINDER_DAYS * 86400000) {
-      GM.getValue('myalbums', '{}').then(function (str) {
+      GM.getValue('myalbums', '{}').then(function myalbumsLoaded (str) {
         const n1 = Object.keys(JSON.parse(str)).length
         if (Math.abs(n0 - n1) > 10) {
           showBackupHint(lastBackup, Math.abs(n0 - n1))
@@ -2929,7 +2929,7 @@ function showBackupHint (lastBackup, changedRecords) {
   const backupButton = buttons.appendChild(document.createElement('button'))
   backupButton.appendChild(document.createTextNode('Start backup'))
   backupButton.style.color = '#0687f5'
-  backupButton.addEventListener('click', function () {
+  backupButton.addEventListener('click', function backupButtonClick () {
     document.getElementById('backupreminder_close').click()
     mainMenu(true)
   })
@@ -2939,7 +2939,7 @@ function showBackupHint (lastBackup, changedRecords) {
   const ignoreButton = buttons.appendChild(document.createElement('button'))
   ignoreButton.appendChild(document.createTextNode('Disable reminder'))
   ignoreButton.style.color = 'black'
-  ignoreButton.addEventListener('click', async function () {
+  ignoreButton.addEventListener('click', async function ignoreButtonClick () {
     getEnabledFeatures(await GM.getValue('enabledFeatures', false))
     if (allFeatures.backupReminder.enabled) {
       allFeatures.backupReminder.enabled = false
@@ -2948,7 +2948,7 @@ function showBackupHint (lastBackup, changedRecords) {
     document.getElementById('backupreminder_close').click()
   })
 
-  window.setTimeout(function () {
+  window.setTimeout(function moveMenuIntoView () {
     main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
     main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
     main.style.left = Math.max(20, 0.5 * (document.documentElement.clientWidth - main.clientWidth)) + 'px'
@@ -2966,15 +2966,15 @@ function downloadMp3FromLink (ev, a, addSpinner, removeSpinner) {
     GM.download({
       url: url,
       name: a.download || 'default.mp3',
-      onerror: function () {
+      onerror: function downloadMp3FromLinkOnError () {
         window.alert('Could not download via GM.download')
         document.location.href = url
       },
-      ontimeout: function () {
+      ontimeout: function downloadMp3FromLinkOnTimeout () {
         window.alert('Could not download via GM.download. Time out.')
         document.location.href = url
       },
-      onload: function () {
+      onload: function downloadMp3FromLinkOnLoad () {
         window.setTimeout(() => removeSpinner(a), 500)
       }
     })
@@ -2996,11 +2996,11 @@ function downloadMp3FromLink (ev, a, addSpinner, removeSpinner) {
     method: 'GET',
     overrideMimeType: 'text/plain; charset=x-user-defined',
     url: url,
-    onload: function (response) {
+    onload: function onMp3Load (response) {
       a.href = 'data:audio/mpeg;base64,' + base64encode(response.responseText)
       window.setTimeout(() => a.click(), 10)
     },
-    onerror: function (response) {
+    onerror: function onMp3LoadError (response) {
       window.alert('Could not download via GM.xmlHttpRequest')
       document.location.href = url
     }
@@ -3050,7 +3050,7 @@ function addDownloadLinksToAlbumPage () {
         a.download = t.track_num > 9 ? '' : '0' + t.track_num + '. ' + TralbumData.artist + ' - ' + t.title + '.mp3'
         a.title = 'Download ' + prop
         a.appendChild(document.createTextNode(NOEMOJI ? '\u2193' : '\uD83D\uDCBE'))
-        a.addEventListener('click', function (ev) {
+        a.addEventListener('click', function onDownloadLinkClick (ev) {
           downloadMp3FromLink(ev, this, addSpiner, removeSpinner)
         })
         hoverdiv[i].appendChild(a)
@@ -3079,7 +3079,7 @@ const maintenanceContent = document.querySelector('.content')
 if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') !== -1) {
   console.log('Maintenance detected')
 } else {
-  GM.getValue('enabledFeatures', false).then(function (value) {
+  GM.getValue('enabledFeatures', false).then(function onEnabledFeaturesLoad (value) {
     getEnabledFeatures(value)
 
     if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href^="/album/"] img')) {
@@ -3119,7 +3119,7 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
     if (document.querySelector('ol#grid-tabs li') && document.querySelector('.fan-bio-pic-upload-container')) {
       const listenedTabLink = makeListenedListTabLink()
       if (document.location.hash === '#listened-tab') {
-        window.setTimeout(function () {
+        window.setTimeout(function resetGridTabs () {
           document.querySelector('#grid-tabs .active').classList.remove('active')
           document.querySelector('#grids .grid.active').classList.remove('active')
           listenedTabLink.classList.add('active')
