@@ -3140,7 +3140,7 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
       checkBackupStatus()
     }
 
-    GM.getValue('musicPlayerState', '{}').then(function restoreState(s) {
+    GM.getValue('musicPlayerState', '{}').then(function restoreState (s) {
       if (s !== '{}') {
         GM.setValue('musicPlayerState', '{}')
         musicPlayerRestoreState(JSON.parse(s))
