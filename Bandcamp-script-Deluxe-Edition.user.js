@@ -246,7 +246,7 @@ function getStoredVolume (callbackIfVolumeExists) {
 }
 function restoreVolume () {
   getStoredVolume(function getStoredVolumeCallback (volume) {
-    const restoreVolumeInterval = function restoreInterval() {
+    const restoreVolumeInterval = function restoreInterval () {
       const audios = document.querySelectorAll('audio')
       if (audios.length > 0) {
         let paused = true
@@ -270,7 +270,7 @@ function restoreVolume () {
     restoreVolumeInterval()
     ivRestoreVolume = window.setInterval(restoreVolumeInterval, 3000)
   })
-  window.setTimeout(function clearRestoreInterval() {
+  window.setTimeout(function clearRestoreInterval () {
     window.clearInterval(ivRestoreVolume)
   }, 10000)
 }
@@ -427,7 +427,7 @@ function musicPlayerPlaySong (next, startTime) {
 
   clearTimeout(ivSlideInNextSong)
 
-  ivSlideInNextSong = window.setTimeout(function slideInSongInterval() {
+  ivSlideInNextSong = window.setTimeout(function slideInSongInterval () {
     currentlyPlaying.remove()
     const clone = nextInRow.cloneNode(true)
     clone.style.width = '0%'
@@ -658,7 +658,7 @@ async function musicPlayerCollectListenedClick (ev) {
 
   const url = collectListened.dataset.albumUrl
 
-  setTimeout(function musicPlayerCollectListenedResetTimeout() {
+  setTimeout(function musicPlayerCollectListenedResetTimeout () {
     player.querySelectorAll('.collect-listened>*').forEach(function (e) { e.style.display = 'none' })
     player.querySelector('.collect-listened .listened-saving').style.display = 'inline-block'
     player.querySelector('.collect-listened').style.cursor = 'wait'
@@ -1325,7 +1325,7 @@ function musicPlayerCreate () {
     player.querySelector('.downloadlink').innerHTML = '↓'
   }
 
-  window.addEventListener('unload', function onPageUnLoad(ev) {
+  window.addEventListener('unload', function onPageUnLoad (ev) {
     if (allFeatures.discographyplayerPersist.enabled && player.style.display !== 'none' && !audio.paused) {
       musicPlayerSaveState()
     }
@@ -1725,7 +1725,7 @@ async function makeAlbumLinksGreat () {
     makeAlbumLinksGreat()
     parent.style.cursor = ''
   }
-  const mouseOverLink = function onMouseOverLink(ev) {
+  const mouseOverLink = function onMouseOverLink (ev) {
     if (this.querySelector('.bdp_check_onlinkhover_container')) {
       this.querySelector('.bdp_check_onlinkhover_container').className += ' bdp_check_onlinkhover_container_shown'
     }
@@ -2128,7 +2128,7 @@ function addVolumeBarToAlbumPage () {
   const audioAlbumPage = document.querySelector('audio')
   const volumeBarPos = volumeBar.getBoundingClientRect().left
 
-  const displayVolume = function updateDisplayVolume() {
+  const displayVolume = function updateDisplayVolume () {
     const level = audioAlbumPage.volume
     volumeLabel.innerHTML = parseInt(level * 100.0) + '%'
     thumb.style.left = (width100 * level) + 'px'
@@ -2370,7 +2370,7 @@ function mainMenu (startBackup) {
     clearCacheButton.appendChild(document.createTextNode('Clear cache (' + bytes + ')'))
     clearCacheButton.style.color = 'black'
     clearCacheButton.addEventListener('click', function onClearCacheButtonClick () {
-      GM.setValue('tralbumdata', '{}').then(function showClearedLabel() {
+      GM.setValue('tralbumdata', '{}').then(function showClearedLabel () {
         clearCacheButton.innerHTML = 'Cleared'
       })
     })
