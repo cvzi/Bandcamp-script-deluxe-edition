@@ -2251,6 +2251,10 @@ function mainMenu (startBackup) {
     return
   }
 
+  if (document.querySelector('.deluxemenu')) {
+    return
+  }
+
   // Blur background
   if (document.getElementById('centerWrapper')) { document.getElementById('centerWrapper').style.filter = 'blur(4px)' }
 
