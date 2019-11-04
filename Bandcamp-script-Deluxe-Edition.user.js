@@ -4,14 +4,13 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.7
+// @version       0.8
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
 // @grant         GM.getValue
 // @grant         GM.notification
 // @grant         GM.download
-// @grant         GM.openInTab
 // @grant         unsafeWindow
 // @include       https://bandcamp.com/*
 // @include       https://*.bandcamp.com/*
@@ -22,6 +21,10 @@
 // ==/OpenUserJS==
 
 /* globals JSON5, GM, unsafeWindow, MouseEvent, Response */
+
+// TODO test preorder albums and albums that are not streamable
+// TODO run on all sites, not only bandcamp if (hostname is 'bandcamp' or definingFeature())
+// TODO Mark as played automatically when played
 
 const BACKUP_REMINDER_DAYS = 35
 const TRALBUM_CACHE_HOURS = 2
@@ -70,7 +73,7 @@ const allFeatures = {
     default: false
   },
   discographyplayerPersist: {
-    name: '(Work in Progress) Discography player stays open in a popup',
+    name: '(Work in Progress) Recover discography player on next page',
     default: false
   }
 }
@@ -327,11 +330,14 @@ function musicPlayerNextSong (next) {
   }
 }
 var ivSlideInNextSong
-function musicPlayerPlaySong (next) {
+function musicPlayerPlaySong (next, startTime) {
   currentDuration = next.dataset.duration
   player.querySelector('.durationDisplay .current').innerHTML = '-'
   player.querySelector('.durationDisplay .total').innerHTML = humanDuration(currentDuration)
   audio.src = next.dataset.file
+  if (typeof startTime !== 'undefined' && startTime !== false) {
+    audio.currentTime = startTime
+  }
   bufferbar.classList.remove('bufferbaranimation')
   window.setTimeout(function () {
     bufferbar.style.width = '0px'
@@ -717,6 +723,54 @@ function musicPlayerCookieChannel (onStopEventCb) {
 }
 function musicPlayerCookieChannelSendStop (onStopEventCb) {
   window.postMessage({ discographyplayerCookiechannelPlaylist: 'sendstop' }, document.location.href)
+}
+
+function musicPlayerSaveState () {
+  let startPlaybackIndex = false
+  const playlistEntries = player.querySelectorAll('.playlist .playlistentry')
+  for (let i = 0; i < playlistEntries.length; i++) {
+    if (playlistEntries[i].classList.contains('playing')) {
+      startPlaybackIndex = i
+      break
+    }
+  }
+  const startPlaybackTime = audio.currentTime
+  return GM.setValue('musicPlayerState', JSON.stringify({
+    time : (new Date().getTime()),
+    htmlPlaylist : player.querySelector('.playlist').innerHTML,
+    startPlayback : !audio.paused,
+    startPlaybackIndex : startPlaybackIndex,
+    startPlaybackTime : startPlaybackTime,
+  }))
+}
+
+function musicPlayerRestoreState (state) {
+  if (!allFeatures.discographyplayerPersist.enabled) {
+    return
+  }
+  if(state.time + 1000*30 < (new Date().getTime())) {
+    // Saved state expires after 30 seconds
+    return
+  }
+
+  // Re-create music player
+  musicPlayerCreate()
+  player.querySelector('.playlist').innerHTML = state.htmlPlaylist
+  const playlistEntries = player.querySelectorAll('.playlist .playlistentry')
+  playlistEntries.forEach(function addPlaylistEntryOnClick (li) {
+    li.addEventListener('click', musicPlayerOnPlaylistClick)
+  })
+  if (state.startPlaybackIndex !== false) {
+    player.querySelectorAll('.playlist .playing').forEach(function (el) {
+      el.className = el.className.replace('playing', '')
+    })
+    playlistEntries[state.startPlaybackIndex].className += ' playing'
+    window.setTimeout(() => player.querySelector('.playlist .playing').scrollIntoView({ block: 'nearest' }), 200)
+  }
+  // Start playback
+  if (state.startPlayback && state.startPlaybackIndex !== false) {
+    musicPlayerPlaySong(playlistEntries[state.startPlaybackIndex], state.startPlaybackTime)
+  }
 }
 
 function musicPlayerToggleMinimize () {
@@ -1272,14 +1326,8 @@ function musicPlayerCreate () {
   }
 
   window.addEventListener('unload', function (ev) {
-    if (allFeatures.discographyplayerPersist.enabled && player.style.display !== 'none') {
-      const url = 'https://bandcamp.com/robots.txt#currentTime=' + audio.currentTime + '&autoplay=' + (audio.paused ? 'false' : 'true') + '&src=' + encodeURIComponent(audio.src)
-      if (CHROME) {
-        const tab = GM.openInTab(url, { active: false, insert: true, setParent: true })
-      } else {
-        const popup = window.open(url, 'playerpopup', 'height=70,width=300')
-      }
-      // audio.pause()
+    if (allFeatures.discographyplayerPersist.enabled && player.style.display !== 'none' && !audio.paused) {
+      musicPlayerSaveState()
     }
   })
 
@@ -3023,25 +3071,6 @@ function addMainMenuButtonToUserNav () {
   li.addEventListener('click', () => mainMenu())
 }
 
-if (document.location.href.startsWith('https://bandcamp.com/robots.txt') && document.location.hash) {
-  if (document.location.hash.indexOf('src=') !== -1) {
-    const src = decodeURIComponent(document.location.hash.split('src=')[1].split('&')[0])
-    const autoplay = (document.location.hash.indexOf('autoplay=') !== -1 ? decodeURIComponent(document.location.hash.split('autoplay=')[1].split('&')[0]) : false) === 'true'
-    document.body.innerHTML = ''
-    const audio = document.createElement('audio')
-    if (autoplay) {
-      audio.autoplay = 'autoplay'
-    }
-    audio.preload = 'auto'
-    audio.controls = 'controls'
-    if (document.location.hash.indexOf('currentTime=') !== -1) {
-      audio.currentTime = parseInt(decodeURIComponent(document.location.hash.split('currentTime=')[1].split('&')[0]))
-    }
-    audio.src = src
-    document.body.appendChild(audio)
-  }
-}
-
 GM.getValue('enabledFeatures', false).then(function (value) {
   getEnabledFeatures(value)
 
@@ -3102,4 +3131,11 @@ GM.getValue('enabledFeatures', false).then(function (value) {
   if (allFeatures.backupReminder.enabled) {
     checkBackupStatus()
   }
+
+  GM.getValue('musicPlayerState', '{}').then(function(s) {
+    if (s !== '{}') {
+      GM.setValue('musicPlayerState', '{}')
+      musicPlayerRestoreState(JSON.parse(s))
+    }
+  })
 })
