@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.8
+// @version       0.9
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -3040,22 +3040,39 @@ function addDownloadLinksToAlbumPage () {
   const TralbumData = unsafeWindow.TralbumData
   if (TralbumData && TralbumData.hasAudio && !TralbumData.freeDownloadPage && TralbumData.trackinfo) {
     var hoverdiv = document.querySelectorAll('.download-col div')
-    for (let i = 0; i < TralbumData.trackinfo.length; i++) {
-      const t = TralbumData.trackinfo[i]
-      for (var prop in t.file) {
-        var mp3 = t.file[prop].replace(/^\/\//, 'http://')
-        var a = document.createElement('a')
-        a.className = 'downloaddisk'
-        a.href = mp3
-        a.download = t.track_num > 9 ? '' : '0' + t.track_num + '. ' + TralbumData.artist + ' - ' + t.title + '.mp3'
-        a.title = 'Download ' + prop
-        a.appendChild(document.createTextNode(NOEMOJI ? '\u2193' : '\uD83D\uDCBE'))
-        a.addEventListener('click', function onDownloadLinkClick (ev) {
-          downloadMp3FromLink(ev, this, addSpiner, removeSpinner)
-        })
-        hoverdiv[i].appendChild(a)
-        break
+    if (hoverdiv.length > 0) {
+      // Album page
+      for (let i = 0; i < TralbumData.trackinfo.length; i++) {
+        const t = TralbumData.trackinfo[i]
+        for (var prop in t.file) {
+          const mp3 = t.file[prop].replace(/^\/\//, 'http://')
+          const a = document.createElement('a')
+          a.className = 'downloaddisk'
+          a.href = mp3
+          a.download = (t.track_num == null ? '' : (t.track_num > 9 ? '' : '0' + t.track_num + '. ')) + TralbumData.artist + ' - ' + t.title + '.mp3'
+          a.title = 'Download ' + prop
+          a.appendChild(document.createTextNode(NOEMOJI ? '\u2193' : '\uD83D\uDCBE'))
+          a.addEventListener('click', function onDownloadLinkClick (ev) {
+            downloadMp3FromLink(ev, this, addSpiner, removeSpinner)
+          })
+          hoverdiv[i].appendChild(a)
+          break
+        }
       }
+    } else if (document.querySelector('#trackInfo .download-link')) {
+      // Single track page
+      const t = TralbumData.trackinfo[0]
+      const mp3 = t.file[Object.keys(t.file)[0]].replace(/^\/\//, 'http://')
+      const a = document.createElement('a')
+      a.className = 'downloaddisk'
+      a.href = mp3
+      a.download = (t.track_num == null ? '' : (t.track_num > 9 ? '' : '0' + t.track_num + '. ')) + TralbumData.artist + ' - ' + t.title + '.mp3'
+      a.title = 'Download ' + prop
+      a.appendChild(document.createTextNode(NOEMOJI ? '\u2193' : '\uD83D\uDCBE'))
+      a.addEventListener('click', function onDownloadLinkClick (ev) {
+        downloadMp3FromLink(ev, this, addSpiner, removeSpinner)
+      })
+      document.querySelector('#trackInfo .download-link').parentNode.appendChild(a)
     }
   }
 }
