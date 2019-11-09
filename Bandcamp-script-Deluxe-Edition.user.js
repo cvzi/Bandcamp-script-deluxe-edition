@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.10
+// @version       0.11
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -12,6 +12,8 @@
 // @grant         GM.notification
 // @grant         GM.download
 // @grant         unsafeWindow
+// @connect       bandcamp.com
+// @connect       *.bandcamp.com
 // @include       https://bandcamp.com/*
 // @include       https://*.bandcamp.com/*
 // ==/UserScript==
@@ -842,8 +844,8 @@ function musicPlayerRestoreState (state) {
   }
 }
 
-function musicPlayerToggleMinimize () {
-  if (player.style.bottom !== '-57px') {
+function musicPlayerToggleMinimize (ev, hide) {
+  if (hide || player.style.bottom !== '-57px') {
     player.style.bottom = '-57px'
     this.classList.add('minimized')
   } else {
@@ -872,6 +874,8 @@ function musicPlayerCreate () {
   const img1px = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mOsmLZvJgAFwQJn5VVZ5QAAAABJRU5ErkJggg=='
 
   const listenedListUrl = findUserProfileUrl() + '#listened-tab'
+
+  const checkSymbol = NOEMOJI ? '✓' : '✔'
 
   player = document.createElement('div')
   document.body.appendChild(player)
@@ -982,11 +986,11 @@ function musicPlayerCreate () {
         Played albums
         </a>
       <span class="listened" title="Mark album as NOT played">
-        <span class="listened-symbol">✔</span>
+        <span class="listened-symbol">${checkSymbol}</span>
         <span class="listened-label">Played</span>
       </span>
       <span class="mark-listened" title="Mark album as played">
-        <span class="mark-listened-symbol">✔</span>
+        <span class="mark-listened-symbol">${checkSymbol}</span>
         <span class="mark-listened-label">Mark as played</span>
       </span>
       <span class="listened-saving">
@@ -1020,7 +1024,8 @@ function musicPlayerCreate () {
   background:white;
   color:#505958;
   border-top: 1px solid rgba(0,0,0,0.15);
-  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif
+  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  transition: bottom 500ms
 }
 #discographyplayer .nowPlaying .info,#discographyplayer .nowPlaying .cover {
     display: inline-block;
@@ -1173,6 +1178,7 @@ function musicPlayerCreate () {
   max-height:80px;
   overflow:auto;
   list-style:none;
+  margin:0px;
   padding: 0px 5px 0px 5px;
   scrollbar-color: rgba(50,50,50,0.4) white;
 }
@@ -1477,7 +1483,7 @@ function addAlbumToPlaylist (TralbumData, startPlaybackIndex) {
   const albumCover = `https://f4.bcbits.com/img/a${TralbumData.art_id}_2.jpg`
   addHeadingToPlaylist(album, 'url' in TralbumData ? TralbumData.url : false, true)
   let streamable = 0
-  for (var key in TralbumData.trackinfo) {
+  for (const key in TralbumData.trackinfo) {
     const track = TralbumData.trackinfo[key]
     if (!track.file) {
       continue
@@ -1542,6 +1548,17 @@ function getTralbumData (url, cb) {
       method: 'GET',
       url: url,
       onload: function getTralbumDataOnLoad (response) {
+        if (!response.responseText || response.responseText.indexOf('400 Bad Request') !== -1) {
+          let msg = ''
+          try {
+            msg = response.responseText.split('<center>')[1].split('</center>')[0]
+          } catch (e) {
+            msg = response.responseText
+          }
+          window.alert('An error occured. Please clear your cookies of bandcamp.com and try again.\n\nOriginal error:\n' + msg)
+          reject(response)
+          return
+        }
         const TralbumData = JSON5.parse(response.responseText.split('var TralbumData =')[1].split('\n};\n')[0].replace(/"\s+\+\s+"/, '') + '\n}')
         correctTralbumData(TralbumData)
         resolve(TralbumData)
@@ -1760,10 +1777,11 @@ function makeAlbumCoversGreat () {
   }
 }
 
-async function makeAlbumLinksGreat () {
+async function makeAlbumLinksGreat (parentElement) {
+  const doc = parentElement || document
   const myalbums = JSON.parse(await GM.getValue('myalbums', '{}'))
 
-  if (!(makeAlbumLinksGreat in document.head.dataset)) {
+  if (!('makeAlbumLinksGreat' in document.head.dataset)) {
     document.head.dataset.makeAlbumLinksGreat = true
     document.head.appendChild(document.createElement('style')).innerHTML = `
     .bdp_check_onlinkhover_container { z-index:1002; position:absolute; display:none }
@@ -1784,6 +1802,9 @@ async function makeAlbumLinksGreat () {
 
     `
   }
+
+  const excluded = [...document.querySelectorAll('#carousel-player .now-playing a')]
+  excluded.push(...document.querySelectorAll('#discographyplayer a'))
 
   /*
   <div class="bdp_check_container bdp_check_onlinkhover_container"><span class="bdp_check_onlinkhover_symbol">\u2610</span> <span class="bdp_check_onlinkhover_text">Check</span></div>
@@ -1838,24 +1859,40 @@ async function makeAlbumLinksGreat () {
     parent.style.cursor = ''
   }
   const mouseOverLink = function onMouseOverLink (ev) {
-    if (this.querySelector('.bdp_check_onlinkhover_container')) {
-      this.querySelector('.bdp_check_onlinkhover_container').classList.add('bdp_check_onlinkhover_container_shown')
+    const bdpCheckOnlinkhoverContainer = this.querySelector('.bdp_check_onlinkhover_container')
+    if (bdpCheckOnlinkhoverContainer) {
+      bdpCheckOnlinkhoverContainer.classList.add('bdp_check_onlinkhover_container_shown')
     }
   }
   const mouseOutLink = function onMouseOutLink (ev) {
     const a = this
-    setTimeout(function mouseOutLinkTimeout () {
+    a.dataset.iv = setTimeout(function mouseOutLinkTimeout () {
       const div = a.querySelector('.bdp_check_onlinkhover_container')
       if (div) {
         div.classList.remove('bdp_check_onlinkhover_container_shown')
+        div.dataset.iv = a.dataset.iv
       }
     }, 1000)
   }
+  const mouseMoveLink = function onMouseLoveLink (ev) {
+    if ('iv' in this.dataset) {
+      window.clearTimeout(this.dataset.iv)
+    }
+  }
   const mouseOverDivCheck = function onMouseOverDivCheck (ev) {
-    this.querySelector('.bdp_check_onlinkhover_symbol').innerText = NOEMOJI ? '\u2611' : '\uD83D\uDDF9'
+    const bdpCheckOnlinkhoverSymbol = this.querySelector('.bdp_check_onlinkhover_symbol')
+    if (bdpCheckOnlinkhoverSymbol) {
+      bdpCheckOnlinkhoverSymbol.innerText = NOEMOJI ? '\u2611' : '\uD83D\uDDF9'
+    }
+    if ('iv' in this.dataset) {
+      window.clearTimeout(this.dataset.iv)
+    }
   }
   const mouseOutDivCheck = function onMouseOutDivCheck (ev) {
-    this.querySelector('.bdp_check_onlinkhover_symbol').innerText = '\u2610'
+    const bdpCheckOnlinkhoverSymbol = this.querySelector('.bdp_check_onlinkhover_symbol')
+    if (bdpCheckOnlinkhoverSymbol) {
+      bdpCheckOnlinkhoverSymbol.innerText = '\u2610'
+    }
   }
   const divCheck = document.createElement('div')
   divCheck.setAttribute('class', 'bdp_check_container bdp_check_onlinkhover_container')
@@ -1870,9 +1907,13 @@ async function makeAlbumLinksGreat () {
   spanChecked.appendChild(document.createTextNode('\u2611 '))
   spanChecked.setAttribute('class', 'bdp_check_onchecked_symbol')
 
-  const a = document.querySelectorAll('a[href*="/album/"],.music-grid .music-grid-item a[href^="/track/"]')
+  const a = doc.querySelectorAll('a[href*="/album/"],.music-grid .music-grid-item a[href^="/track/"]')
   let lastKey = ''
   for (let i = 0; i < a.length; i++) {
+    if (excluded.indexOf(a[i]) !== -1) {
+      continue
+    }
+
     const key = albumKey(a[i].href)
     if (key === lastKey) {
       // Skip multiple consequent links to same album
@@ -1891,6 +1932,7 @@ async function makeAlbumLinksGreat () {
     } else {
       a[i].dataset.textContent = textContent
       a[i].addEventListener('mouseover', mouseOverLink)
+      a[i].addEventListener('mousemove', mouseMoveLink)
       a[i].addEventListener('mouseout', mouseOutLink)
     }
     if (key in myalbums && 'listened' in myalbums[key] && myalbums[key].listened) {
@@ -1923,6 +1965,15 @@ function removeTheTimeHasComeToOpenThyHeartWallet () {
   }
   document.head.dataset.theTimeHasComeToOpenThyHeartWallet = true
   document.head.appendChild(document.createElement('script')).innerHTML = `
+    function removeViaQuerySelector (parent, selector) {
+      if (typeof selector === 'undefined') {
+        selector = parent
+        parent = document
+      }
+      for (let el = parent.querySelector(selector); el; el = parent.querySelector(selector)) {
+        el.remove()
+      }
+    }
     TralbumData.play_cap_data.streaming_limit = 100
     TralbumData.play_cap_data.streaming_limits_enabled = false
     for(let i = 0; i < TralbumData.trackinfo.length; i++) {
@@ -1948,12 +1999,103 @@ function removeTheTimeHasComeToOpenThyHeartWallet () {
   `
 }
 
+function makeCarouselPlayerGreatAgain () {
+  if (player) {
+    // Hide/minimize discography player
+    const closePlayerOnCarouselIv = window.setInterval(function closePlayerOnCarouselInterval () {
+      if (!document.getElementById('carousel-player') || document.getElementById('carousel-player').getClientRects()[0].bottom - window.innerHeight > 0) {
+        return
+      }
+      if (player.style.display === 'none') {
+        // Put carousel player back down in normal position, because discography player is hidden forever
+        document.getElementById('carousel-player').style.bottom = '0px'
+        window.clearInterval(closePlayerOnCarouselIv)
+      } else if (!player.style.bottom) {
+        // Minimize discography player and push carousel player up above the minimized player
+        musicPlayerToggleMinimize.call(player.querySelector('.minimizebutton'), null, true)
+        document.getElementById('carousel-player').style.bottom = (player.clientHeight - 57) + 'px'
+      }
+    }, 5000)
+  }
+
+  // TODO check link on carousel player
+  let addListenedButtonToCarouselPlayerLast = null
+  const addListenedButtonToCarouselPlayer = function listenedButtonOnCarouselPlayer () {
+    const url = document.querySelector('#carousel-player .now-playing .info a') ? albumKey(document.querySelector('#carousel-player .now-playing .info a').href) : null
+    if (url && addListenedButtonToCarouselPlayerLast === url) {
+      return
+    }
+    addListenedButtonToCarouselPlayerLast = url
+
+    removeViaQuerySelector('#carousel-player .carousellistenedstatus')
+
+    const a = document.createElement('a')
+    a.className = 'carousellistenedstatus'
+    a.addEventListener('click', ev => ev.preventDefault())
+    document.querySelector('#carousel-player .controls-extra').insertBefore(a, document.querySelector('#carousel-player .controls-extra').firstChild)
+    a.innerHTML = '<span class="listenedstatus">Loading...</span>'
+    a.href = 'https://' + url
+    makeAlbumLinksGreat(a.parentNode).then(function () {
+      removeViaQuerySelector(a, '.listenedstatus')
+      const span = document.createElement('span')
+      span.addEventListener('click', function () {
+        const span = this
+        span.parentNode.querySelector('.bdp_check_container').click()
+        window.setTimeout(function () {
+          if (span.parentNode.querySelector('.bdp_check_container').textContent.indexOf('Played') !== -1) {
+            span.parentNode.innerHTML = 'Listened'
+          } else {
+            span.parentNode.innerHTML = 'Unplayed'
+          }
+        }, 3000)
+      })
+      if (a.querySelector('.bdp_check_onchecked_text')) {
+        span.className = 'listenedstatus listened'
+        span.innerHTML = '<span class="listened-symbol">✓</span> <span class="listened-label">Played</span>'
+      } else {
+        span.className = 'listenedstatus mark-listened'
+        span.innerHTML = '<span class="mark-listened-symbol">✓</span> <span class="mark-listened-label">Mark as played</span>'
+      }
+      a.insertBefore(span, a.firstChild)
+      a.dataset.textContent = document.querySelector('#carousel-player .now-playing .info a .artist span').textContent + ' - ' + document.querySelector('#carousel-player .now-playing .info a .title').textContent
+    })
+  }
+
+  window.setInterval(function addListenedButtonToCarouselPlayerInterval () {
+    if (!document.getElementById('carousel-player') || document.getElementById('carousel-player').getClientRects()[0].bottom - window.innerHeight > 0) {
+      return
+    }
+    addListenedButtonToCarouselPlayer()
+  }, 2000)
+
+  document.head.appendChild(document.createElement('style')).innerHTML = `
+  #carousel-player a.carousellistenedstatus:link,#carousel-player a.carousellistenedstatus:visited,#carousel-player a.carousellistenedstatus:hover{
+    text-decoration:none;
+    cursor:default
+  }
+  #carousel-player .listened .listened-symbol{
+    color:rgb(0,220,50);
+    text-shadow:1px 0px #DDD,-1px 0px #DDD,0px -1px #DDD,0px 1px #DDD
+  }
+  #carousel-player .mark-listened .mark-listened-symbol{
+    color:#FFF;
+    text-shadow:1px 0px #959595,-1px 0px #959595,0px -1px #959595,0px 1px #959595
+  }
+  #carousel-player .mark-listened:hover .mark-listened-symbol{
+    text-shadow:1px 0px #0AF,-1px 0px #0AF,0px -1px #0AF,0px 1px #0AF
+  }
+  `
+}
+
 async function addListenedButtonToCollectControls () {
   const lastLi = document.querySelector('.share-panel-wrapper-desktop ul li')
   if (!lastLi) {
     window.setTimeout(addListenedButtonToCollectControls, 300)
     return
   }
+
+  const checkSymbol = NOEMOJI ? '✓' : '✔'
+
   const myalbums = JSON.parse(await GM.getValue('myalbums', '{}'))
 
   const key = albumKey(document.location.href)
@@ -1986,7 +2128,10 @@ async function addListenedButtonToCollectControls () {
     for (let j = 0; parent.tagName !== 'LI' && j < 20; j++) {
       parent = parent.parentNode
     }
-    setTimeout(function showSavingLabel () { parent.style.cursor = 'wait'; parent.innerHTML = 'Saving...' }, 0)
+    setTimeout(function showSavingLabel () {
+      parent.style.cursor = 'wait'
+      parent.innerHTML = 'Saving...'
+    }, 0)
 
     const url = document.location.href
     const albumData = await myAlbumsGetAlbum(url)
@@ -2018,7 +2163,7 @@ async function addListenedButtonToCollectControls () {
     icon.style.color = 'rgb(0,220,50)'
     icon.style.textShadow = '1px 0px #DDD,-1px 0px #DDD,0px -1px #DDD,0px 1px #DDD'
     icon.style.paddingRight = '5px'
-    icon.appendChild(document.createTextNode('\u2714'))
+    icon.appendChild(document.createTextNode(checkSymbol))
 
     a.appendChild(document.createTextNode('Played'))
 
@@ -2040,7 +2185,7 @@ async function addListenedButtonToCollectControls () {
       icon.style.color = '#959595'
       icon.style.fontWeight = 700
     }
-    icon.appendChild(document.createTextNode('\u2714'))
+    icon.appendChild(document.createTextNode(checkSymbol))
 
     a.appendChild(document.createTextNode('Unplayed'))
   }
@@ -3243,6 +3388,10 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
 
     if (document.getElementById('user-nav')) {
       addMainMenuButtonToUserNav()
+    }
+
+    if (document.getElementById('carousel-player') || document.querySelector('.play-carousel')) {
+      window.setTimeout(makeCarouselPlayerGreatAgain, 5000)
     }
 
     if (document.querySelector('ol#grid-tabs li') && document.querySelector('.fan-bio-pic-upload-container')) {

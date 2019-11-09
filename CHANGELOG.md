@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.11](../../tree/v0.11) *(2019-11-09)*
+*   Show "Check" links for a longer time
+*   Show "Check" links in *carousel player* (bandcamp.com/tag/...)
+*   Added @connect for Tampermonkey
+*   Show nice error if too many cookies
 ## [0.10](../../tree/v0.10) *(2019-11-09)*
 *   Improved recover player after page load: all albums will be recovered
 ## [0.9](../../tree/v0.9) *(2019-11-08)*
