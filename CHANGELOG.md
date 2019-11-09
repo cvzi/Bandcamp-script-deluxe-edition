@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.10](../../tree/v0.10) *(2019-11-09)*
+*   Improved recover player after page load: all albums will be recovered
 ## [0.9](../../tree/v0.9) *(2019-11-08)*
 *   Download link on single track pages
 ## [0.8](../../tree/v0.8) *(2019-11-02)*

@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.9
+// @version       0.10
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -73,8 +73,8 @@ const allFeatures = {
     default: false
   },
   discographyplayerPersist: {
-    name: '(Work in Progress) Recover discography player on next page',
-    default: false
+    name: 'Recover discography player on next page',
+    default: true
   }
 }
 
@@ -319,13 +319,30 @@ function musicPlayerNextSong (next) {
     }
   }
   if (next) {
-    current.className = current.className.replace('playing', '')
-    next.className += ' playing'
+    current.classList.remove('playing')
+    next.classList.add('playing')
     musicPlayerPlaySong(next)
   } else {
     // End of playlist reached
     if (findNextAlbumCover(current.dataset.albumUrl) === false) {
-      window.alert('End of playlist reached')
+      const notloaded = player.querySelector('.playlist .playlistheading a.notloaded')
+      if (notloaded) {
+        // Unloaded albums in playlist
+        const url = notloaded.href
+        notloaded.remove()
+        cachedTralbumData(url).then(function onCachedTralbumDataLoaded (TralbumData) {
+          if (TralbumData) {
+            addAlbumToPlaylist(TralbumData, 0)
+          } else {
+            playAlbumFromUrl(url)
+          }
+        })
+      } else {
+        audio.pause()
+        audio.currentTime -= 1
+        musicPlayerOnTimeUpdate()
+        window.alert('End of playlist reached')
+      }
     }
   }
 }
@@ -474,7 +491,26 @@ function musicPlayerPrevAlbum () {
   audio.pause()
   window.setTimeout(function musicPlayerPrevAlbumTimeout () {
     musicPlayerShowBusy()
-    findPreviousAlbumCover(player.querySelector('.playlist .playing').dataset.albumUrl)
+    const url = player.querySelector('.playlist .playing').dataset.albumUrl
+    if (!findPreviousAlbumCover(url)) {
+      // Find previous album in playlist
+      let prev = false
+      const as = player.querySelectorAll('.playlist .playlistheading a')
+      for (let i = 0; i < as.length; i++) {
+        if (albumKey(as[i].href) === albumKey(url)) {
+          if (i > 0) {
+            prev = as[i - 1]
+          }
+          break
+        }
+      }
+      if (prev) {
+        prev.parentNode.click()
+      } else {
+        // Just play first song in playlist
+        player.querySelector('.playlist .playlistentry').click()
+      }
+    }
   }, 10)
 }
 function musicPlayerNextAlbum () {
@@ -483,8 +519,23 @@ function musicPlayerNextAlbum () {
     musicPlayerShowBusy()
     const r = findNextAlbumCover(player.querySelector('.playlist .playing').dataset.albumUrl)
     if (r === false) {
-      audio.play()
-      window.alert('End of playlist reached')
+      // Find next album in playlist
+      let reachedPlaying = false
+      let found = false
+      const lis = player.querySelectorAll('.playlist li')
+      for (let i = 0; i < lis.length; i++) {
+        if (reachedPlaying && lis[i].classList.contains('playlistheading')) {
+          lis[i].click()
+          found = true
+          break
+        } else if (lis[i].classList.contains('playing')) {
+          reachedPlaying = true
+        }
+      }
+      if (!found) {
+        audio.play()
+        window.alert('End of playlist reached')
+      }
     }
   }, 10)
 }
@@ -496,7 +547,7 @@ function musicPlayerOnTimelineClick (ev) {
   audio.currentTime = currentDuration * clickPercent
 }
 
-function musicPlayerOnTimeUpdate (ev) {
+function musicPlayerOnTimeUpdate () {
   const playpause = player.querySelector('.playpause')
   const timelineWidth = timeline.offsetWidth - playhead.offsetWidth
   const playPercent = timelineWidth * (audio.currentTime / currentDuration)
@@ -627,7 +678,22 @@ function musicPlayerOnEnded (ev) {
 function musicPlayerOnPlaylistClick (ev) {
   musicPlayerNextSong(this)
 }
-
+function musicPlayerOnPlaylistHeadingClick (ev) {
+  const a = this.querySelector('a[href]')
+  if (a && a.classList.contains('notloaded')) {
+    const url = a.href
+    this.remove()
+    cachedTralbumData(url).then(function onCachedTralbumDataLoaded (TralbumData) {
+      if (TralbumData) {
+        addAlbumToPlaylist(TralbumData, 0)
+      } else {
+        playAlbumFromUrl(url)
+      }
+    })
+  } else if (a && this.nextElementSibling) {
+    this.nextElementSibling.click()
+  }
+}
 function musicPlayerFavicon (url) {
   removeViaQuerySelector(document.head, 'link[rel*=icon]')
   const link = document.createElement('link')
@@ -760,11 +826,14 @@ function musicPlayerRestoreState (state) {
   playlistEntries.forEach(function addPlaylistEntryOnClick (li) {
     li.addEventListener('click', musicPlayerOnPlaylistClick)
   })
+  player.querySelectorAll('.playlist .playlistheading').forEach(function addPlaylistHeadingEntryOnClick (li) {
+    li.addEventListener('click', musicPlayerOnPlaylistHeadingClick)
+  })
   if (state.startPlaybackIndex !== false) {
     player.querySelectorAll('.playlist .playing').forEach(function (el) {
-      el.className = el.className.replace('playing', '')
+      el.classList.remove('playing')
     })
-    playlistEntries[state.startPlaybackIndex].className += ' playing'
+    playlistEntries[state.startPlaybackIndex].classList.add('playing')
     window.setTimeout(() => player.querySelector('.playlist .playing').scrollIntoView({ block: 'nearest' }), 200)
   }
   // Start playback
@@ -1122,7 +1191,14 @@ function musicPlayerCreate () {
   margin:3px 0px
 }
 #discographyplayer .playlist .playlistheading a:link,#discographyplayer .playlist .playlistheading a:hover,#discographyplayer .playlist .playlistheading a:visited{
-  color:#EEE
+  color:#EEE;
+  cursor:pointer
+}
+#discographyplayer .playlist .playlistheading a.notloaded{
+  color:#CCC
+}
+#discographyplayer .playlist .playlistheading.notloaded{
+  cursor:copy
 }
 #discographyplayer .vol{
   float:left;
@@ -1327,6 +1403,7 @@ function musicPlayerCreate () {
 
   window.addEventListener('unload', function onPageUnLoad (ev) {
     if (allFeatures.discographyplayerPersist.enabled && player.style.display !== 'none' && !audio.paused) {
+      addAllAlbumsAsHeadings()
       musicPlayerSaveState()
     }
   })
@@ -1334,7 +1411,7 @@ function musicPlayerCreate () {
   window.setInterval(musicPlayerUpdateBufferBar, 1200)
 }
 
-function addHeadingToPlaylist (title, url) {
+function addHeadingToPlaylist (title, url, albumLoaded) {
   musicPlayerCreate()
   let content = document.createTextNode('💽 ' + title)
   if (url) {
@@ -1343,12 +1420,20 @@ function addHeadingToPlaylist (title, url) {
     a.target = '_blank'
     a.appendChild(content)
     content = a
+    a.className = albumLoaded ? 'loaded' : 'notloaded'
+    a.title = 'Open album page'
   }
   const li = document.createElement('li')
   li.appendChild(content)
   li.className = 'playlistheading'
+  if (!albumLoaded) {
+    li.className += ' notloaded'
+    li.title = 'Load album into playlist'
+  }
+  li.addEventListener('click', musicPlayerOnPlaylistHeadingClick)
   player.querySelector('.playlist').appendChild(li)
 }
+
 function addToPlaylist (startPlayback, data) {
   musicPlayerCreate()
 
@@ -1376,9 +1461,9 @@ function addToPlaylist (startPlayback, data) {
 
   if (startPlayback) {
     player.querySelectorAll('.playlist .playing').forEach(function (el) {
-      el.className = el.className.replace('playing', '')
+      el.classList.remove('playing')
     })
-    li.className += ' playing'
+    li.classList.add('playing')
     musicPlayerPlaySong(li)
     window.setTimeout(() => player.querySelector('.playlist .playing').scrollIntoView({ block: 'nearest' }), 200)
   }
@@ -1390,7 +1475,7 @@ function addAlbumToPlaylist (TralbumData, startPlaybackIndex) {
   const album = TralbumData.current.title
   const albumUrl = document.location.protocol + '//' + albumKey(TralbumData.url)
   const albumCover = `https://f4.bcbits.com/img/a${TralbumData.art_id}_2.jpg`
-  addHeadingToPlaylist(album, 'url' in TralbumData ? TralbumData.url : false)
+  addHeadingToPlaylist(album, 'url' in TralbumData ? TralbumData.url : false, true)
   let streamable = 0
   for (var key in TralbumData.trackinfo) {
     const track = TralbumData.trackinfo[key]
@@ -1421,6 +1506,33 @@ function addAlbumToPlaylist (TralbumData, startPlaybackIndex) {
     const li = document.createElement('li')
     li.appendChild(document.createTextNode((NOEMOJI ? '\u27C1' : '\uD83D\uDE22') + ' Album is not streamable'))
     player.querySelector('.playlist').appendChild(li)
+  }
+  player.querySelectorAll('.playlist .playlistheading a.notloaded').forEach(function (el) {
+    // Move unloaded items to the end
+    el.parentNode.parentNode.appendChild(el.parentNode)
+  })
+}
+
+function addAllAlbumsAsHeadings () {
+  const as = document.querySelectorAll('.music-grid .music-grid-item a[href^="/album/"],.music-grid .music-grid-item a[href^="/track/"]')
+  const lis = player.querySelectorAll('.playlist .playlistentry')
+
+  const isAlreadyInPlaylist = function (url) {
+    for (let i = 0; i < lis.length; i++) {
+      if (albumKey(lis[i].dataset.albumUrl) === albumKey(url)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  for (let i = 0; i < as.length; i++) {
+    const url = as[i].href
+    // Check if already in playlist
+    if (!isAlreadyInPlaylist(url)) {
+      const title = ('textContent' in as[i].dataset ? as[i].dataset.textContent : as[i].querySelector('.title').textContent).trim()
+      addHeadingToPlaylist(title, url, false)
+    }
   }
 }
 
@@ -1508,15 +1620,15 @@ function playAlbumFromCover (ev) {
     parent = parent.parentNode
   }
   const url = parent.href
-
-  parent.className += ' discographyplayer_currentalbum'
+  parent.querySelector('img')
+  parent.classList.add('discographyplayer_currentalbum')
 
   // Check if already in playlist
   if (player) {
     musicPlayerCreate()
     const lis = player.querySelectorAll('.playlist .playlistentry')
     for (let i = 0; i < lis.length; i++) {
-      if (lis[i].dataset.albumUrl === url) {
+      if (albumKey(lis[i].dataset.albumUrl) === albumKey(url)) {
         lis[i].click()
         return
       }
@@ -1727,7 +1839,7 @@ async function makeAlbumLinksGreat () {
   }
   const mouseOverLink = function onMouseOverLink (ev) {
     if (this.querySelector('.bdp_check_onlinkhover_container')) {
-      this.querySelector('.bdp_check_onlinkhover_container').className += ' bdp_check_onlinkhover_container_shown'
+      this.querySelector('.bdp_check_onlinkhover_container').classList.add('bdp_check_onlinkhover_container_shown')
     }
   }
   const mouseOutLink = function onMouseOutLink (ev) {
@@ -1735,7 +1847,7 @@ async function makeAlbumLinksGreat () {
     setTimeout(function mouseOutLinkTimeout () {
       const div = a.querySelector('.bdp_check_onlinkhover_container')
       if (div) {
-        div.className = div.className.replace(' bdp_check_onlinkhover_container_shown', '')
+        div.classList.remove('bdp_check_onlinkhover_container_shown')
       }
     }, 1000)
   }
