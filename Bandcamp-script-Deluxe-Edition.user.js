@@ -1611,7 +1611,6 @@ async function storeTralbumData (TralbumData) {
   TralbumData.time = (new Date()).toJSON()
   cache[albumKey(TralbumData.url)] = TralbumData
   await GM.setValue('tralbumdata', JSON.stringify(cache))
-  await GM.setValue('hovercache', '') // TODO remove this line in next version
 }
 
 async function cachedTralbumData (url) {
