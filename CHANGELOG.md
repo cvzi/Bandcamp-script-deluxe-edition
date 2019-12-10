@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.12](../../tree/v0.12) *(2019-12-10)*
+*   Use [Symbola font](https://fontlibrary.org/en/font/symbola) for symbols on Windows 7
 ## [0.11](../../tree/v0.11) *(2019-11-09)*
 *   Show "Check" links for a longer time
 *   Show "Check" links in *carousel player* (bandcamp.com/tag/...)

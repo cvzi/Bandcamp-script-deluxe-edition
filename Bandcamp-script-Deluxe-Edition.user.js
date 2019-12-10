@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.11
+// @version       0.12
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -2151,6 +2151,7 @@ async function addListenedButtonToCollectControls () {
 
   li.setAttribute('id', 'discographyplayer_sharepanel')
   a.addEventListener('click', (ev) => ev.preventDefault())
+  icon.className = 'sharepanelchecksymbol'
 
   if (listened) {
     const date = new Date(listened)
@@ -2357,7 +2358,7 @@ function addVolumeBarToAlbumPage () {
   volumeButton.style.width = playbutton.clientWidth + 'px'
   const volumeSymbol = volumeButton.appendChild(document.createElement('div'))
   volumeSymbol.className = 'volumeSymbol'
-  volumeSymbol.appendChild(document.createTextNode(CHROME ? (NOEMOJI ? '\u29BD' : '\uD83D\uDD5B') : '\u23F2'))
+  volumeSymbol.appendChild(document.createTextNode(CHROME ? '\uD83D\uDD5B' : '\u23F2'))
 
   const progbar = document.querySelector('#trackInfoInner .progbar_cell .progbar')
   const volumeBar = progbar.cloneNode(true)
@@ -3339,6 +3340,7 @@ function addMainMenuButtonToUserNav () {
   li.className = 'menubar-item hoverable'
   li.title = 'userscript settings - Bandcamp script (Deluxe Edition)'
   const a = li.appendChild(document.createElement('a'))
+  a.className = 'settingssymbol'
   a.style.fontSize = '24px'
   if (NOEMOJI) {
     a.appendChild(document.createTextNode('\u26ED'))
@@ -3352,6 +3354,11 @@ const maintenanceContent = document.querySelector('.content')
 if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') !== -1) {
   console.log('Maintenance detected')
 } else {
+  if (NOEMOJI) {
+    document.head.appendChild(document.createElement('style')).innerHTML = '@font-face{font-family:Symbola;src:local("Symbola Regular"),local("Symbola"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format("woff2"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format("woff"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format("truetype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format("opentype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format("svg")}' +
+      '.sharepanelchecksymbol,.bdp_check_onlinkhover_symbol,.bdp_check_onchecked_symbol,.volumeSymbol,.downloaddisk,.downloadlink,#user-nav .settingssymbol,.listened-symbol,.mark-listened-symbol,.minimizebutton{font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif}' +
+      '.downloaddisk,.downloadlink{font-weight: bolder}'
+  }
   GM.getValue('enabledFeatures', false).then(function onEnabledFeaturesLoad (value) {
     getEnabledFeatures(value)
 
