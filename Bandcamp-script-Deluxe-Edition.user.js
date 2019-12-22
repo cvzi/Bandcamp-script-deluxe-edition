@@ -102,6 +102,19 @@ function humanDuration (duration) {
   return `${hours}${minutes}:${seconds}`
 }
 
+function addLogVolume (mediaElement) {
+  if (!mediaElement.hasOwnProperty('logVolume')) {
+    Object.defineProperty(mediaElement, 'logVolume', {
+      get() {
+        return Math.log((Math.E - 1) * this.volume + 1)
+      },
+      set(percentage) {
+        this.volume = (Math.exp(percentage) - 1) / (Math.E - 1)
+      }
+    })
+  }
+}
+
 function padd (n, width, filler) {
   let s
   for (s = n.toString(); s.length < width; s = filler + s) {}
@@ -253,8 +266,9 @@ function restoreVolume () {
       if (audios.length > 0) {
         let paused = true
         audios.forEach(function (media) {
+          addLogVolume(media)
           paused = paused && media.paused
-          media.volume = volume
+          media.logVolume = volume
         })
         if (!paused) {
           // Clear interval once audio is actually playing
@@ -632,32 +646,32 @@ function musicPlayerOnVolumeClick (ev) {
   const volSlider = player.querySelector('.vol-slider')
   const sliderWidth = volSlider.offsetWidth
   const percent = (ev.clientX - volSlider.getBoundingClientRect().left) / sliderWidth
-  audio.volume = percent > 0.9 ? 1.0 : percent
-  GM.setValue('volume', audio.volume)
+  audio.logVolume = percent > 0.9 ? 1.0 : percent
+  GM.setValue('volume', audio.logVolume)
 }
 function musicPlayerOnVolumeWheel (ev) {
   ev.preventDefault()
   const direction = Math.min(Math.max(-1.0, ev.deltaY), 1.0)
-  audio.volume = Math.min(Math.max(0.0, audio.volume - 0.05 * direction), 1.0)
-  GM.setValue('volume', audio.volume)
+  audio.logVolume = Math.min(Math.max(0.0, audio.logVolume - 0.05 * direction), 1.0)
+  GM.setValue('volume', audio.logVolume)
 }
 function musicPlayerOnMuteClick (ev) {
-  if (audio.volume < 0.01) {
+  if (audio.logVolume < 0.01) {
     if ('lastvolume' in audio.dataset && audio.dataset.lastvolume) {
-      audio.volume = audio.dataset.lastvolume
-      GM.setValue('volume', audio.volume)
+      audio.logVolume = audio.dataset.lastvolume
+      GM.setValue('volume', audio.logVolume)
     } else {
-      audio.volume = 1.0
+      audio.logVolume = 1.0
     }
   } else {
-    audio.dataset.lastvolume = audio.volume
-    audio.volume = 0.0
+    audio.dataset.lastvolume = audio.logVolume
+    audio.logVolume = 0.0
   }
 }
 
 function musicPlayerOnVolumeChanged (ev) {
   const icons = ['\uD83D\uDD07', '\uD83D\uDD08', '\uD83D\uDD09', '\uD83D\uDD0A']
-  const percent = audio.volume
+  const percent = audio.logVolume
   const volSlider = player.querySelector('.vol-slider')
   volSlider.querySelector('.vol-amt').style.width = parseInt(100 * percent) + '%'
   const volIconWrapper = player.querySelector('.vol-icon-wrapper')
@@ -1365,7 +1379,8 @@ function musicPlayerCreate () {
 `
 
   audio = player.querySelector('audio')
-  getStoredVolume(function setVolumeCallback (volume) { audio.volume = volume })
+  addLogVolume(audio)
+  getStoredVolume(function setVolumeCallback (volume) { audio.logVolume = volume })
   playhead = player.querySelector('#playhead')
   bufferbar = player.querySelector('#bufferbar')
   timeline = player.querySelector('#timeline')
@@ -1973,8 +1988,10 @@ function removeTheTimeHasComeToOpenThyHeartWallet () {
         el.remove()
       }
     }
-    TralbumData.play_cap_data.streaming_limit = 100
-    TralbumData.play_cap_data.streaming_limits_enabled = false
+    if (TralbumData.play_cap_data) {
+      TralbumData.play_cap_data.streaming_limit = 100
+      TralbumData.play_cap_data.streaming_limits_enabled = false
+    }
     for(let i = 0; i < TralbumData.trackinfo.length; i++) {
       TralbumData.trackinfo[i].is_capped = false
       TralbumData.trackinfo[i].play_count = 1
@@ -2320,7 +2337,7 @@ function addVolumeBarToAlbumPage () {
   document.head.appendChild(document.createElement('style')).innerHTML = `
     /* Hide if inline_player is hidden */
     .hidden .volumeButton,.hidden .volumeControl,.hidden .volumeLabel{
-      visibility:collapse
+      display:none
     }
 
     .volumeButton {
@@ -2387,10 +2404,11 @@ function addVolumeBarToAlbumPage () {
   const green0 = 90
   const green100 = 100
   const audioAlbumPage = document.querySelector('audio')
+  addLogVolume(audioAlbumPage)
   const volumeBarPos = volumeBar.getBoundingClientRect().left
 
   const displayVolume = function updateDisplayVolume () {
-    const level = audioAlbumPage.volume
+    const level = audioAlbumPage.logVolume
     volumeLabel.innerHTML = parseInt(level * 100.0) + '%'
     thumb.style.left = (width100 * level) + 'px'
     progbarFill.style.width = parseInt(level * 100.0) + '%'
@@ -2420,18 +2438,18 @@ function addVolumeBarToAlbumPage () {
     if (!dragging) {
       // Click on volume bar without dragging:
       audioAlbumPage.muted = false
-      audioAlbumPage.volume = Math.max(0.0, Math.min(1.0, (ev.pageX - volumeBarPos) / width100))
+      audioAlbumPage.logVolume = Math.max(0.0, Math.min(1.0, (ev.pageX - volumeBarPos) / width100))
       displayVolume()
     }
     dragging = false
-    GM.setValue('volume', audioAlbumPage.volume)
+    GM.setValue('volume', audioAlbumPage.logVolume)
   })
   document.addEventListener('mouseup', function documentMouseUp (ev) {
     if (ev.button === 0 && dragging) {
       dragging = false
       ev.preventDefault()
       ev.stopPropagation()
-      GM.setValue('volume', audioAlbumPage.volume)
+      GM.setValue('volume', audioAlbumPage.logVolume)
     }
   })
   document.addEventListener('mousemove', function documentMouseMove (ev) {
@@ -2439,30 +2457,30 @@ function addVolumeBarToAlbumPage () {
       ev.preventDefault()
       ev.stopPropagation()
       audioAlbumPage.muted = false
-      audioAlbumPage.volume = Math.max(0.0, Math.min(1.0, ((ev.pageX - volumeBarPos) - dragPos) / width100))
+      audioAlbumPage.logVolume = Math.max(0.0, Math.min(1.0, ((ev.pageX - volumeBarPos) - dragPos) / width100))
       displayVolume()
     }
   })
   const onWheel = function onMouseWheel (ev) {
     ev.preventDefault()
     const direction = Math.min(Math.max(-1.0, ev.deltaY), 1.0)
-    audioAlbumPage.volume = Math.min(Math.max(0.0, audioAlbumPage.volume - 0.05 * direction), 1.0)
+    audioAlbumPage.logVolume = Math.min(Math.max(0.0, audioAlbumPage.logVolume - 0.05 * direction), 1.0)
     displayVolume()
-    GM.setValue('volume', audioAlbumPage.volume)
+    GM.setValue('volume', audioAlbumPage.logVolume)
   }
   volumeButton.addEventListener('wheel', onWheel, false)
   volumeBar.addEventListener('wheel', onWheel, false)
   volumeButton.addEventListener('click', function onVolumeButtonClick (ev) {
-    if (audioAlbumPage.volume < 0.01) {
+    if (audioAlbumPage.logVolume < 0.01) {
       if ('lastvolume' in audioAlbumPage.dataset && audioAlbumPage.dataset.lastvolume) {
-        audioAlbumPage.volume = audioAlbumPage.dataset.lastvolume
-        GM.setValue('volume', audioAlbumPage.volume)
+        audioAlbumPage.logVolume = audioAlbumPage.dataset.lastvolume
+        GM.setValue('volume', audioAlbumPage.logVolume)
       } else {
-        audioAlbumPage.volume = 1.0
+        audioAlbumPage.logVolume = 1.0
       }
     } else {
-      audioAlbumPage.dataset.lastvolume = audioAlbumPage.volume
-      audioAlbumPage.volume = 0.0
+      audioAlbumPage.dataset.lastvolume = audioAlbumPage.logVolume
+      audioAlbumPage.logVolume = 0.0
     }
     displayVolume()
   })
