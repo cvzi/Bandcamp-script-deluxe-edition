@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.12
+// @version       0.13
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -249,12 +249,12 @@ function getStoredVolume (callbackIfVolumeExists) {
 function restoreVolume () {
   getStoredVolume(function getStoredVolumeCallback (volume) {
     const restoreVolumeInterval = function restoreInterval () {
-      const audios = document.querySelectorAll('audio')
+      const audios = document.querySelectorAll('audio,video')
       if (audios.length > 0) {
         let paused = true
-        audios.forEach(function (audio) {
-          paused = paused && audio.paused
-          audio.volume = volume
+        audios.forEach(function (media) {
+          paused = paused && media.paused
+          media.volume = volume
         })
         if (!paused) {
           // Clear interval once audio is actually playing
@@ -2017,7 +2017,6 @@ function makeCarouselPlayerGreatAgain () {
     }, 5000)
   }
 
-  // TODO check link on carousel player
   let addListenedButtonToCarouselPlayerLast = null
   const addListenedButtonToCarouselPlayer = function listenedButtonOnCarouselPlayer () {
     const url = document.querySelector('#carousel-player .now-playing .info a') ? albumKey(document.querySelector('#carousel-player .now-playing .info a').href) : null
@@ -2319,6 +2318,11 @@ function addVolumeBarToAlbumPage () {
   }
 
   document.head.appendChild(document.createElement('style')).innerHTML = `
+    /* Hide if inline_player is hidden */
+    .hidden .volumeButton,.hidden .volumeControl,.hidden .volumeLabel{
+      visibility:collapse
+    }
+
     .volumeButton {
       display: inline-block;
       user-select:none;
@@ -2364,7 +2368,7 @@ function addVolumeBarToAlbumPage () {
   const volumeBar = progbar.cloneNode(true)
   document.querySelector('#trackInfoInner .inline_player').appendChild(volumeBar)
   volumeBar.classList.add('volumeControl')
-  volumeBar.style.width = progbar.clientWidth + 'px'
+  volumeBar.style.width = Math.max(200, progbar.clientWidth) + 'px'
   const thumb = volumeBar.querySelector('.thumb')
   thumb.setAttribute('id', 'deluxe_thumb')
   const progbarFill = volumeBar.querySelector('.progbar_fill')
@@ -2415,12 +2419,12 @@ function addVolumeBarToAlbumPage () {
 
     if (!dragging) {
       // Click on volume bar without dragging:
-      audio.muted = false
-      audio.volume = Math.max(0.0, Math.min(1.0, (ev.pageX - volumeBarPos) / width100))
+      audioAlbumPage.muted = false
+      audioAlbumPage.volume = Math.max(0.0, Math.min(1.0, (ev.pageX - volumeBarPos) / width100))
       displayVolume()
     }
     dragging = false
-    GM.setValue('volume', audio.volume)
+    GM.setValue('volume', audioAlbumPage.volume)
   })
   document.addEventListener('mouseup', function documentMouseUp (ev) {
     if (ev.button === 0 && dragging) {
@@ -2444,7 +2448,7 @@ function addVolumeBarToAlbumPage () {
     const direction = Math.min(Math.max(-1.0, ev.deltaY), 1.0)
     audioAlbumPage.volume = Math.min(Math.max(0.0, audioAlbumPage.volume - 0.05 * direction), 1.0)
     displayVolume()
-    GM.setValue('volume', audio.volume)
+    GM.setValue('volume', audioAlbumPage.volume)
   }
   volumeButton.addEventListener('wheel', onWheel, false)
   volumeBar.addEventListener('wheel', onWheel, false)

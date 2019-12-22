@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.13](../../tree/v0.13) *(2019-12-22)*
+*   Do not show volume slider on album pages that do not have a "play" symbol
+*   Bugfix: Remember volume level on album pages
 ## [0.12](../../tree/v0.12) *(2019-12-10)*
 *   Use [Symbola font](https://fontlibrary.org/en/font/symbola) for symbols on Windows 7
 ## [0.11](../../tree/v0.11) *(2019-11-09)*
