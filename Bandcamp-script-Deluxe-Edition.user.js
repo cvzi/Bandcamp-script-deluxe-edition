@@ -103,12 +103,12 @@ function humanDuration (duration) {
 }
 
 function addLogVolume (mediaElement) {
-  if (!mediaElement.hasOwnProperty('logVolume')) {
+  if (!Object.prototype.hasOwnProperty.call(mediaElement, 'logVolume')) {
     Object.defineProperty(mediaElement, 'logVolume', {
-      get() {
+      get () {
         return Math.log((Math.E - 1) * this.volume + 1)
       },
-      set(percentage) {
+      set (percentage) {
         this.volume = (Math.exp(percentage) - 1) / (Math.E - 1)
       }
     })
