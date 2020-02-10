@@ -24,8 +24,9 @@ Features:
 
 Discography player:
 
-![Screenshot of album page](screenshotAlbumPage.webp)
+![Screenshot of discography page](screenshotDiscographyPage.webp)
 
 Album page:
 
-![Screenshot of discography page](screenshotDiscographyPage.webp)
+![Screenshot of album page](screenshotAlbumPage.webp)
+
