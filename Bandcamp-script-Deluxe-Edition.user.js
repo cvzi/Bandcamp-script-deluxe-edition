@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.13
+// @version       0.14
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -24,6 +24,7 @@
 
 /* globals JSON5, GM, unsafeWindow, MouseEvent, Response */
 
+// TODO genius lyrics?
 // TODO test preorder albums and albums that are not streamable
 // TODO run on all sites, not only bandcamp if (hostname is 'bandcamp' or definingFeature())
 // TODO Mark as played automatically when played
@@ -77,6 +78,10 @@ const allFeatures = {
   discographyplayerPersist: {
     name: 'Recover discography player on next page',
     default: true
+  },
+  releaseReminder: {
+    name: 'Show new releases that I have saved',
+    default: true
   }
 }
 
@@ -103,7 +108,7 @@ function humanDuration (duration) {
 }
 
 function addLogVolume (mediaElement) {
-  if (!Object.prototype.hasOwnProperty.call(mediaElement, 'logVolume')) {
+  if (!Object.hasOwnProperty.call(mediaElement, 'logVolume')) {
     Object.defineProperty(mediaElement, 'logVolume', {
       get () {
         return Math.log((Math.E - 1) * this.volume + 1)
@@ -214,6 +219,7 @@ function firstChildWithText (parent) {
 
 const _dateOptions = { year: 'numeric', month: 'short', day: 'numeric' }
 const _dateOptionsWithoutYear = { month: 'short', day: 'numeric' }
+const _dateOptionsNumericWithoutYear = { year: '2-digit', month: '2-digit', day: '2-digit' }
 function dateFormater (date) {
   if (date.getFullYear() === (new Date()).getFullYear()) {
     return date.toLocaleDateString(undefined, _dateOptionsWithoutYear)
@@ -223,6 +229,9 @@ function dateFormater (date) {
 }
 function dateFormaterRelease (date) {
   return date.toLocaleDateString(undefined, _dateOptionsWithoutYear) + ', ' + date.getFullYear()
+}
+function dateFormaterNumeric (date) {
+  return date.toLocaleDateString(undefined, _dateOptionsNumericWithoutYear)
 }
 
 function getEnabledFeatures (enabledFeaturesValue) {
@@ -1819,6 +1828,7 @@ async function makeAlbumLinksGreat (parentElement) {
 
   const excluded = [...document.querySelectorAll('#carousel-player .now-playing a')]
   excluded.push(...document.querySelectorAll('#discographyplayer a'))
+  excluded.push(...document.querySelectorAll('#pastreleases a'))
 
   /*
   <div class="bdp_check_container bdp_check_onlinkhover_container"><span class="bdp_check_onlinkhover_symbol">\u2610</span> <span class="bdp_check_onlinkhover_text">Check</span></div>
@@ -2501,6 +2511,313 @@ function clickAddToWishlist () {
     // if logged in, the click should be successful, so try to close the window
     window.setTimeout(window.close, 1000)
   }
+}
+
+function addReleaseDateButton () {
+  const meta = document.querySelector('*[itemprop="datePublished"]')
+  if (!meta || !meta.content) {
+    return // no release date found
+  }
+  const TralbumData = unsafeWindow.TralbumData
+  const now = new Date()
+  const releaseDate = new Date(TralbumData.current.release_date)
+  const days = parseInt(Math.ceil((releaseDate - now) / (1000 * 60 * 60 * 24)))
+  if (releaseDate < now) {
+    return // Release date is in the past
+  }
+  const key = albumKey(TralbumData.url)
+
+  document.head.appendChild(document.createElement('style')).innerHTML = `
+  .releaseReminderButton {
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    transition: border 500ms, padding 500ms
+  }
+  .releaseReminderButton.active {
+    border-radius:5px;
+    padding:0px 5px;
+    border:#3fb32f66 solid 2px
+  }
+  .releaseReminderButton:hover .releaseLabel {
+    text-decoration:underline
+  }
+  `
+
+  const div = document.querySelector('.share-collect-controls').appendChild(document.createElement('div'))
+  div.style = 'margin-top:4px'
+  const span = div.appendChild(document.createElement('span'))
+  span.className = 'custom-link-color releaseReminderButton'
+  span.title = 'Releases ' + dateFormaterRelease(releaseDate)
+  const daysStr = days === 1 ? 'tomorrow' : (`in ${days} days`)
+  span.innerHTML = `<span>\u23F0</span> <span class="releaseLabel">Notify <time datetime="${releaseDate.toISOString()}">${daysStr}</time></span>`
+  span.addEventListener('click', (ev) => toggleReleaseReminder(ev, span))
+
+  GM.getValue('releasereminder', '{}').then(function (str) {
+    const releaseReminderData = JSON.parse(str)
+    if (key in releaseReminderData) {
+      span.classList.add('active')
+      span.innerHTML = `<span>\u23F0</span> <span class="releaseLabel">Reminder set (<time datetime="${releaseDate.toISOString()}">${daysStr}</time>)</span>`
+    }
+  })
+}
+
+async function toggleReleaseReminder (ev, span) {
+  const TralbumData = unsafeWindow.TralbumData
+  const key = albumKey(TralbumData.url)
+  const releaseReminderData = JSON.parse(await GM.getValue('releasereminder', '{}'))
+  if (key in releaseReminderData) {
+    delete releaseReminderData[key]
+  } else {
+    releaseReminderData[key] = {
+      albumCover: `https://f4.bcbits.com/img/a${TralbumData.art_id}_2.jpg`,
+      releaseDate: TralbumData.current.release_date,
+      artist: TralbumData.artist,
+      title: TralbumData.current.title
+    }
+  }
+  await GM.setValue('releasereminder', JSON.stringify(releaseReminderData))
+
+  if (span) {
+    const releaseDate = new Date(TralbumData.current.release_date)
+    const now = new Date()
+    const days = parseInt(Math.ceil((releaseDate - now) / (1000 * 60 * 60 * 24)))
+    const daysStr = days === 1 ? 'tomorrow' : (`in ${days} days`)
+    if (key in releaseReminderData) {
+      span.classList.add('active')
+      span.innerHTML = `<span>\u23F0</span> <span class="releaseLabel">Reminder set (<time datetime="${releaseDate.toISOString()}">${daysStr}</time>)</span>`
+    } else {
+      span.classList.remove('active')
+      span.innerHTML = `<span>\u23F0</span> <span class="releaseLabel">Notify <time datetime="${releaseDate.toISOString()}">${daysStr}</time></span>`
+    }
+  }
+}
+async function removeReleaseReminder (ev) {
+  ev.preventDefault()
+  const key = this.parentNode.dataset.key
+  const releaseReminderData = JSON.parse(await GM.getValue('releasereminder', '{}'))
+  if (key in releaseReminderData) {
+    delete releaseReminderData[key]
+    await GM.setValue('releasereminder', JSON.stringify(releaseReminderData))
+  }
+  this.parentNode.remove()
+}
+function maximizePastReleases () {
+  document.getElementById('pastreleases').style.opacity = 0.0
+  window.setTimeout(() => showPastReleases(null, true), 500)
+  document.getElementById('pastreleases').removeEventListener('click', maximizePastReleases)
+}
+async function showPastReleases (ev, forceShow) {
+  let hideDate = await GM.getValue('pastreleaseshidden', false)
+  const releaseReminderData = JSON.parse(await GM.getValue('releasereminder', '{}'))
+  const releases = []
+  let pastReleasesCounter = 0
+  const now = new Date()
+  now.setHours(23)
+  now.setMinutes(59)
+  for (const key in releaseReminderData) {
+    releaseReminderData[key].key = key
+    releaseReminderData[key].date = new Date(releaseReminderData[key].releaseDate)
+    releaseReminderData[key].past = now >= releaseReminderData[key].date
+    if (releaseReminderData[key].past) {
+      pastReleasesCounter++
+    }
+    releases.push(releaseReminderData[key])
+  }
+  releases.sort((a, b) => b.date - a.date)
+
+  if (releases.length === 0 || pastReleasesCounter === 0) {
+    return
+  }
+
+  if (!document.getElementById('pastreleases')) {
+    document.head.appendChild(document.createElement('style')).innerHTML = `
+    #pastreleases {
+      position:fixed;
+      bottom:1%;
+      left:10px;
+      background:#d5dce4;
+      color:#033162;
+      font-size:10pt;
+      border:1px solid #033162;
+      z-index:200;
+      opacity:0.0;
+      transition: opacity 700ms;
+      overflow:auto
+    }
+    #pastreleases .tablediv {
+      display: table;
+      position:relative;
+    }
+    #pastreleases .entry,#pastreleases .header {
+      display:table-row
+    }
+    #pastreleases .entry > *,#pastreleases .header > * {
+      display:table-cell;
+      line-height:21pt
+    }
+    #pastreleases .upcoming {
+      cursor:pointer;
+      font-size:x-small
+    }
+    #pastreleases .controls {
+      cursor:pointer;
+      position:absolute;
+      top:0px;
+      right:1px;
+      line-height:11pt
+    }
+    #pastreleases .entry:link {
+      position:relative;
+      border-top:1px solid #033162;
+      color:#033162;
+      text-decoration:none
+    }
+    #pastreleases .entry:nth-child(odd) {
+      background:#c5ccd4
+    }
+    #pastreleases .entry:hover,#pastreleases .entry:visited {
+      color:#033162;
+      text-decoration:none
+    }
+    #pastreleases .entry.future {
+      display:none;
+      background:#9fc2ea;
+    }
+    #pastreleases .entry.future:nth-child(odd) {
+      background:#8fc2e1;
+    }
+    #pastreleases .entry .image {
+      background-size:contain;
+      width:21pt;
+      height:21pt
+    }
+    #pastreleases .entry:hover .image {
+      display:block;
+      position:fixed;
+      bottom:10px;
+      top:50%;
+      left:50%;
+      margin-right:-50%;
+      transform:translate(-50%, -50%);
+      width:350px;
+      height:350px;
+      background:black;
+      border:5px solid white;
+    }
+    #pastreleases .entry time {
+      padding-right: 2px
+    }
+    #pastreleases .entry .title {
+      padding-left: 2px;
+      border-left: 1px solid #47a2bd
+    }
+    #pastreleases .remove {
+      font-family:sans-serif;
+      color:#97174e;
+      font-size: small;
+      padding-right:3px
+    }
+    `
+  }
+  const div = document.body.appendChild(document.getElementById('pastreleases') || document.createElement('div'))
+  div.setAttribute('id', 'pastreleases')
+  div.style.maxHeight = (document.documentElement.clientHeight - 50) + 'px'
+  div.style.maxWidth = (document.documentElement.clientWidth - 100) + 'px'
+  window.setTimeout(function () {
+    div.style.opacity = 1.0
+  }, 200)
+  div.innerHTML = ''
+
+  const table = div.appendChild(document.createElement('div'))
+  table.classList.add('tablediv')
+
+  const firstRow = table.appendChild(document.createElement('div'))
+  firstRow.classList.add('header')
+  firstRow.appendChild(document.createTextNode('\u23F0'))
+  firstRow.appendChild(document.createElement('span'))
+
+  if (!forceShow && hideDate && !isNaN(hideDate = new Date(hideDate)) && (new Date() - hideDate) < 1000 * 60 * 60) {
+    firstRow.appendChild(document.createTextNode(`${pastReleasesCounter} release` + (pastReleasesCounter === 1 ? '' : 's')))
+    table.addEventListener('click', maximizePastReleases)
+    return
+  } else {
+    GM.setValue('pastreleaseshidden', '')
+  }
+
+  const upcoming = firstRow.appendChild(document.createElement('span'))
+  if (releases.length !== pastReleasesCounter) {
+    upcoming.appendChild(document.createTextNode(' Show upcoming'))
+    upcoming.classList.add('upcoming')
+    upcoming.addEventListener('click', function () {
+      document.querySelectorAll('#pastreleases .future').forEach(function (el) {
+        el.style.display = 'table-row'
+      })
+      this.remove()
+    })
+  }
+
+  const controls = firstRow.appendChild(document.createElement('span'))
+  controls.classList.add('controls')
+
+  const refresh = controls.appendChild(document.createElement('span'))
+  refresh.setAttribute('title', 'Update')
+  refresh.addEventListener('click', function () {
+    document.getElementById('pastreleases').style.opacity = 0.0
+    window.setTimeout(() => showPastReleases(null, true), 1200)
+  })
+  refresh.appendChild(document.createTextNode(NOEMOJI ? 'Refresh' : '⟳'))
+
+  const close = controls.appendChild(document.createElement('span'))
+  close.setAttribute('title', 'Hide')
+  close.addEventListener('click', function () {
+    GM.setValue('pastreleaseshidden', new Date().toJSON())
+    document.getElementById('pastreleases').style.opacity = 0.0
+    window.setTimeout(function () {
+      document.getElementById('pastreleases').remove()
+    }, 700)
+  })
+  close.appendChild(document.createTextNode('X'))
+
+  releases.forEach(function (release) {
+    const days = parseInt(Math.ceil((release.date - now) / (1000 * 60 * 60 * 24)))
+    const daysStr = days === 1 ? 'tomorrow' : (`in ${days} days`)
+    let title = `${release.artist} - ${release.title}`
+
+    const entry = table.appendChild(document.createElement('a'))
+    entry.setAttribute('title', title)
+    entry.dataset.key = release.key
+    entry.classList.add('entry')
+    entry.classList.add(release.past ? 'past' : 'future')
+    entry.setAttribute('href', document.location.protocol + '//' + release.key)
+    entry.setAttribute('target', '_blank')
+
+    const removeButton = entry.appendChild(document.createElement('span'))
+    removeButton.setAttribute('title', 'Remove album')
+    removeButton.classList.add('remove')
+    removeButton.appendChild(document.createTextNode(NOEMOJI ? 'X' : '╳'))
+    removeButton.addEventListener('click', removeReleaseReminder)
+
+    const time = entry.appendChild(document.createElement('time'))
+    time.setAttribute('datetime', release.date.toISOString())
+    time.setAttribute('title', 'Releases ' + dateFormaterRelease(release.date))
+    if (release.past) {
+      time.appendChild(document.createTextNode(dateFormaterNumeric(release.date)))
+    } else {
+      time.appendChild(document.createTextNode(daysStr))
+    }
+
+    const span = entry.appendChild(document.createElement('span'))
+    span.classList.add('title')
+    title = title.length < 60 ? title : (title.substr(0, 57) + '…')
+    span.appendChild(document.createTextNode(' ' + title))
+
+    const image = entry.appendChild(document.createElement('div'))
+    image.classList.add('image')
+    image.style.backgroundRepeat = 'no-repeat'
+    image.style.backgroundSize = 'contain'
+    image.style.backgroundImage = `url(${release.albumCover})`
+  })
 }
 
 function mainMenu (startBackup) {
@@ -3384,6 +3701,10 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
   GM.getValue('enabledFeatures', false).then(function onEnabledFeaturesLoad (value) {
     getEnabledFeatures(value)
 
+    if (allFeatures.releaseReminder.enabled) {
+      showPastReleases()
+    }
+
     if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href^="/album/"] img')) {
       // Discography page
       makeAlbumCoversGreat()
@@ -3411,6 +3732,10 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
 
       if (document.location.hash === '#collect-wishlist') {
         clickAddToWishlist()
+      }
+
+      if (document.querySelector('*[itemprop="datePublished"]')) {
+        addReleaseDateButton()
       }
     }
 
