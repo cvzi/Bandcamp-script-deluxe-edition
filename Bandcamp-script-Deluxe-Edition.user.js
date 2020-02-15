@@ -468,7 +468,7 @@ function musicPlayerPlaySong (next, startTime) {
   const downloadLink = player.querySelector('.downloadlink')
   if (allFeatures.discographyplayerDownloadLink.enabled) {
     downloadLink.href = next.dataset.file
-    downloadLink.download = next.dataset.trackNumber > 9 ? '' : '0' + next.dataset.trackNumber + '. ' + fixFilename(next.dataset.artist + ' - ' + next.dataset.title) + '.mp3'
+    downloadLink.download = (next.dataset.trackNumber > 9 ? '' : '0') + next.dataset.trackNumber + '. ' + fixFilename(next.dataset.artist + ' - ' + next.dataset.title) + '.mp3'
     downloadLink.style.display = 'block'
   } else {
     downloadLink.style.display = 'none'
@@ -3656,7 +3656,7 @@ function addDownloadLinksToAlbumPage () {
           const a = document.createElement('a')
           a.className = 'downloaddisk'
           a.href = mp3
-          a.download = (t.track_num == null ? '' : (t.track_num > 9 ? '' : '0' + t.track_num + '. ')) + fixFilename(TralbumData.artist + ' - ' + t.title) + '.mp3'
+          a.download = (t.track_num == null ? '' : ((t.track_num > 9 ? '' : '0') + t.track_num + '. ')) + fixFilename(TralbumData.artist + ' - ' + t.title) + '.mp3'
           a.title = 'Download ' + prop
           a.appendChild(document.createTextNode(NOEMOJI ? '\u2193' : '\uD83D\uDCBE'))
           a.addEventListener('click', function onDownloadLinkClick (ev) {
@@ -3673,7 +3673,7 @@ function addDownloadLinksToAlbumPage () {
       const a = document.createElement('a')
       a.className = 'downloaddisk'
       a.href = mp3
-      a.download = (t.track_num == null ? '' : (t.track_num > 9 ? '' : '0' + t.track_num + '. ')) + fixFilename(TralbumData.artist + ' - ' + t.title) + '.mp3'
+      a.download = (t.track_num == null ? '' : ((t.track_num > 9 ? '' : '0') + t.track_num + '. ')) + fixFilename(TralbumData.artist + ' - ' + t.title) + '.mp3'
       a.title = 'Download ' + prop
       a.appendChild(document.createTextNode(NOEMOJI ? '\u2193' : '\uD83D\uDCBE'))
       a.addEventListener('click', function onDownloadLinkClick (ev) {
