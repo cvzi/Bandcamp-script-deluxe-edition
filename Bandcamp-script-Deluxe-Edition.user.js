@@ -4,16 +4,18 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.14
+// @version       0.15
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
 // @grant         GM.getValue
 // @grant         GM.notification
-// @grant         GM.download
+// @grant         GM_download
 // @grant         unsafeWindow
 // @connect       bandcamp.com
 // @connect       *.bandcamp.com
+// @connect       bcbits.com
+// @connect       *.bcbits.com
 // @include       https://bandcamp.com/*
 // @include       https://*.bandcamp.com/*
 // ==/UserScript==
@@ -24,6 +26,7 @@
 
 /* globals JSON5, GM, unsafeWindow, MouseEvent, Response */
 
+// TODO repeat/shuffle buttons
 // TODO genius lyrics?
 // TODO test preorder albums and albums that are not streamable
 // TODO run on all sites, not only bandcamp if (hostname is 'bandcamp' or definingFeature())
@@ -136,6 +139,14 @@ function metricPrefix (n, decimals, k) {
   const sizes = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
   const i = Math.floor(Math.log(n) / Math.log(k))
   return parseFloat((n / Math.pow(k, i)).toFixed(dm)) + sizes[i]
+}
+
+function fixFilename (s) {
+  const forbidden = '*"/\[]:|,<>?\n\t\0'.split('')
+  forbidden.forEach(function (char){
+    s = s.replace(char, '')
+  })
+  return s
 }
 
 function base64encode (s) {
@@ -457,7 +468,7 @@ function musicPlayerPlaySong (next, startTime) {
   const downloadLink = player.querySelector('.downloadlink')
   if (allFeatures.discographyplayerDownloadLink.enabled) {
     downloadLink.href = next.dataset.file
-    downloadLink.download = next.dataset.trackNumber > 9 ? '' : '0' + next.dataset.trackNumber + '. ' + next.dataset.artist + ' - ' + next.dataset.title + '.mp3'
+    downloadLink.download = next.dataset.trackNumber > 9 ? '' : '0' + next.dataset.trackNumber + '. ' + fixFilename(next.dataset.artist + ' - ' + next.dataset.title) + '.mp3'
     downloadLink.style.display = 'block'
   } else {
     downloadLink.style.display = 'none'
@@ -3555,19 +3566,19 @@ function showBackupHint (lastBackup, changedRecords) {
 function downloadMp3FromLink (ev, a, addSpinner, removeSpinner) {
   const url = a.href
 
-  if (GM.download) {
-    // Use Tampermonkey GM.download function
+  if (GM_download) {
+    // Use Tampermonkey GM_download function
     ev.preventDefault()
     addSpinner(a)
-    GM.download({
+    GM_download({
       url: url,
       name: a.download || 'default.mp3',
       onerror: function downloadMp3FromLinkOnError () {
-        window.alert('Could not download via GM.download')
+        window.alert('Could not download via GM_download')
         document.location.href = url
       },
       ontimeout: function downloadMp3FromLinkOnTimeout () {
-        window.alert('Could not download via GM.download. Time out.')
+        window.alert('Could not download via GM_download. Time out.')
         document.location.href = url
       },
       onload: function downloadMp3FromLinkOnLoad () {
@@ -3645,7 +3656,7 @@ function addDownloadLinksToAlbumPage () {
           const a = document.createElement('a')
           a.className = 'downloaddisk'
           a.href = mp3
-          a.download = (t.track_num == null ? '' : (t.track_num > 9 ? '' : '0' + t.track_num + '. ')) + TralbumData.artist + ' - ' + t.title + '.mp3'
+          a.download = (t.track_num == null ? '' : (t.track_num > 9 ? '' : '0' + t.track_num + '. ')) + fixFilename(TralbumData.artist + ' - ' + t.title) + '.mp3'
           a.title = 'Download ' + prop
           a.appendChild(document.createTextNode(NOEMOJI ? '\u2193' : '\uD83D\uDCBE'))
           a.addEventListener('click', function onDownloadLinkClick (ev) {
@@ -3662,7 +3673,7 @@ function addDownloadLinksToAlbumPage () {
       const a = document.createElement('a')
       a.className = 'downloaddisk'
       a.href = mp3
-      a.download = (t.track_num == null ? '' : (t.track_num > 9 ? '' : '0' + t.track_num + '. ')) + TralbumData.artist + ' - ' + t.title + '.mp3'
+      a.download = (t.track_num == null ? '' : (t.track_num > 9 ? '' : '0' + t.track_num + '. ')) + fixFilename(TralbumData.artist + ' - ' + t.title) + '.mp3'
       a.title = 'Download ' + prop
       a.appendChild(document.createTextNode(NOEMOJI ? '\u2193' : '\uD83D\uDCBE'))
       a.addEventListener('click', function onDownloadLinkClick (ev) {
