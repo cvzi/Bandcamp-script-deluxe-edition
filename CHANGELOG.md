@@ -1,5 +1,8 @@
 # Changelog
-
+## [0.15](../../tree/v0.15) *(2020-02-15)*
+*   Fix download function
+## [0.14](../../tree/v0.14) *(2020-02-10)*
+*   Release reminders
 ## [0.13](../../tree/v0.13) *(2019-12-22)*
 *   Do not show volume slider on album pages that do not have a "play" symbol
 *   Bugfix: Remember volume level on album pages

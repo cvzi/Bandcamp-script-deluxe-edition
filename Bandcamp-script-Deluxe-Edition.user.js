@@ -10,7 +10,7 @@
 // @grant         GM.setValue
 // @grant         GM.getValue
 // @grant         GM.notification
-// @grant         GM_download
+// @grant         GM.download
 // @grant         unsafeWindow
 // @connect       bandcamp.com
 // @connect       *.bandcamp.com
@@ -142,8 +142,8 @@ function metricPrefix (n, decimals, k) {
 }
 
 function fixFilename (s) {
-  const forbidden = '*"/\[]:|,<>?\n\t\0'.split('')
-  forbidden.forEach(function (char){
+  const forbidden = '*"/\\[]:|,<>?\n\t\0'.split('')
+  forbidden.forEach(function (char) {
     s = s.replace(char, '')
   })
   return s
@@ -3566,19 +3566,19 @@ function showBackupHint (lastBackup, changedRecords) {
 function downloadMp3FromLink (ev, a, addSpinner, removeSpinner) {
   const url = a.href
 
-  if (GM_download) {
-    // Use Tampermonkey GM_download function
+  if (GM.download) {
+    // Use Tampermonkey GM.download function
     ev.preventDefault()
     addSpinner(a)
-    GM_download({
+    GM.download({
       url: url,
       name: a.download || 'default.mp3',
       onerror: function downloadMp3FromLinkOnError () {
-        window.alert('Could not download via GM_download')
+        window.alert('Could not download via GM.download')
         document.location.href = url
       },
       ontimeout: function downloadMp3FromLinkOnTimeout () {
-        window.alert('Could not download via GM_download. Time out.')
+        window.alert('Could not download via GM.download. Time out.')
         document.location.href = url
       },
       onload: function downloadMp3FromLinkOnLoad () {
