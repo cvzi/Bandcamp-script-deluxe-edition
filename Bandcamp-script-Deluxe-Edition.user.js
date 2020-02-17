@@ -2618,8 +2618,8 @@ function addVolumeBarToAlbumPage () {
       if (allDiv.length > 0) {
         allDiv[findLastSongIndex()].click()
       } else {
-         // No tracklist, click on play button
-         document.querySelector('#trackInfoInner .inline_player .playbutton').click()
+        // No tracklist, click on play button
+        document.querySelector('#trackInfoInner .inline_player .playbutton').click()
       }
     } else if (shuffleButton.classList.contains('active') && allDiv.length > 1) {
       // Find last song
@@ -2634,7 +2634,7 @@ function addVolumeBarToAlbumPage () {
       }
     } else if (repeatButton.dataset.repeat === 'all') {
       if (findLastSongIndex() === allDiv.length - 1) {
-        if(allDiv[0]) {
+        if (allDiv[0]) {
           allDiv[0].click() // Click on first song's play button
         } else {
           // No tracklist, click on play button
