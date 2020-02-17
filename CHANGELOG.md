@@ -1,4 +1,6 @@
 # Changelog
+## [0.16](../../tree/v0.16) *(2020-02-17)*
+*   Repeat/Shuffle on album page
 ## [0.15](../../tree/v0.15) *(2020-02-15)*
 *   Fix download function
 ## [0.14](../../tree/v0.14) *(2020-02-10)*

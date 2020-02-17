@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.15
+// @version       0.16
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -43,8 +43,12 @@ const allFeatures = {
     default: true
   },
   albumPageVolumeBar: {
-    name: 'Enable volume slider on album page',
+    name: 'Enable volume slider/shuffle/repeat on album page',
     default: true
+  },
+  albumPageAutoRepeatAll: {
+    name: 'Always "repeat all" on album page',
+    default: false
   },
   markasplayed: {
     name: 'Show "mark as played" link on discography player',
@@ -91,6 +95,8 @@ const allFeatures = {
 var player, audio, currentDuration, timeline, playhead, bufferbar
 var onPlayHead = false
 
+const spriteRepeatShuffle = 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAABgCAMAAACt1UvuAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAA2UExURQAAAP////39/Tw8PP///////w4ODv////7+/v7+/k5OTktLS35+fiAgIJSUlAAAABAQECoqKpxAnVsAAAAPdFJOUwAxQ05UJGkKBRchgWiOOufd5UcAAAKrSURBVEjH7ZfrkqQgDIUbFLmphPd/2T2EgNqNzlTt7o+p3dR0d5V+JOGEYzkvZ63nsNY6517XCPIrjIDvXF7qL24ao5QynesIllDKE1MpJdom1UDBQIQlE+HmEipVIk+6cqVqQYivlq/loBJFDa6WnaitbbnMtFHnOF1niDJJX14pPa+cOm0l3Vohyuus8xpkj9ih1nPke6iaO6KV323XqwhRON4tQ3GedakNYYQqslaO+yv9xs64Lh2rX8sWeSISzVWTk8ROJmmU9MTl1PvEnHBmzXRSzvhhuqJAzjlJY9eJCVWljKwcESbL+fbTYK0NWx0IGodyvKCACqp6VqMNlguhktbxMqHdI5k7ps1SsiTxPO0YDgojkZPIysl+617cy8rUkIfPflMY4IaKLZfHhSoPn782iQJC5tIX2nfNQseGG4eoe3T1+kXh7j1j/H6W9TbC65ZxR2S0frKePUWYlhbY/hTkvL6aiKPApCRTeoxNTvUTI16r1DqPAqrGVR0UT/ojwGByJ6qO8S32HQ6wJ8r4TwFdyGnx7kzVM8l/nZpwRwkm1GAKC+5oKflMzY3aUm4rBpSsd17pVv2Bsn739ivqFWK2bhD2TE0wwTKM3Knu2puo1PJ8blqu7TEXVY1wgvGQwYN6HKJR0WGjYqxheN/lCpOzd/GlHX+gHyEe/SE/qpyV+sKPfqdEhzVv/OjwwC3zlefnnR+9YW+5Zz86fzjw3o+f1NCP9oMa+fGeOvnR2brH/378B/xI9A0/UjUjSfyOH2GzCDOuKavyUUM/eryMFjNOIMrHD/1o4di0GlCkp8IP/RjwglRSCKX9yI845VGXqwc18KOtWq3mSr35EQVnHbnzC3X144I3d7Wj6xuq+hH7gwz4PvY48GP9p8i2Vzus/dt+pB/nx18MUmsLM2EHrwAAAABJRU5ErkJggg==")'
+
 function humanDuration (duration) {
   let hours = parseInt(duration / 3600)
   if (!hours) {
@@ -121,6 +127,11 @@ function addLogVolume (mediaElement) {
       }
     })
   }
+}
+
+function randomIndex (max) {
+  // Random int from interval [0,max)
+  return Math.floor(Math.random() * Math.floor(max))
 }
 
 function padd (n, width, filler) {
@@ -2391,6 +2402,34 @@ function addVolumeBarToAlbumPage () {
     .volumeLabel {
       display:inline-block;
     }
+
+    .nextsongcontrolbutton {
+      background:#fff;
+      border:1px solid #d9d9d9;
+      border-radius:2px;
+      cursor:pointer;
+      height:24px;
+      width:35px;
+      margin-top:2px;
+      margin-left:80px;
+      float:left;
+      text-align:center
+    }
+
+    .nextsongcontrolicon {
+      background-size:cover;
+      background-image:${spriteRepeatShuffle};
+      width:31px;
+      height:20px;
+      filter:drop-shadow(#FFF 1px 1px 2px);
+      display:inline-block;
+      margin-top:1px;
+      transition: filter 500ms;
+    }
+    .nextsongcontrolbutton.active .nextsongcontrolicon {
+      filter:drop-shadow(#0060F2 1px 1px 2px);
+    }
+
   `
 
   const playbutton = document.querySelector('#trackInfoInner .playbutton')
@@ -2509,6 +2548,103 @@ function addVolumeBarToAlbumPage () {
   displayVolume()
 
   window.clearInterval(ivRestoreVolume)
+
+  // Repeat/shuffle buttons
+  const playnextcontrols = document.querySelector('#trackInfoInner .inline_player').appendChild(document.createElement('div'))
+
+  // Show repeat button
+  const repeatButton = playnextcontrols.appendChild(document.createElement('div'))
+  repeatButton.classList.add('nextsongcontrolbutton', 'repeat')
+  repeatButton.setAttribute('title', 'Repeat')
+  const repeatButtonIcon = repeatButton.appendChild(document.createElement('div'))
+  repeatButtonIcon.classList.add('nextsongcontrolicon')
+
+  repeatButton.dataset.repeat = 'none'
+  repeatButtonIcon.style.backgroundPositionY = '-20px'
+
+  repeatButton.addEventListener('click', function () {
+    const posY = this.getElementsByClassName('nextsongcontrolicon')[0].style.backgroundPositionY
+    if (posY === '-20px') {
+      this.getElementsByClassName('nextsongcontrolicon')[0].style.backgroundPositionY = '-40px'
+      this.classList.toggle('active')
+      this.dataset.repeat = 'one'
+    } else if (posY === '-40px') {
+      this.getElementsByClassName('nextsongcontrolicon')[0].style.backgroundPositionY = '-60px'
+      this.dataset.repeat = 'all'
+    } else {
+      this.getElementsByClassName('nextsongcontrolicon')[0].style.backgroundPositionY = '-20px'
+      this.classList.toggle('active')
+      this.dataset.repeat = 'none'
+    }
+  })
+  if (allFeatures.albumPageAutoRepeatAll.enabled) {
+    repeatButton.click()
+    repeatButton.click()
+  }
+
+  // Show shuffle button
+  const shuffleButton = playnextcontrols.appendChild(document.createElement('div'))
+  if (document.querySelectorAll('#track_table a div').length > 2) {
+    shuffleButton.classList.add('nextsongcontrolbutton', 'shuffle')
+    shuffleButton.setAttribute('title', 'Shuffle')
+    const shuffleButtonIcon = shuffleButton.appendChild(document.createElement('div'))
+    shuffleButtonIcon.classList.add('nextsongcontrolicon')
+    shuffleButtonIcon.style.backgroundPositionY = '0px'
+
+    shuffleButton.addEventListener('click', function () {
+      this.classList.toggle('active')
+    })
+  }
+
+  const findLastSongIndex = function () {
+    const allDiv = document.querySelectorAll('#track_table a div')
+    const nextDiv = document.querySelector('#track_table a div.playing')
+    if (!nextDiv) {
+      return allDiv.length - 1
+    }
+    for (let i = 1; i < allDiv.length; i++) {
+      if (allDiv[i] === nextDiv) {
+        return i - 1
+      }
+    }
+    return -1
+  }
+
+  const albumPageAudioOnEnded = function (ev) {
+    const allDiv = document.querySelectorAll('#track_table a div')
+
+    if (repeatButton.dataset.repeat === 'one') {
+      // Click on last song again
+      if (allDiv.length > 0) {
+        allDiv[findLastSongIndex()].click()
+      } else {
+         // No tracklist, click on play button
+         document.querySelector('#trackInfoInner .inline_player .playbutton').click()
+      }
+    } else if (shuffleButton.classList.contains('active') && allDiv.length > 1) {
+      // Find last song
+      const lastSongIndex = findLastSongIndex()
+      // Set a random song (that is not the last song)
+      let index = lastSongIndex
+      while (index === lastSongIndex) {
+        index = randomIndex(allDiv.length)
+      }
+      if (index !== lastSongIndex + 1) {
+        allDiv[index].click()
+      }
+    } else if (repeatButton.dataset.repeat === 'all') {
+      if (findLastSongIndex() === allDiv.length - 1) {
+        if(allDiv[0]) {
+          allDiv[0].click() // Click on first song's play button
+        } else {
+          // No tracklist, click on play button
+          document.querySelector('#trackInfoInner .inline_player .playbutton').click()
+        }
+      }
+    }
+  }
+
+  audioAlbumPage.addEventListener('ended', albumPageAudioOnEnded)
 }
 
 function clickAddToWishlist () {

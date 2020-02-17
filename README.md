@@ -24,9 +24,12 @@ Features:
 
 Discography player:
 
-![Screenshot of discography page](screenshotDiscographyPage.webp)
+![Screenshot of discography page](screenshots/screenshotDiscographyPage.webp)
 
 Album page:
 
-![Screenshot of album page](screenshotAlbumPage.webp)
+![Screenshot of album page](screenshots/screenshotAlbumPage.webp)
 
+[Changelog](CHANGELOG.md)
+
+[License](LICENSE)
