@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       0.16
+// @version       1.0
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -24,9 +24,8 @@
 // @author        cuzi
 // ==/OpenUserJS==
 
-/* globals JSON5, GM, unsafeWindow, MouseEvent, Response */
+/* globals JSON5, GM, unsafeWindow, MediaMetadata, MouseEvent, Response */
 
-// TODO repeat/shuffle buttons
 // TODO genius lyrics?
 // TODO test preorder albums and albums that are not streamable
 // TODO run on all sites, not only bandcamp if (hostname is 'bandcamp' or definingFeature())
@@ -473,6 +472,22 @@ function musicPlayerPlaySong (next, startTime) {
       timeout: 3000,
       onclick: musicPlayerNext
     })
+  }
+
+  // Chrome media hub
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: next.dataset.title,
+      artist: next.dataset.artist,
+      album: next.dataset.album,
+      artwork: [{
+        src: next.dataset.albumCover,
+        sizes: '350x350',
+        type: 'image/jpeg'
+      }]
+    })
+    navigator.mediaSession.setActionHandler('previoustrack', musicPlayerPrev)
+    navigator.mediaSession.setActionHandler('nexttrack', musicPlayerNext)
   }
 
   // Download link

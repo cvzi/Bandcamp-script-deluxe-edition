@@ -15,6 +15,7 @@ Features:
  *   Export/backup played/listened albums
  *   circumvent the "The time has come to open thy wallet" limit
  *   volume slider on album pages
+ *   shuffle/repeat on album page
  *   Download mp3 from discography player
  *   Download mp3 from album page
  *   Desktop notifications on song change (disabled by default, enable in script settings in the top right corner)
