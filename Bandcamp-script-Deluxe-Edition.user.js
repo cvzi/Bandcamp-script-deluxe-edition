@@ -2087,7 +2087,7 @@ function makeCarouselPlayerGreatAgain () {
     if (url && addListenedButtonToCarouselPlayerLast === url) {
       return
     }
-    if(!url) {
+    if (!url) {
       console.log('No url found in carousel player: `#carousel-player a[href]`')
       return
     }
