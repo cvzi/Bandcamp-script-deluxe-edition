@@ -2707,15 +2707,21 @@ function addVolumeBarToAlbumPage () {
       }
       lastMediaHubTitle = title
       const TralbumData = unsafeWindow.TralbumData
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: title,
-        artist: TralbumData.artist,
-        album: TralbumData.current.title,
-        artwork: [{
-          src: "https://f4.bcbits.com/img/${TralbumData.current.art_id}_5.jpg",
-          type: 'image/jpeg'
-        }]
-      })
+      // Pre load image to get dimension
+      const cover = new Image();
+      cover.onload = function() {
+          navigator.mediaSession.metadata = new MediaMetadata({
+              title: title,
+              artist: TralbumData.artist,
+              album: TralbumData.current.title,
+              artwork: [{
+                  src: cover.src,
+                  sizes: `${cover.width}x${cover.height}`,
+                  type: 'image/jpeg'
+              }]
+          })
+      }
+      cover.src = `https://f4.bcbits.com/img/a${TralbumData.current.art_id}_2.jpg`;
       if (!document.querySelector('#trackInfoInner .inline_player .prevbutton').classList.contains('hiddenelem')) {
         navigator.mediaSession.setActionHandler('previoustrack', () => document.querySelector('#trackInfoInner .inline_player .prevbutton').click())
       } else {
