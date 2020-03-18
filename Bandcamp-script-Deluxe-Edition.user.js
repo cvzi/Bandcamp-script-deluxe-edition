@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       1.0
+// @version       1.1
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -2083,8 +2083,12 @@ function makeCarouselPlayerGreatAgain () {
 
   let addListenedButtonToCarouselPlayerLast = null
   const addListenedButtonToCarouselPlayer = function listenedButtonOnCarouselPlayer () {
-    const url = document.querySelector('#carousel-player .now-playing .info a') ? albumKey(document.querySelector('#carousel-player .now-playing .info a').href) : null
+    const url = document.querySelector('#carousel-player a[href]') ? albumKey(document.querySelector('#carousel-player a[href]').href) : null
     if (url && addListenedButtonToCarouselPlayerLast === url) {
+      return
+    }
+    if(!url) {
+      console.log('No url found in carousel player: `#carousel-player a[href]`')
       return
     }
     addListenedButtonToCarouselPlayerLast = url

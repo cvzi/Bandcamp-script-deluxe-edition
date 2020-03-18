@@ -1,4 +1,6 @@
 # Changelog
+## [1.1](../../tree/v1.1) *(2020-03-18)*
+*   Added cover art and metadata to chrome media hub
 ## [1.0](../../tree/v1.0) *(2020-03-15)*
 *   Added cover art and metadata to chrome media hub
 ## [0.16](../../tree/v0.16) *(2020-02-17)*
