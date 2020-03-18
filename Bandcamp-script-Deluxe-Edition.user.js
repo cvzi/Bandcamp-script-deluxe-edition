@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       1.1
+// @version       1.2
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -474,7 +474,7 @@ function musicPlayerPlaySong (next, startTime) {
     })
   }
 
-  // Chrome media hub
+  // Media hub
   if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: next.dataset.title,
@@ -2127,11 +2127,45 @@ function makeCarouselPlayerGreatAgain () {
     })
   }
 
+  let lastMediaHubMeta = [null, null]
+  const addChromeMediaHubToCarouselPlayer = function chromeMediaHubToCarouselPlayer () {
+    // Media hub
+    if ('mediaSession' in navigator) {
+      const title = document.querySelector('#carousel-player .info-progress span[data-bind*="trackTitle"]').textContent.trim()
+      const artwork = document.querySelector('#carousel-player .now-playing img').src
+      if (lastMediaHubMeta[0] === title && lastMediaHubMeta[1] === artwork) {
+        return
+      }
+      lastMediaHubMeta = [title, artwork]
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: title,
+        artist: document.querySelector('#carousel-player .now-playing .artist span').textContent.trim(),
+        album: document.querySelector('#carousel-player .now-playing .title').textContent.trim(),
+        artwork: [{
+          src: artwork,
+          sizes: '350x350',
+          type: 'image/jpeg'
+        }]
+      })
+      if (!document.querySelector('#carousel-player .transport .prev-icon').classList.contains('disabled')) {
+        navigator.mediaSession.setActionHandler('previoustrack', () => document.querySelector('#carousel-player .transport .prev-icon').click())
+      } else {
+        navigator.mediaSession.setActionHandler('previoustrack', null)
+      }
+      if (!document.querySelector('#carousel-player .transport .next-icon').classList.contains('disabled')) {
+        navigator.mediaSession.setActionHandler('nexttrack', () => document.querySelector('#carousel-player .transport .next-icon').click())
+      } else {
+        navigator.mediaSession.setActionHandler('nexttrack', null)
+      }
+    }
+  }
+
   window.setInterval(function addListenedButtonToCarouselPlayerInterval () {
     if (!document.getElementById('carousel-player') || document.getElementById('carousel-player').getClientRects()[0].bottom - window.innerHeight > 0) {
       return
     }
     addListenedButtonToCarouselPlayer()
+    addChromeMediaHubToCarouselPlayer()
   }, 2000)
 
   document.head.appendChild(document.createElement('style')).innerHTML = `
@@ -2663,7 +2697,41 @@ function addVolumeBarToAlbumPage () {
     }
   }
 
+  let lastMediaHubTitle = null
+  const albumPageUpdateMediaHubListener = function albumPageUpdateMediaHub () {
+    // Media hub
+    if ('mediaSession' in navigator) {
+      const title = document.querySelector('#trackInfoInner .inline_player .title').textContent.trim()
+      if (lastMediaHubTitle === title) {
+        return
+      }
+      lastMediaHubTitle = title
+      const TralbumData = unsafeWindow.TralbumData
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: title,
+        artist: TralbumData.artist,
+        album: TralbumData.current.title,
+        artwork: [{
+          src: "https://f4.bcbits.com/img/${TralbumData.current.art_id}_5.jpg",
+          type: 'image/jpeg'
+        }]
+      })
+      if (!document.querySelector('#trackInfoInner .inline_player .prevbutton').classList.contains('hiddenelem')) {
+        navigator.mediaSession.setActionHandler('previoustrack', () => document.querySelector('#trackInfoInner .inline_player .prevbutton').click())
+      } else {
+        navigator.mediaSession.setActionHandler('previoustrack', null)
+      }
+      if (!document.querySelector('#trackInfoInner .inline_player .nextbutton').classList.contains('hiddenelem')) {
+        navigator.mediaSession.setActionHandler('nexttrack', () => document.querySelector('#trackInfoInner .inline_player .nextbutton').click())
+      } else {
+        navigator.mediaSession.setActionHandler('nexttrack', null)
+      }
+    }
+  }
+
   audioAlbumPage.addEventListener('ended', albumPageAudioOnEnded)
+  audioAlbumPage.addEventListener('play', albumPageUpdateMediaHubListener)
+  audioAlbumPage.addEventListener('ended', albumPageUpdateMediaHubListener)
 }
 
 function clickAddToWishlist () {
