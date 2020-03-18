@@ -2709,19 +2709,19 @@ function addVolumeBarToAlbumPage () {
       const TralbumData = unsafeWindow.TralbumData
       // Pre load image to get dimension
       const cover = document.createElement('img')
-      cover.onload = function() {
-          navigator.mediaSession.metadata = new MediaMetadata({
-              title: title,
-              artist: TralbumData.artist,
-              album: TralbumData.current.title,
-              artwork: [{
-                  src: cover.src,
-                  sizes: `${cover.width}x${cover.height}`,
-                  type: 'image/jpeg'
-              }]
-          })
+      cover.onload = function onCoverLoaded () {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: title,
+          artist: TralbumData.artist,
+          album: TralbumData.current.title,
+          artwork: [{
+            src: cover.src,
+            sizes: `${cover.width}x${cover.height}`,
+            type: 'image/jpeg'
+          }]
+        })
       }
-      cover.src = `https://f4.bcbits.com/img/a${TralbumData.current.art_id}_2.jpg`;
+      cover.src = `https://f4.bcbits.com/img/a${TralbumData.current.art_id}_2.jpg`
       if (!document.querySelector('#trackInfoInner .inline_player .prevbutton').classList.contains('hiddenelem')) {
         navigator.mediaSession.setActionHandler('previoustrack', () => document.querySelector('#trackInfoInner .inline_player .prevbutton').click())
       } else {
