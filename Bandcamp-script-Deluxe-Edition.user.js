@@ -2708,7 +2708,7 @@ function addVolumeBarToAlbumPage () {
       lastMediaHubTitle = title
       const TralbumData = unsafeWindow.TralbumData
       // Pre load image to get dimension
-      const cover = new Image();
+      const cover = document.createElement('img')
       cover.onload = function() {
           navigator.mediaSession.metadata = new MediaMetadata({
               title: title,
