@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       1.2
+// @version       1.3
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
@@ -18,6 +18,7 @@
 // @connect       *.bcbits.com
 // @include       https://bandcamp.com/*
 // @include       https://*.bandcamp.com/*
+// @include       https://campexplorer.io/
 // ==/UserScript==
 
 // ==OpenUserJS==
@@ -26,6 +27,7 @@
 
 /* globals JSON5, GM, unsafeWindow, MediaMetadata, MouseEvent, Response */
 
+// TODO media key control possible?
 // TODO genius lyrics?
 // TODO test preorder albums and albums that are not streamable
 // TODO run on all sites, not only bandcamp if (hostname is 'bandcamp' or definingFeature())
@@ -34,6 +36,7 @@
 const BACKUP_REMINDER_DAYS = 35
 const TRALBUM_CACHE_HOURS = 2
 const CHROME = navigator.userAgent.indexOf('Chrome') !== -1
+const CAMPEXPLORER = document.location.hostname === 'campexplorer.io'
 const NOEMOJI = CHROME && navigator.userAgent.match(/Windows (NT)? [4-9]/i)
 
 const allFeatures = {
@@ -323,7 +326,7 @@ function restoreVolume () {
 
 function findPreviousAlbumCover (currentUrl) {
   const currentKey = albumKey(currentUrl)
-  const as = document.querySelectorAll('.music-grid .music-grid-item a[href^="/album/"],.music-grid .music-grid-item a[href^="/track/"]')
+  const as = document.querySelectorAll('.music-grid .music-grid-item a[href*="/album/"],.music-grid .music-grid-item a[href*="/track/"]')
   let last = false
   let found = false
   for (let i = 0; i < as.length; i++) {
@@ -340,7 +343,7 @@ function findPreviousAlbumCover (currentUrl) {
 }
 function findNextAlbumCover (currentUrl) {
   const currentKey = albumKey(currentUrl)
-  const as = document.querySelectorAll('.music-grid .music-grid-item a[href^="/album/"],.music-grid .music-grid-item a[href^="/track/"]')
+  const as = document.querySelectorAll('.music-grid .music-grid-item a[href*="/album/"],.music-grid .music-grid-item a[href*="/track/"]')
   let isNext = false
   for (let i = 0; i < as.length; i++) {
     if (isNext) {
@@ -819,6 +822,9 @@ async function musicPlayerCollectListenedClick (ev) {
 }
 
 function musicPlayerCookieChannel (onStopEventCb) {
+  if (CAMPEXPLORER) {
+    return
+  }
   window.addEventListener('message', function onMessage (event) {
     // Receive messages from the cookie channel event handler
     if (event.origin === document.location.protocol + '//' + document.location.hostname &&
@@ -1084,8 +1090,18 @@ function musicPlayerCreate () {
   background:white;
   color:#505958;
   border-top: 1px solid rgba(0,0,0,0.15);
-  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  font: 13px/1.231 "Helvetica Neue",Helvetica,Arial,sans-serif;
   transition: bottom 500ms
+}
+#discographyplayer a:link,#discographyplayer a:visited{
+  color: #0687f5;
+  text-decoration: none;
+  cursor: pointer;
+}
+#discographyplayer a:hover {
+  color: #0687f5;
+  text-decoration: underline;
+  cursor: pointer;
 }
 #discographyplayer .nowPlaying .info,#discographyplayer .nowPlaying .cover {
     display: inline-block;
@@ -1103,6 +1119,19 @@ function musicPlayerCreate () {
     margin-left: 8px;
     margin-top: 8px;
     max-width: calc(100% - 76px);
+
+    border: 0px solid black;
+    padding: 0px;
+    width: auto;
+    max-height: auto;
+    overflow-y: hidden;
+}
+#discographyplayer .nowPlaying .info .title, #discographyplayer .nowPlaying .info .album {
+  font-size: 13px;
+  font-weight: normal;
+  color: #0687f5;
+  margin:0;
+  padding:0;
 }
 #discographyplayer .currentlyPlaying{
   display:inline-block;
@@ -1128,6 +1157,7 @@ function musicPlayerCreate () {
   margin-top: 10px;
   font-size:15px;
   padding: 0px 3px;
+  color: rgb(6, 135, 245);
   border:1px solid rgb(6, 135, 245);
   transition: color 300ms ease-in-out, border-color 300ms ease-in-out;
 }
@@ -1177,7 +1207,7 @@ function musicPlayerCreate () {
   margin-left: 1px;
 }
 #discographyplayer .playpause .busy {
-  background-image: url(/img/playerbusy-noborder.gif);
+  background-image: url(https://bandcamp.com/img/playerbusy-noborder.gif);
   background-position: 50% 50%;
   background-repeat: no-repeat;
   border: none;
@@ -1192,7 +1222,7 @@ function musicPlayerCreate () {
   height: 13px;
   width: 20px;
   margin-top: 4px;
-  background: url(/img/nextprev.png) 0px 0px / 40px 12px no-repeat transparent;
+  background: url(https://bandcamp.com/img/nextprev.png) 0px 0px / 40px 12px no-repeat transparent;
   background-position-x: 0px;
   cursor: pointer;
 }
@@ -1581,7 +1611,7 @@ function addAlbumToPlaylist (TralbumData, startPlaybackIndex) {
 }
 
 function addAllAlbumsAsHeadings () {
-  const as = document.querySelectorAll('.music-grid .music-grid-item a[href^="/album/"],.music-grid .music-grid-item a[href^="/track/"]')
+  const as = document.querySelectorAll('.music-grid .music-grid-item a[href*="/album/"],.music-grid .music-grid-item a[href*="/track/"]')
   const lis = player.querySelectorAll('.playlist .playlistentry')
 
   const isAlreadyInPlaylist = function (url) {
@@ -1782,7 +1812,17 @@ async function myAlbumsNewFromUrl (url, fallback) {
 }
 
 function makeAlbumCoversGreat () {
-  document.head.appendChild(document.createElement('style')).innerHTML = `
+  if (!('makeAlbumCoversGreat' in document.head.dataset)) {
+    document.head.dataset.makeAlbumCoversGreat = true
+    const campExplorerCSS = `
+.music-grid-item {
+  position: relative
+}
+.music-grid-item .art-play {
+  margin-top: -50px;
+}
+`
+    document.head.appendChild(document.createElement('style')).innerHTML = `
 .music-grid-item .art-play {
   position: absolute;
   width: 74px;
@@ -1804,19 +1844,22 @@ function makeAlbumCoversGreat () {
   border-radius: 4px;
 }
 .music-grid-item .art-play-icon {
-    position: absolute;
-    width: 0;
-    height: 0;
-    left: 28px;
-    top: 17px;
-    border-width: 10px 0 10px 17px;
-    border-color: transparent transparent transparent #fff;
-    border-style: dashed dashed dashed solid;
+  position: absolute;
+  width: 0;
+  height: 0;
+  left: 28px;
+  top: 17px;
+  border-width: 10px 0 10px 17px;
+  border-color: transparent transparent transparent #fff;
+  border-style: dashed dashed dashed solid;
 }
 .music-grid-item:hover .art-play {
   opacity: 0.6;
 }
+
+${CAMPEXPLORER ? campExplorerCSS : ''}
 `
+  }
   const onclick = function onclick (ev) {
     ev.preventDefault()
     playAlbumFromCover.apply(this, ev)
@@ -1825,9 +1868,17 @@ function makeAlbumCoversGreat () {
   artPlay.className = 'art-play'
   artPlay.innerHTML = '<div class="art-play-bg"></div><div class="art-play-icon"></div>'
 
+  if (CAMPEXPLORER) {
+    document.querySelectorAll('ul.albums').forEach(e => e.classList.add('music-grid'))
+    document.querySelectorAll('ul.albums li.album').forEach(e => e.classList.add('music-grid-item'))
+  }
+
   // Albums and single tracks
-  const imgs = document.querySelectorAll('.music-grid .music-grid-item a[href^="/album/"] img,.music-grid .music-grid-item a[href^="/track/"] img')
+  const imgs = document.querySelectorAll('.music-grid .music-grid-item a[href*="/album/"] img,.music-grid .music-grid-item a[href*="/track/"] img')
   for (let i = 0; i < imgs.length; i++) {
+    if (imgs[i].parentNode.getElementsByClassName('art-play').length) {
+      continue
+    }
     imgs[i].addEventListener('click', onclick)
 
     // Add play overlay
@@ -1968,7 +2019,7 @@ async function makeAlbumLinksGreat (parentElement) {
   spanChecked.appendChild(document.createTextNode('\u2611 '))
   spanChecked.setAttribute('class', 'bdp_check_onchecked_symbol')
 
-  const a = doc.querySelectorAll('a[href*="/album/"],.music-grid .music-grid-item a[href^="/track/"]')
+  const a = doc.querySelectorAll('a[href*="/album/"],.music-grid .music-grid-item a[href*="/track/"]')
   let lastKey = ''
   for (let i = 0; i < a.length; i++) {
     if (excluded.indexOf(a[i]) !== -1) {
@@ -4009,6 +4060,18 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
 
     if (allFeatures.backupReminder.enabled) {
       checkBackupStatus()
+    }
+
+    if (CAMPEXPLORER) {
+      let lastTagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : ''
+      window.setInterval(function () {
+        const tagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : ''
+        if (lastTagsText !== tagsText) {
+          lastTagsText = tagsText
+          makeAlbumCoversGreat()
+          makeAlbumLinksGreat()
+        }
+      }, 3000)
     }
 
     GM.getValue('musicPlayerState', '{}').then(function restoreState (s) {
