@@ -22,6 +22,7 @@ Features:
  *   Set reminders for upcoming releases
  *   Minimize/Close player
  *   Settings to disable individual functions
+ *   Works on [campexplorer.io](https://campexplorer.io/)
 
 Discography player:
 
