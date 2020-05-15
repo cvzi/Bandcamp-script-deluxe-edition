@@ -1,4 +1,6 @@
 # Changelog
+## [1.3](../../tree/v1.3) *(2020-05-15)*
+*   Added support for https://campexplorer.io/
 ## [1.2](../../tree/v1.2) *(2020-03-18)*
 *   Added chrome media hub to all playback
 ## [1.1](../../tree/v1.1) *(2020-03-18)*
