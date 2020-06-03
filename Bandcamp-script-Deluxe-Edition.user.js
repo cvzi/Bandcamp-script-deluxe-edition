@@ -506,15 +506,16 @@ function musicPlayerPlaySong (next, startTime) {
   // Show "playing" indication on album covers
   const coverLinkPattern = albumPath(next.dataset.albumUrl)
   document.querySelectorAll('img.albumPlayingIndicator').forEach(img => img.classList.remove('albumPlayingIndicator'))
-  document.querySelectorAll('a[href*="'+coverLinkPattern+'"] img').forEach(function (img){
+  document.querySelectorAll('a[href*="' + coverLinkPattern + '"] img').forEach(function (img) {
     let node = img
-    while (node = node.parentNode) {
+    while (node) {
       if (node.id === 'discographyplayer') {
         return
       }
       if (node === document.body) {
         break
       }
+      node = node.parentNode
     }
     img.classList.add('albumPlayingIndicator')
   })
