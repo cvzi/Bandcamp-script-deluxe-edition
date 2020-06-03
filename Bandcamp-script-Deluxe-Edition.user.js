@@ -503,6 +503,22 @@ function musicPlayerPlaySong (next, startTime) {
     downloadLink.style.display = 'none'
   }
 
+  // Show "playing" indication on album covers
+  const coverLinkPattern = albumPath(next.dataset.albumUrl)
+  document.querySelectorAll('img.albumPlayingIndicator').forEach(img => img.classList.remove('albumPlayingIndicator'))
+  document.querySelectorAll('a[href*="'+coverLinkPattern+'"] img').forEach(function (img){
+    let node = img
+    while (node = node.parentNode) {
+      if (node.id === 'discographyplayer') {
+        return
+      }
+      if (node === document.body) {
+        break
+      }
+    }
+    img.classList.add('albumPlayingIndicator')
+  })
+
   // Animate
   currentlyPlaying.style.marginLeft = -parseInt(currentlyPlaying.clientWidth + 1) + 'px'
   nextInRow.style.width = '99%'
@@ -1452,6 +1468,10 @@ function musicPlayerCreate () {
   margin-left:10px
 }
 
+.albumPlayingIndicator {
+  border:2px solid lime;
+}
+
 `
 
   audio = player.querySelector('audio')
@@ -1688,6 +1708,15 @@ function albumKey (url) {
     url = url.split('?')[0]
   }
   return url
+}
+
+function albumPath (url) {
+  if (url.startsWith('/')) {
+    return albumKey(url)
+  }
+  const a = document.createElement('a')
+  a.href = url
+  return a.pathname
 }
 
 async function storeTralbumData (TralbumData) {
@@ -3996,6 +4025,12 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
       showPastReleases()
     }
 
+    if (document.querySelector('#indexpage .indexpage_list_cell a[href^="/album/"] img')) {
+      // Index pages are almost like discography page. To make them compatible, let's add the class names from the discography page
+      document.querySelector('#indexpage').classList.add('music-grid')
+      document.querySelectorAll('#indexpage .indexpage_list_cell').forEach(cell => cell.classList.add('music-grid-item'))
+    }
+
     if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href^="/album/"] img')) {
       // Discography page
       makeAlbumCoversGreat()
@@ -4068,8 +4103,12 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
         const tagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : ''
         if (lastTagsText !== tagsText) {
           lastTagsText = tagsText
-          makeAlbumCoversGreat()
-          makeAlbumLinksGreat()
+          if (allFeatures.discographyplayer.enabled) {
+            makeAlbumCoversGreat()
+          }
+          if (allFeatures.markasplayedEverywhere.enabled) {
+            makeAlbumLinksGreat()
+          }
         }
       }, 3000)
     }
