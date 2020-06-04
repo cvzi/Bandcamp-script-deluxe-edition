@@ -505,7 +505,8 @@ function musicPlayerPlaySong (next, startTime) {
 
   // Show "playing" indication on album covers
   const coverLinkPattern = albumPath(next.dataset.albumUrl)
-  document.querySelectorAll('img.albumPlayingIndicator').forEach(img => img.classList.remove('albumPlayingIndicator'))
+  document.querySelectorAll('img.albumIsCurrentlyPlaying').forEach(img => img.classList.remove('albumIsCurrentlyPlaying'))
+  document.querySelectorAll('.albumIsCurrentlyPlayingIndicator').forEach(div => div.remove())
   document.querySelectorAll('a[href*="' + coverLinkPattern + '"] img').forEach(function (img) {
     let node = img
     while (node) {
@@ -517,7 +518,17 @@ function musicPlayerPlaySong (next, startTime) {
       }
       node = node.parentNode
     }
-    img.classList.add('albumPlayingIndicator')
+    img.classList.add('albumIsCurrentlyPlaying')
+    if (!img.parentNode.querySelector('.albumIsCurrentlyPlayingIndicator')) {
+      const indicator = img.parentNode.appendChild(document.createElement('div'))
+      indicator.classList.add('albumIsCurrentlyPlayingIndicator')
+      indicator.addEventListener('click', function (ev) {
+        ev.preventDefault()
+        musicPlayerPlay()
+      })
+      indicator.appendChild(document.createElement('div')).classList.add('currentlyPlayingBg')
+      indicator.appendChild(document.createElement('div')).classList.add('currentlyPlayingIcon')
+    }
   })
 
   // Animate
@@ -1469,8 +1480,50 @@ function musicPlayerCreate () {
   margin-left:10px
 }
 
-.albumPlayingIndicator {
-  border:2px solid lime;
+.albumIsCurrentlyPlaying {
+  border:2px solid lime
+}
+.music-grid-item .albumIsCurrentlyPlaying {
+  border:none
+}
+
+.albumIsCurrentlyPlayingIndicator {
+  display:none;
+}
+
+.music-grid-item .albumIsCurrentlyPlayingIndicator {
+    position: absolute;
+    display:block;
+    width: 74px;
+    height: 54px;
+    left: 50%;
+    top: 50%;
+    margin-left: -36px;
+    margin-top: -27px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+.albumIsCurrentlyPlayingIndicator:hover {
+  opacity: 0.0;
+}
+.albumIsCurrentlyPlayingIndicator .currentlyPlayingBg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: #000;
+    border-radius: 4px;
+}
+.albumIsCurrentlyPlayingIndicator .currentlyPlayingIcon {
+    position: absolute;
+    width: 10px;
+    height: 20px;
+    left: 28px;
+    top: 17px;
+    border-width: 0px 5px;
+    border-color: #fff;
+    border-style: solid;
 }
 
 `
