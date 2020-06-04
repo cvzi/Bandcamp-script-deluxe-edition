@@ -4,7 +4,7 @@
 // @namespace     https://openuserjs.org/users/cuzi
 // @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
 // @license       MIT
-// @version       1.3
+// @version       1.4
 // @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM.setValue
