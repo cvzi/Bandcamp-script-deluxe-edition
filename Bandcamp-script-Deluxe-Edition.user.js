@@ -4083,6 +4083,7 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
       // Index pages are almost like discography page. To make them compatible, let's add the class names from the discography page
       document.querySelector('#indexpage').classList.add('music-grid')
       document.querySelectorAll('#indexpage .indexpage_list_cell').forEach(cell => cell.classList.add('music-grid-item'))
+      document.head.appendChild(document.createElement('style')).innerHTML = '#indexpage .ipCellImage { position:relative }'
     }
 
     if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href^="/album/"] img')) {
