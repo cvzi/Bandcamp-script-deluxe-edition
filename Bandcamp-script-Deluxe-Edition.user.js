@@ -1,24 +1,27 @@
 // ==UserScript==
-// @name          Bandcamp script (Deluxe Edition)
-// @description   A discography player for bandcamp.com and manage your played albums
-// @namespace     https://openuserjs.org/users/cuzi
-// @copyright     2019, cuzi (https://openuserjs.org/users/cuzi)
-// @license       MIT
-// @version       1.4
-// @require       https://unpkg.com/json5@2.1.0/dist/index.min.js
-// @grant         GM.xmlHttpRequest
-// @grant         GM.setValue
-// @grant         GM.getValue
-// @grant         GM.notification
-// @grant         GM.download
-// @grant         unsafeWindow
-// @connect       bandcamp.com
-// @connect       *.bandcamp.com
-// @connect       bcbits.com
-// @connect       *.bcbits.com
-// @include       https://bandcamp.com/*
-// @include       https://*.bandcamp.com/*
-// @include       https://campexplorer.io/
+// @name             Bandcamp script (Deluxe Edition)
+// @description      A discography player for bandcamp.com and manage your played albums
+// @namespace        https://openuserjs.org/users/cuzi
+// @copyright        2019, cuzi (https://openuserjs.org/users/cuzi)
+// @supportURL       https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues
+// @contributionURL  https://buymeacoff.ee/cuzi
+// @contributionURL  https://ko-fi.com/cuzicvzi
+// @license          MIT
+// @version          1.4
+// @require          https://unpkg.com/json5@2.1.0/dist/index.min.js
+// @grant            GM.xmlHttpRequest
+// @grant            GM.setValue
+// @grant            GM.getValue
+// @grant            GM.notification
+// @grant            GM.download
+// @grant            unsafeWindow
+// @connect          bandcamp.com
+// @connect          *.bandcamp.com
+// @connect          bcbits.com
+// @connect          *.bcbits.com
+// @include          https://bandcamp.com/*
+// @include          https://*.bandcamp.com/*
+// @include          https://campexplorer.io/
 // ==/UserScript==
 
 // ==OpenUserJS==
