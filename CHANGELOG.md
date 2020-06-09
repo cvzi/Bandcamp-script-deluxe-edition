@@ -1,4 +1,8 @@
 # Changelog
+## [1.5](../../tree/v1.5) *(2020-06-10)*
+*   All current chrome media hub functions implemented
+## [1.4](../../tree/v1.4) *(2020-06-04)*
+*   Show play/pause icon on discography player cover. See [issue #2](/issues/2)
 ## [1.3](../../tree/v1.3) *(2020-05-15)*
 *   Added support for https://campexplorer.io/
 ## [1.2](../../tree/v1.2) *(2020-03-18)*

@@ -7,7 +7,7 @@
 // @contributionURL  https://buymeacoff.ee/cuzi
 // @contributionURL  https://ko-fi.com/cuzicvzi
 // @license          MIT
-// @version          1.4
+// @version          1.5
 // @require          https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant            GM.xmlHttpRequest
 // @grant            GM.setValue
@@ -41,6 +41,7 @@ const TRALBUM_CACHE_HOURS = 2
 const CHROME = navigator.userAgent.indexOf('Chrome') !== -1
 const CAMPEXPLORER = document.location.hostname === 'campexplorer.io'
 const NOEMOJI = CHROME && navigator.userAgent.match(/Windows (NT)? [4-9]/i)
+const DEFAULTSKIPTIME = 10 /* Seek time to skip in seconds by default */
 
 const allFeatures = {
   discographyplayer: {
@@ -313,7 +314,7 @@ function restoreVolume () {
         // Update volume bar on tag player (by double clicking mute button)
         const muteWrapper = document.querySelector('.vol-icon-wrapper')
         if (muteWrapper) {
-          const mouseDownEvent = new MouseEvent('mousedown', { view: window, bubbles: true, cancelable: true })
+          const mouseDownEvent = new MouseEvent('mousedown', { view: unsafeWindow, bubbles: true, cancelable: true })
           muteWrapper.dispatchEvent(mouseDownEvent)
           muteWrapper.dispatchEvent(mouseDownEvent)
         }
@@ -494,6 +495,39 @@ function musicPlayerPlaySong (next, startTime) {
     })
     navigator.mediaSession.setActionHandler('previoustrack', musicPlayerPrev)
     navigator.mediaSession.setActionHandler('nexttrack', musicPlayerNext)
+
+    navigator.mediaSession.setActionHandler('play', _ => audio.play())
+    navigator.mediaSession.setActionHandler('pause', _ => audio.pause())
+
+    navigator.mediaSession.setActionHandler('seekbackward', function (event) {
+      const skipTime = event.seekOffset || DEFAULTSKIPTIME
+      audio.currentTime = Math.max(audio.currentTime - skipTime, 0)
+      musicPlayerUpdatePositionState()
+    })
+    navigator.mediaSession.setActionHandler('seekforward', function (event) {
+      const skipTime = event.seekOffset || DEFAULTSKIPTIME
+      audio.currentTime = Math.min(audio.currentTime + skipTime, audio.duration || currentDuration)
+      musicPlayerUpdatePositionState()
+    })
+
+    try {
+      navigator.mediaSession.setActionHandler('stop', _ => musicPlayerClose())
+    } catch (error) {
+      console.log('Warning! The "stop" media session action is not supported.')
+    }
+
+    try {
+      navigator.mediaSession.setActionHandler('seekto', function (event) {
+        if (event.fastSeek && ('fastSeek' in audio)) {
+          audio.fastSeek(event.seekTime)
+          return
+        }
+        audio.currentTime = event.seekTime
+        musicPlayerUpdatePositionState()
+      })
+    } catch (error) {
+      console.log('Warning! The "seekto" media session action is not supported.')
+    }
   }
 
   // Download link
@@ -554,7 +588,7 @@ function musicPlayerPlaySong (next, startTime) {
 
 function musicPlayerPlay () {
   if (audio.paused) {
-    audio.play()
+    audio.play().then(_ => musicPlayerUpdatePositionState())
     musicPlayerCookieChannelSendStop()
   } else {
     audio.pause()
@@ -629,7 +663,7 @@ function musicPlayerNextAlbum () {
         }
       }
       if (!found) {
-        audio.play()
+        audio.play().then(_ => musicPlayerUpdatePositionState())
         window.alert('End of playlist reached')
       }
     }
@@ -652,6 +686,9 @@ function musicPlayerOnTimeUpdate () {
     playpause.querySelector('.play').style.display = 'none'
     playpause.querySelector('.busy').style.display = ''
     playpause.querySelector('.pause').style.display = 'none'
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'none'
+    }
   } else if (audio.paused) {
     playpause.querySelector('.play').style.display = ''
     playpause.querySelector('.busy').style.display = 'none'
@@ -659,12 +696,18 @@ function musicPlayerOnTimeUpdate () {
     if (document.title.startsWith('\u25B6\uFE0E ')) {
       document.title = document.title.substring(3)
     }
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'paused'
+    }
   } else {
     playpause.querySelector('.play').style.display = 'none'
     playpause.querySelector('.busy').style.display = 'none'
     playpause.querySelector('.pause').style.display = ''
     if (!document.title.startsWith('\u25B6\uFE0E ')) {
       document.title = '\u25B6\uFE0E ' + document.title
+    }
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'playing'
     }
   }
   player.querySelector('.durationDisplay .current').innerHTML = humanDuration(audio.currentTime)
@@ -850,6 +893,17 @@ async function musicPlayerCollectListenedClick (ev) {
   player.querySelector('.collect-listened').style.cursor = ''
 
   makeAlbumLinksGreat()
+}
+
+function musicPlayerUpdatePositionState () {
+  if ('setPositionState' in navigator.mediaSession) {
+    console.log('Updating position state...')
+    navigator.mediaSession.setPositionState({
+      duration: audio.duration || currentDuration || 180,
+      playbackRate: audio.playbackRate,
+      position: audio.currentTime
+    })
+  }
 }
 
 function musicPlayerCookieChannel (onStopEventCb) {
@@ -2265,9 +2319,25 @@ function makeCarouselPlayerGreatAgain () {
   }
 
   let lastMediaHubMeta = [null, null]
+  const updateChromePositionState = function () {
+    const audio = document.querySelector('body>audio')
+    if (audio && 'setPositionState' in navigator.mediaSession) {
+      navigator.mediaSession.setPositionState({
+        duration: audio.duration || 180,
+        playbackRate: audio.playbackRate,
+        position: audio.currentTime
+      })
+    }
+  }
   const addChromeMediaHubToCarouselPlayer = function chromeMediaHubToCarouselPlayer () {
     // Media hub
     if ('mediaSession' in navigator) {
+      const audio = document.querySelector('body>audio')
+      if (audio) {
+        navigator.mediaSession.playbackState = !audio.paused ? 'playing' : 'paused'
+        updateChromePositionState()
+      }
+
       const title = document.querySelector('#carousel-player .info-progress span[data-bind*="trackTitle"]').textContent.trim()
       const artwork = document.querySelector('#carousel-player .now-playing img').src
       if (lastMediaHubMeta[0] === title && lastMediaHubMeta[1] === artwork) {
@@ -2293,6 +2363,56 @@ function makeCarouselPlayerGreatAgain () {
         navigator.mediaSession.setActionHandler('nexttrack', () => document.querySelector('#carousel-player .transport .next-icon').click())
       } else {
         navigator.mediaSession.setActionHandler('nexttrack', null)
+      }
+      const playButton = document.querySelector('#carousel-player .playpause .play')
+      if (playButton && playButton.style.display === 'none') {
+        navigator.mediaSession.setActionHandler('play', null)
+        navigator.mediaSession.setActionHandler('pause', function () {
+          document.querySelector('#carousel-player .playpause').click()
+          navigator.mediaSession.playbackState = 'paused'
+        })
+      } else {
+        navigator.mediaSession.setActionHandler('play', function () {
+          document.querySelector('#carousel-player .playpause').click()
+          navigator.mediaSession.playbackState = 'playing'
+        })
+        navigator.mediaSession.setActionHandler('pause', null)
+      }
+
+      if (audio) {
+        navigator.mediaSession.setActionHandler('seekbackward', function (event) {
+          const skipTime = event.seekOffset || DEFAULTSKIPTIME
+          audio.currentTime = Math.max(audio.currentTime - skipTime, 0)
+          updateChromePositionState()
+        })
+        navigator.mediaSession.setActionHandler('seekforward', function (event) {
+          const skipTime = event.seekOffset || DEFAULTSKIPTIME
+          audio.currentTime = Math.min(audio.currentTime + skipTime, audio.duration)
+          updateChromePositionState()
+        })
+
+        try {
+          navigator.mediaSession.setActionHandler('stop', function () {
+            audio.pause()
+            audio.currentTime = 0
+            navigator.mediaSession.playbackState = 'paused'
+          })
+        } catch (error) {
+          console.log('Warning! The "stop" media session action is not supported.')
+        }
+
+        try {
+          navigator.mediaSession.setActionHandler('seekto', function (event) {
+            if (event.fastSeek && ('fastSeek' in audio)) {
+              audio.fastSeek(event.seekTime)
+              return
+            }
+            audio.currentTime = event.seekTime
+            updateChromePositionState()
+          })
+        } catch (error) {
+          console.log('Warning! The "seekto" media session action is not supported.')
+        }
       }
     }
   }
@@ -2835,9 +2955,24 @@ function addVolumeBarToAlbumPage () {
   }
 
   let lastMediaHubTitle = null
+  const updateChromePositionState = function () {
+    const audio = document.querySelector('body>audio')
+    if (audio && 'setPositionState' in navigator.mediaSession) {
+      navigator.mediaSession.setPositionState({
+        duration: audio.duration || 180,
+        playbackRate: audio.playbackRate,
+        position: audio.currentTime
+      })
+    }
+  }
   const albumPageUpdateMediaHubListener = function albumPageUpdateMediaHub () {
     // Media hub
     if ('mediaSession' in navigator) {
+      const audio = document.querySelector('body>audio')
+      if (audio) {
+        navigator.mediaSession.playbackState = !audio.paused ? 'playing' : 'paused'
+        updateChromePositionState()
+      }
       const title = document.querySelector('#trackInfoInner .inline_player .title').textContent.trim()
       if (lastMediaHubTitle === title) {
         return
@@ -2868,6 +3003,50 @@ function addVolumeBarToAlbumPage () {
         navigator.mediaSession.setActionHandler('nexttrack', () => document.querySelector('#trackInfoInner .inline_player .nextbutton').click())
       } else {
         navigator.mediaSession.setActionHandler('nexttrack', null)
+      }
+      if (audio) {
+        navigator.mediaSession.setActionHandler('play', function () {
+          audio.play()
+          navigator.mediaSession.playbackState = 'playing'
+        })
+        navigator.mediaSession.setActionHandler('pause', function () {
+          audio.play()
+          navigator.mediaSession.playbackState = 'paused'
+        })
+
+        navigator.mediaSession.setActionHandler('seekbackward', function (event) {
+          const skipTime = event.seekOffset || DEFAULTSKIPTIME
+          audio.currentTime = Math.max(audio.currentTime - skipTime, 0)
+          updateChromePositionState()
+        })
+        navigator.mediaSession.setActionHandler('seekforward', function (event) {
+          const skipTime = event.seekOffset || DEFAULTSKIPTIME
+          audio.currentTime = Math.min(audio.currentTime + skipTime, audio.duration)
+          updateChromePositionState()
+        })
+
+        try {
+          navigator.mediaSession.setActionHandler('stop', function () {
+            audio.pause()
+            audio.currentTime = 0
+            navigator.mediaSession.playbackState = 'paused'
+          })
+        } catch (error) {
+          console.log('Warning! The "stop" media session action is not supported.')
+        }
+
+        try {
+          navigator.mediaSession.setActionHandler('seekto', function (event) {
+            if (event.fastSeek && ('fastSeek' in audio)) {
+              audio.fastSeek(event.seekTime)
+              return
+            }
+            audio.currentTime = event.seekTime
+            updateChromePositionState()
+          })
+        } catch (error) {
+          console.log('Warning! The "seekto" media session action is not supported.')
+        }
       }
     }
   }

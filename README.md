@@ -9,6 +9,9 @@ General information about userscripts and how to use them can be found at [openu
 
 If you already have a userscript extension installed, you can click **[here](https://openuserjs.org/install/cuzi/Bandcamp_script_(Deluxe_Edition).user.js) to install** this script.
 
+Since **Firefox 71** you may need to [change a setting in about:config](https://support.mozilla.org/en-US/kb/about-config-editor-firefox) to enable all features:  
+The `dom.media.mediasession.enabled` preference needs to be set to true.
+
 Features:
  *   player on discography pages (similar to the player on tag pages)
  *   manage your 'played/listened' albums by clicking on a '✔ Mark as played' link
@@ -19,6 +22,7 @@ Features:
  *   Download mp3 from discography player
  *   Download mp3 from album page
  *   Desktop notifications on song change (disabled by default, enable in script settings in the top right corner)
+ *   Control playback with hardware multimedia keys or remote control (only Chrome)
  *   Set reminders for upcoming releases
  *   Minimize/Close player
  *   Settings to disable individual functions
