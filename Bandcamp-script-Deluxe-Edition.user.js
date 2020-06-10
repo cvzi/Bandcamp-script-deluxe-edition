@@ -30,7 +30,6 @@
 
 /* globals JSON5, GM, unsafeWindow, MediaMetadata, MouseEvent, Response */
 
-// TODO media key control possible?
 // TODO genius lyrics?
 // TODO test preorder albums and albums that are not streamable
 // TODO run on all sites, not only bandcamp if (hostname is 'bandcamp' or definingFeature())
@@ -2217,6 +2216,7 @@ function removeTheTimeHasComeToOpenThyHeartWallet () {
   }
   document.head.dataset.theTimeHasComeToOpenThyHeartWallet = true
   document.head.appendChild(document.createElement('script')).innerHTML = `
+    Log.debug("theTimeHasComeToOpenThyHeartWallet: start...")
     function removeViaQuerySelector (parent, selector) {
       if (typeof selector === 'undefined') {
         selector = parent
@@ -2226,6 +2226,7 @@ function removeTheTimeHasComeToOpenThyHeartWallet () {
         el.remove()
       }
     }
+
     if (TralbumData.play_cap_data) {
       TralbumData.play_cap_data.streaming_limit = 100
       TralbumData.play_cap_data.streaming_limits_enabled = false
@@ -2234,12 +2235,40 @@ function removeTheTimeHasComeToOpenThyHeartWallet () {
       TralbumData.trackinfo[i].is_capped = false
       TralbumData.trackinfo[i].play_count = 1
     }
+
     /* // Alternative would be create new player
     TralbumLimits.onPlayerInit = () => true
     TralbumLimits.updatePlayCounts = () => true
     Player.init(TralbumData, AlbumPage.onPlayerInit);
     */
+
+    // Update player with modified TralbumData
     Player.update(TralbumData)
+    Log.debug("theTimeHasComeToOpenThyHeartWallet: player updated")
+
+    // Restore lyrics onClick
+    function parentByClassName(node, className) {
+      while(!node.parentNode.classList.contains(className)) {
+        node = node.parentNode
+        if (node.parentNode === document.documentElement) {
+          return null
+        }
+      }
+      return node.parentNode
+    }
+    function onLyricsClick (ev) {
+      ev.preventDefault()
+      const tr = parentByClassName(this, 'track_row_view')
+      if (tr.classList.contains('current_track')) {
+        parentByClassName(tr, 'track_list').classList.toggle('auto_lyrics')
+      } else {
+        tr.classList.toggle('showlyrics')
+      }
+    }
+    document.querySelectorAll('#track_table .track_row_view .info_link a').forEach(function (a) {
+      a.addEventListener('click', onLyricsClick)
+    })
+
     // Hide popup (not really needed, but won't hurt)
     window.setInterval(function() {
       if(document.getElementById('play-limits-dialog-cancel-btn')) {
@@ -2250,6 +2279,7 @@ function removeTheTimeHasComeToOpenThyHeartWallet () {
         }, 100)
       }
     }, 3000)
+    Log.debug("theTimeHasComeToOpenThyHeartWallet: done!")
   `
 }
 
@@ -2773,7 +2803,7 @@ function addVolumeBarToAlbumPage () {
   const blue100 = 75
   const green0 = 90
   const green100 = 100
-  const audioAlbumPage = document.querySelector('audio')
+  const audioAlbumPage = document.querySelector('body>audio')
   addLogVolume(audioAlbumPage)
   const volumeBarPos = volumeBar.getBoundingClientRect().left
 
@@ -2956,21 +2986,19 @@ function addVolumeBarToAlbumPage () {
 
   let lastMediaHubTitle = null
   const updateChromePositionState = function () {
-    const audio = document.querySelector('body>audio')
-    if (audio && 'setPositionState' in navigator.mediaSession) {
+    if (audioAlbumPage && 'setPositionState' in navigator.mediaSession) {
       navigator.mediaSession.setPositionState({
-        duration: audio.duration || 180,
-        playbackRate: audio.playbackRate,
-        position: audio.currentTime
+        duration: audioAlbumPage.duration || 180,
+        playbackRate: audioAlbumPage.playbackRate,
+        position: audioAlbumPage.currentTime
       })
     }
   }
   const albumPageUpdateMediaHubListener = function albumPageUpdateMediaHub () {
     // Media hub
     if ('mediaSession' in navigator) {
-      const audio = document.querySelector('body>audio')
-      if (audio) {
-        navigator.mediaSession.playbackState = !audio.paused ? 'playing' : 'paused'
+      if (audioAlbumPage) {
+        navigator.mediaSession.playbackState = !audioAlbumPage.paused ? 'playing' : 'paused'
         updateChromePositionState()
       }
       const title = document.querySelector('#trackInfoInner .inline_player .title').textContent.trim()
@@ -3004,31 +3032,31 @@ function addVolumeBarToAlbumPage () {
       } else {
         navigator.mediaSession.setActionHandler('nexttrack', null)
       }
-      if (audio) {
+      if (audioAlbumPage) {
         navigator.mediaSession.setActionHandler('play', function () {
-          audio.play()
+          audioAlbumPage.play()
           navigator.mediaSession.playbackState = 'playing'
         })
         navigator.mediaSession.setActionHandler('pause', function () {
-          audio.play()
+          audioAlbumPage.play()
           navigator.mediaSession.playbackState = 'paused'
         })
 
         navigator.mediaSession.setActionHandler('seekbackward', function (event) {
           const skipTime = event.seekOffset || DEFAULTSKIPTIME
-          audio.currentTime = Math.max(audio.currentTime - skipTime, 0)
+          audioAlbumPage.currentTime = Math.max(audioAlbumPage.currentTime - skipTime, 0)
           updateChromePositionState()
         })
         navigator.mediaSession.setActionHandler('seekforward', function (event) {
           const skipTime = event.seekOffset || DEFAULTSKIPTIME
-          audio.currentTime = Math.min(audio.currentTime + skipTime, audio.duration)
+          audioAlbumPage.currentTime = Math.min(audioAlbumPage.currentTime + skipTime, audioAlbumPage.duration)
           updateChromePositionState()
         })
 
         try {
           navigator.mediaSession.setActionHandler('stop', function () {
-            audio.pause()
-            audio.currentTime = 0
+            audioAlbumPage.pause()
+            audioAlbumPage.currentTime = 0
             navigator.mediaSession.playbackState = 'paused'
           })
         } catch (error) {
@@ -3037,11 +3065,11 @@ function addVolumeBarToAlbumPage () {
 
         try {
           navigator.mediaSession.setActionHandler('seekto', function (event) {
-            if (event.fastSeek && ('fastSeek' in audio)) {
-              audio.fastSeek(event.seekTime)
+            if (event.fastSeek && ('fastSeek' in audioAlbumPage)) {
+              audioAlbumPage.fastSeek(event.seekTime)
               return
             }
-            audio.currentTime = event.seekTime
+            audioAlbumPage.currentTime = event.seekTime
             updateChromePositionState()
           })
         } catch (error) {
