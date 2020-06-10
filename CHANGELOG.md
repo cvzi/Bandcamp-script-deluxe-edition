@@ -1,4 +1,6 @@
 # Changelog
+## [1.6](../../tree/v1.6) *(2020-06-11)*
+*   Fix lyrics on album page when "The time has come to open thy wallet" was avoided
 ## [1.5](../../tree/v1.5) *(2020-06-10)*
 *   All current chrome media hub functions implemented
 ## [1.4](../../tree/v1.4) *(2020-06-04)*

@@ -7,7 +7,7 @@
 // @contributionURL  https://buymeacoff.ee/cuzi
 // @contributionURL  https://ko-fi.com/cuzicvzi
 // @license          MIT
-// @version          1.5
+// @version          1.6
 // @require          https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @grant            GM.xmlHttpRequest
 // @grant            GM.setValue
