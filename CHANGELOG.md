@@ -1,4 +1,9 @@
 # Changelog
+
+## [1.7](../../tree/v1.7) *(2020-07-15)*
+*   [FireMonkey support](https://addons.mozilla.org/en-US/firefox/addon/firemonkey/)
+*   [Dark mode ](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/4)
+*   [Support shop pages](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/3)
 ## [1.6](../../tree/v1.6) *(2020-06-11)*
 *   Fix lyrics on album page when "The time has come to open thy wallet" was avoided
 ## [1.5](../../tree/v1.5) *(2020-06-10)*

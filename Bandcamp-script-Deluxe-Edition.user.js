@@ -6,41 +6,47 @@
 // @supportURL       https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues
 // @contributionURL  https://buymeacoff.ee/cuzi
 // @contributionURL  https://ko-fi.com/cuzicvzi
+// @icon             https://s1.bcbits.com/img/favicon/favicon-32x32.png
 // @license          MIT
-// @version          1.6
+// @version          1.7
 // @require          https://unpkg.com/json5@2.1.0/dist/index.min.js
+// @run-at           document-start
 // @grant            GM.xmlHttpRequest
 // @grant            GM.setValue
 // @grant            GM.getValue
 // @grant            GM.notification
 // @grant            GM.download
+// @grant            GM.registerMenuCommand
+// @grant            GM.addStyle
 // @grant            unsafeWindow
 // @connect          bandcamp.com
 // @connect          *.bandcamp.com
 // @connect          bcbits.com
 // @connect          *.bcbits.com
-// @include          https://bandcamp.com/*
-// @include          https://*.bandcamp.com/*
-// @include          https://campexplorer.io/
+// @connect          *
+// @include          https://bandcamp.com
+// @include          https://*
 // ==/UserScript==
 
 // ==OpenUserJS==
-// @author        cuzi
+// @author           cuzi
 // ==/OpenUserJS==
 
 /* globals JSON5, GM, unsafeWindow, MediaMetadata, MouseEvent, Response */
 
 // TODO genius lyrics?
-// TODO test preorder albums and albums that are not streamable
-// TODO run on all sites, not only bandcamp if (hostname is 'bandcamp' or definingFeature())
 // TODO Mark as played automatically when played
 
 const BACKUP_REMINDER_DAYS = 35
 const TRALBUM_CACHE_HOURS = 2
 const CHROME = navigator.userAgent.indexOf('Chrome') !== -1
 const CAMPEXPLORER = document.location.hostname === 'campexplorer.io'
+const BANDCAMPDOMAIN = document.location.hostname === 'bandcamp.com' || document.location.hostname.endsWith('.bandcamp.com')
+var BANDCAMP = BANDCAMPDOMAIN
 const NOEMOJI = CHROME && navigator.userAgent.match(/Windows (NT)? [4-9]/i)
 const DEFAULTSKIPTIME = 10 /* Seek time to skip in seconds by default */
+const SCRIPT_NAME = 'Bandcamp script (Deluxe Edition)'
+var darkModeInjected = false
 
 const allFeatures = {
   discographyplayer: {
@@ -94,6 +100,10 @@ const allFeatures = {
   releaseReminder: {
     name: 'Show new releases that I have saved',
     default: true
+  },
+  darkMode: {
+    name: (CHROME ? '🅳🅐🆁🅺🅼🅞🅳🅴' : '🅳🅰🆁🅺🅼🅾🅳🅴') + ' - enable <a href="https://userstyles.org/styles/171538/bandcamp-in-dark">dark theme by Simonus</a>',
+    default: false
   }
 }
 
@@ -412,7 +422,7 @@ function musicPlayerPlaySong (next, startTime) {
     bufferbar.style.width = '0px'
     window.setTimeout(function bufferbaranimationClass () {
       bufferbar.classList.add('bufferbaranimation')
-    }, 0)
+    }, 10)
   }, 0)
 
   const key = albumKey(next.dataset.albumUrl)
@@ -891,7 +901,7 @@ async function musicPlayerCollectListenedClick (ev) {
   }
   player.querySelector('.collect-listened').style.cursor = ''
 
-  makeAlbumLinksGreat()
+  setTimeout(makeAlbumLinksGreat, 100)
 }
 
 function musicPlayerUpdatePositionState () {
@@ -906,7 +916,7 @@ function musicPlayerUpdatePositionState () {
 }
 
 function musicPlayerCookieChannel (onStopEventCb) {
-  if (CAMPEXPLORER) {
+  if (!BANDCAMPDOMAIN) {
     return
   }
   window.addEventListener('message', function onMessage (event) {
@@ -940,7 +950,9 @@ function musicPlayerCookieChannel (onStopEventCb) {
   document.head.appendChild(script)
 }
 function musicPlayerCookieChannelSendStop (onStopEventCb) {
-  window.postMessage({ discographyplayerCookiechannelPlaylist: 'sendstop' }, document.location.href)
+  if (BANDCAMPDOMAIN) {
+    window.postMessage({ discographyplayerCookiechannelPlaylist: 'sendstop' }, document.location.href)
+  }
 }
 
 function musicPlayerSaveState () {
@@ -1011,6 +1023,8 @@ function musicPlayerClose () {
   if (audio) {
     audio.pause()
   }
+  document.querySelectorAll('img.albumIsCurrentlyPlaying').forEach(img => img.classList.remove('albumIsCurrentlyPlaying'))
+  document.querySelectorAll('.albumIsCurrentlyPlayingIndicator').forEach(div => div.remove())
 }
 
 function musicPlayerCreate () {
@@ -1785,7 +1799,7 @@ function getTralbumData (url, cb) {
         resolve(TralbumData)
       },
       onerror: function getTralbumDataOnError (response) {
-        console.log('getTralbumData(' + url + ') Error: ' + response.status + '\nResponse:\n' + response.responseText)
+        console.log('getTralbumData(' + url + ') Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
         reject(response)
       }
     })
@@ -1841,6 +1855,7 @@ async function storeTralbumData (TralbumData) {
   TralbumData.time = (new Date()).toJSON()
   cache[albumKey(TralbumData.url)] = TralbumData
   await GM.setValue('tralbumdata', JSON.stringify(cache))
+  storeTralbumDataPermanently(TralbumData)
 }
 
 async function cachedTralbumData (url) {
@@ -1858,6 +1873,17 @@ async function cachedTralbumData (url) {
     }
   }
   return false
+}
+
+async function storeTralbumDataPermanently (TralbumData) {
+  const library = JSON.parse(await GM.getValue('tralbumlibrary', '{}'))
+  const key = albumKey(TralbumData.url)
+  if (key in library) {
+    library[key] = Object.assign(library[key], TralbumData)
+  } else {
+    library[key] = TralbumData
+  }
+  await GM.setValue('tralbumlibrary', JSON.stringify(library))
 }
 
 function playAlbumFromCover (ev) {
@@ -1896,7 +1922,8 @@ function playAlbumFromUrl (url) {
     storeTralbumData(TralbumData)
     addAlbumToPlaylist(TralbumData, 0)
   }).catch(function onGetTralbumDataError (e) {
-    window.alert('Could not load album data from url:\n' + url + '\n' + e)
+    window.alert('Could not load album data from url:\n' + url + '\n' + ('error' in e ? e.error : ''))
+    console.log(e)
   })
 }
 
@@ -2066,16 +2093,16 @@ async function makeAlbumLinksGreat (parentElement) {
   const onClickSetListened = async function onClickSetListenedAsync (ev) {
     ev.preventDefault()
 
-    let parent = this
-    for (let j = 0; parent.tagName !== 'A' && j < 20; j++) {
-      parent = parent.parentNode
+    let parentA = this
+    for (let j = 0; parentA.tagName !== 'A' && j < 20; j++) {
+      parentA = parentA.parentNode
     }
     setTimeout(function showSavingLabel () {
-      parent.style.cursor = 'wait'
-      parent.querySelector('.bdp_check_container').innerHTML = 'Saving...'
+      parentA.style.cursor = 'wait'
+      parentA.querySelector('.bdp_check_container').innerHTML = 'Saving...'
     }, 0)
 
-    const url = parent.href
+    const url = parentA.href
     let albumData = await myAlbumsGetAlbum(url)
     if (!albumData) {
       albumData = await myAlbumsNewFromUrl(url, { title: this.dataset.textContent })
@@ -2084,30 +2111,34 @@ async function makeAlbumLinksGreat (parentElement) {
 
     await myAlbumsUpdateAlbum(albumData)
 
-    makeAlbumLinksGreat()
-    parent.style.cursor = ''
+    setTimeout(function hideSavingLabel () {
+      parentA.style.cursor = ''
+      makeAlbumLinksGreat()
+    }, 100)
   }
   const onClickRemoveListened = async function onClickRemoveListenedAsync (ev) {
     ev.preventDefault()
 
-    let parent = this
-    for (let j = 0; parent.tagName !== 'A' && j < 20; j++) {
-      parent = parent.parentNode
+    let parentA = this
+    for (let j = 0; parentA.tagName !== 'A' && j < 20; j++) {
+      parentA = parentA.parentNode
     }
     setTimeout(function showSavingLabel () {
-      parent.style.cursor = 'wait'
-      parent.querySelector('.bdp_check_container').innerHTML = 'Saving...'
+      parentA.style.cursor = 'wait'
+      parentA.querySelector('.bdp_check_container').innerHTML = 'Saving...'
     }, 0)
 
-    const url = parent.href
+    const url = parentA.href
     const albumData = await myAlbumsGetAlbum(url)
     if (albumData) {
       albumData.listened = false
       await myAlbumsUpdateAlbum(albumData)
     }
 
-    makeAlbumLinksGreat()
-    parent.style.cursor = ''
+    setTimeout(function hideSavingLabel () {
+      parentA.style.cursor = ''
+      makeAlbumLinksGreat()
+    }, 100)
   }
   const mouseOverLink = function onMouseOverLink (ev) {
     const bdpCheckOnlinkhoverContainer = this.querySelector('.bdp_check_onlinkhover_container')
@@ -2495,7 +2526,10 @@ async function addListenedButtonToCollectControls () {
     for (let j = 0; parent.tagName !== 'LI' && j < 20; j++) {
       parent = parent.parentNode
     }
-    setTimeout(function showSavingLabel () { parent.style.cursor = 'wait'; parent.innerHTML = 'Saving...' }, 0)
+    setTimeout(function showSavingLabel () {
+      parent.style.cursor = 'wait'
+      parent.innerHTML = 'Saving...'
+    }, 0)
 
     const url = document.location.href
     let albumData = await myAlbumsGetAlbum(url)
@@ -2506,7 +2540,7 @@ async function addListenedButtonToCollectControls () {
 
     await myAlbumsUpdateAlbum(albumData)
 
-    addListenedButtonToCollectControls()
+    window.setTimeout(addListenedButtonToCollectControls, 100)
   }
   const onClickRemoveListened = async function onClickRemoveListenedAsync (ev) {
     ev.preventDefault()
@@ -2527,7 +2561,7 @@ async function addListenedButtonToCollectControls () {
       await myAlbumsUpdateAlbum(albumData)
     }
 
-    addListenedButtonToCollectControls()
+    window.setTimeout(addListenedButtonToCollectControls, 100)
   }
 
   removeViaQuerySelector('#discographyplayer_sharepanel')
@@ -2704,6 +2738,10 @@ function addVolumeBarToAlbumPage () {
   // https://greasyfork.org/en/scripts/38012-bandcamp-volume-bar/
   if (document.querySelector('.volumeControl')) {
     return false
+  }
+
+  if (!document.querySelector('#trackInfoInner .playbutton')) {
+    return
   }
 
   document.head.appendChild(document.createElement('style')).innerHTML = `
@@ -3440,12 +3478,13 @@ function mainMenu (startBackup) {
 
   const main = document.body.appendChild(document.createElement('div'))
   main.className = 'deluxemenu'
-  main.innerHTML = `<h2>Bandcamp script (Deluxe Edition)</h2>
-  Source code license: <a href="https://github.com/cvzi/Bandcamp-script-deluxe-edition/blob/master/LICENSE">MIT</a><br>
-  Support: <a href="https://github.com/cvzi/Bandcamp-script-deluxe-edition">github.com/cvzi/Bandcamp-script-deluxe-edition</a><br>
-  OUJS.org: <a href="https://openuserjs.org/scripts/cuzi/Bandcamp_script_(Deluxe_Edition)">openuserjs.org/scripts/cuzi/Bandcamp_script_(Deluxe_Edition)</a><br>
+  main.innerHTML = `<h2>${SCRIPT_NAME}</h2>
+  Source code license: <a target="_blank" href="https://github.com/cvzi/Bandcamp-script-deluxe-edition/blob/master/LICENSE">MIT</a><br>
+  Support: <a target="_blank" href="https://github.com/cvzi/Bandcamp-script-deluxe-edition">github.com/cvzi/Bandcamp-script-deluxe-edition</a><br>
+  OUJS.org: <a target="_blank" href="https://openuserjs.org/scripts/cuzi/Bandcamp_script_(Deluxe_Edition)">openuserjs.org/scripts/cuzi/Bandcamp_script_(Deluxe_Edition)</a><br>
+  Dark theme based on: <a target="_blank" href="https://userstyles.org/styles/171538/bandcamp-in-dark">"Bandcamp In Dark"</a> by <a target="_blank" href="https://userstyles.org/users/563391">Simonus</a><br>
   Libraries used:<br>
-   * <a href="https://json5.org/">JSON5 - JSON for Humans</a> (MIT license)
+   * <a target="_blank" href="https://json5.org/">JSON5 - JSON for Humans</a> (MIT license)
    <h3>Options</h3>
   `
 
@@ -3529,8 +3568,12 @@ function mainMenu (startBackup) {
       }
     }
 
-    // Bottom buttons
+    // Hint
     main.appendChild(document.createElement('br'))
+    const p = main.appendChild(document.createElement('p'))
+    p.appendChild(document.createTextNode('Changes may require a page reload (F5)'))
+
+    // Bottom buttons
     main.appendChild(document.createElement('br'))
     const buttons = main.appendChild(document.createElement('div'))
 
@@ -3924,6 +3967,7 @@ function exportMenu (showClearButton) {
     generateButton.addEventListener('click', (ev) => generate())
     const exportButton = td.appendChild(document.createElement('button'))
     exportButton.appendChild(document.createTextNode('Export to file'))
+    exportButton.title = 'Download as a text file'
     exportButton.addEventListener('click', function onExportFileButtonClick () {
       const dateSuffix = (new Date()).toISOString().split('T')[0]
       document.getElementById('export_download_link').download = 'bandcampPlayedAlbums_' + dateSuffix + '.txt'
@@ -3931,6 +3975,7 @@ function exportMenu (showClearButton) {
       window.setTimeout(() => document.getElementById('export_download_link').click(), 50)
     })
     const backupButton = td.appendChild(document.createElement('button'))
+    backupButton.title = 'Backup to JSON file. Can be restored on another browser'
     backupButton.appendChild(document.createTextNode('Backup'))
     backupButton.addEventListener('click', function onBackupButtonClick () {
       format = '%backup%'
@@ -3944,6 +3989,7 @@ function exportMenu (showClearButton) {
       window.setTimeout(() => document.getElementById('export_download_link').click(), 50)
     })
     const restoreButton = td.appendChild(document.createElement('button'))
+    restoreButton.title = 'Restore from JSON file backup'
     restoreButton.appendChild(document.createTextNode('Restore'))
     restoreButton.addEventListener('click', function onBackupButtonClick () {
       inputFile.click()
@@ -4082,7 +4128,7 @@ function showBackupHint (lastBackup, changedRecords) {
 
   const main = document.body.appendChild(document.createElement('div'))
   main.className = 'backupreminder'
-  main.innerHTML = `<h2>Bandcamp script (Deluxe Edition)</h2>
+  main.innerHTML = `<h2>${SCRIPT_NAME}</h2>
   <h1>Backup reminder</h1>
   <p>
     Your last backup was ${since} ago. Since then, you played ${changedRecords} albums.
@@ -4261,7 +4307,7 @@ function addMainMenuButtonToUserNav () {
   const userNav = document.getElementById('user-nav')
   const li = userNav.insertBefore(document.createElement('li'), userNav.firstChild)
   li.className = 'menubar-item hoverable'
-  li.title = 'userscript settings - Bandcamp script (Deluxe Edition)'
+  li.title = 'userscript settings - ' + SCRIPT_NAME
   const a = li.appendChild(document.createElement('a'))
   a.className = 'settingssymbol'
   a.style.fontSize = '24px'
@@ -4273,17 +4319,628 @@ function addMainMenuButtonToUserNav () {
   li.addEventListener('click', () => mainMenu())
 }
 
-const maintenanceContent = document.querySelector('.content')
-if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') !== -1) {
-  console.log('Maintenance detected')
-} else {
-  if (NOEMOJI) {
-    document.head.appendChild(document.createElement('style')).innerHTML = '@font-face{font-family:Symbola;src:local("Symbola Regular"),local("Symbola"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format("woff2"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format("woff"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format("truetype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format("opentype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format("svg")}' +
-      '.sharepanelchecksymbol,.bdp_check_onlinkhover_symbol,.bdp_check_onchecked_symbol,.volumeSymbol,.downloaddisk,.downloadlink,#user-nav .settingssymbol,.listened-symbol,.mark-listened-symbol,.minimizebutton{font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif}' +
-      '.downloaddisk,.downloadlink{font-weight: bolder}'
+function humour () {
+  if (document.getElementById('salesfeed')) {
+    const salesfeedHumour = {}
+    salesfeedHumour.all = [
+      `${SCRIPT_NAME} by cuzi, Dark theme by Simonus`,
+      `Provide feedback for ${SCRIPT_NAME} on openuser.js or github.com`,
+      `${SCRIPT_NAME} - “nobody pays for software anymore” 🙌🏽`
+    ]
+    salesfeedHumour.chosen = salesfeedHumour.all[0]
+    unsafeWindow.$('#pagedata').data('blob').salesfeed_humour = salesfeedHumour
   }
-  GM.getValue('enabledFeatures', false).then(function onEnabledFeaturesLoad (value) {
-    getEnabledFeatures(value)
+}
+
+function darkMode () {
+  // CSS taken from https://userstyles.org/styles/171538/bandcamp-in-dark by Simonus (Version from January 24, 2020)
+  // https://userstyles.org/api/v1/styles/css/171538
+
+  const css = `
+/* Bandcamp: Stick Track List to Player https://userstyles.org/styles/123397/ */
+
+/* move merchandising down, so playlist or track description moves up below player */
+#centerWrapper #pgBd #trackInfoInner {
+    display: flex;
+    flex-direction: column;
+}
+#centerWrapper #pgBd #trackInfoInner > .tralbumCommands {
+    order: 1;
+}
+/* move upcoming shows down, so discography moves up below band info */
+#centerWrapper #pgBd #rightColumn {
+    display: flex;
+    flex-direction: column;
+}
+#centerWrapper #pgBd #rightColumn > #showography {
+    order: 1;
+}
+/* make modals less modal */
+/*OFF for now */
+.ui-widget-overlay {
+    display: none;
+}
+.ui-dialog.ui-widget.ui-widget-content.ui-corner-all.nu-dialog.no-title {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    left: auto !important;
+}
+.inline_player .nextbutton,
+.inline_player .prevbutton,
+svg {
+    filter: invert(100%);
+}
+a {
+    color: #da5 !important;
+}
+.trackYear,
+button {
+    color: #ac6 !important;
+}
+div#collection-container.collection-container,
+div.home {
+    background: #000 !important;
+}
+div.area_text,
+div.sort_controls,
+div.text,
+span {
+    color: #ccc !important;
+}
+DIV#propOpenWrapper,
+div#dlg0_h.hd,
+div#pgBd.yui-skin-sam,
+div.blogunit-details-section,
+div.collection-item-details-container {
+    background: #262626 !important;
+}
+div.collection-item-artist,
+h1 {
+    color: #ccc !important;
+}
+DIV.track_number.secondaryText,
+div.collection-item-title,
+div.message,
+h2 {
+    color: #FFF !important;
+}
+h3 {
+    color: #FFED80 !important;
+}
+DIV.tralbumData.tralbum-credits {
+    color: #ccc !important;
+}
+DIV#license.info,
+DIV.tralbumData.tralbum-about,
+DIV.tralbumData.tralbum-feed,
+li {
+    color: #806300 !important;
+}
+button.sc-button.sc-button-small.sc-button-responsive.sc-button-addtoset {
+    color: black !important;
+}
+div#fan-suggestions.dotted-section.mine,
+div.bcweekly-bd,
+div.collection-item-gallery-container,
+div.collection-stats.dotted-section.mine {
+    background: #222222 !important;
+}
+p {
+    color: #aaa !important;
+}
+div.sound__soundActions {
+    background: transparent !important;
+}
+button.sc-button.sc-button-small.sc-button-responsive.sc-button-addtoset {
+    color: #111111 !important;
+}
+div.ft.fakeFt {
+    background: #555555 !important;
+}
+div.bd.footerless {
+    background: #999999 !important;
+}
+.walkthrough ol {
+    background-color: #373737;
+}
+.walkthrough .button {
+    background: #262626;
+    border: #262626;
+}
+.fan-banner.empty.owner {
+    background-color: #373737;
+}
+#menubar,
+#pgFt,
+.menubar-outer {
+    background-color: #26423b !important;
+    border-bottom: dotted #000 1px !important;
+}
+#menubar-wrapper {
+    background-color: #000;
+    border-bottom: dotted #000 1px !important;
+}
+#menubar input#search-field {
+    margin: 0;
+    height: 21px;
+    line-height: 21px;
+    width: 222px;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    color: #fff;
+    font-size: 13px;
+    padding: 0 21px 0 3px;
+    -webkit-user-select: text;
+    text-align: center;
+    background-color: #282828;
+    border: 1px solid #282828;
+    outline: none;
+    border-radius: 3px;
+}
+#menubar input#search-field.focused {
+    background-color: #282828;
+    border: 1px solid #282828;
+}
+.fan-bio .edit-profile a {
+    border: 1px solid #373737;
+    border-radius: 5px;
+    outline: none;
+    background: #373737;
+    color: #aaa;
+    font-weight: 500;
+    padding: 5px 9px;
+    font-size: 11px;
+    line-height: 15px;
+    text-transform: uppercase;
+    display: inline-block;
+}
+.grids {
+    color: #fff;
+    margin: 0 0 100px;
+}
+.recommendations-container {
+    background-color: #373737;
+    border-top: dotted #373737 1px;
+}
+.fan-container .top.editing {
+    border-bottom: 1px solid #2a2a2a;
+    background-color: rgb(25, 25, 25);
+}
+.ui-dialog.nu-dialog .ui-dialog-titlebar {
+    padding: 15px 20px 12px;
+    background-color: #282828;
+    border-bottom: 1px solid #282828;
+}
+.ui-widget-content {
+    border: 1px solid #373;
+    background: #373737;
+}
+.app-promo-desktop,
+.bcdaily,
+.discover,
+.email-intake,
+.notable {
+    background-color: #262626;
+}
+.bcdaily .bcdaily-story {
+    min-height: 280px;
+    background: #373737;
+}
+.notable-item {
+    background-color: #373737;
+}
+.item-page {
+    background: #373737;
+    border: 1px solid #373737;
+}
+.follow-fan-btn {
+    background-color: #373737;
+    border: 1px solid #373737;
+}
+.spotlight-bio,
+.spotlight-button,
+.spotlight-link,
+.spotlight-location,
+.spotlight-name {
+    color: #fff;
+}
+.aotd-large {
+    background: #373737;
+}
+.factoid-title {
+    color: #46C5D5;
+}
+#autocomplete-results.autocompleted {
+    background: #262626;
+    border: 1px solid #262626;
+    color: white;
+}
+.searchwidget.keyboard-focus input[type=text]:focus {
+    background: #262626;
+    box-shadow: 0 0;
+}
+.discover-detail-inner {
+    background-color: #373737;
+}
+body.wordpress {
+    background: #262626;
+}
+.wordpress .sidebar .textwidget {
+    color: #fff;
+}
+.wordpress h1 a {
+    display: block;
+    height: 60px;
+    background-size: 242px 28px;
+    background-position: 24.6% 50%;
+}
+p {
+    color: #ffffff !important;
+}
+.wordpress #content {
+    color: #ffffff;
+}
+#dash-container .follow-band,
+#dash-container .follow-discover,
+#dash-container .follow-fan {
+    border: 1px solid #373737;
+    background: linear-gradient(to bottom, #373737 0%, #373737 100%);
+}
+html {
+    background: #1E1E1E !important;
+}
+#stories-vm .story-innards {
+    background-color: #373737;
+}
+.pane {
+    color: #c7c7c7;
+}
+#settings-menubar {
+    border-right: 1px solid #383838;
+}
+#settings-menubar li {
+    border-left: 1px solid #383838;
+    border-bottom: 1px solid #383838;
+    border-top: 1px solid #383838;
+}
+.share_dialog.ui-dialog .ui-dialog-content {
+    background-color: #262626;
+}
+.share_dialog .section_head {
+    color: #fff;
+}
+.buy-dlg {
+    color: #ffffff;
+}
+#menubar > ul > li .logo {
+    background: url('https://www.dropbox.com/s/8s7km8r329l7qy7/bandcamp-logo-gray.png?dl=1') 0 0 no-repeat;
+    background-size: contain;
+    height: 20px;
+    margin-top: 15px;
+    width: 85px;
+}
+.hd-logo {
+    background: transparent url('https://www.dropbox.com/s/8s7km8r329l7qy7/bandcamp-logo-gray.png?dl=1') no-repeat;
+    background-size: 100%;
+    margin-top: 24px;
+    height: 25px;
+    width: 156px;
+}
+.wordpress h1 a {
+    display: block;
+    text-indent: -999em;
+    background: url('https://www.dropbox.com/s/mx80o2eenp43l0o/bandcamp-daily-retina-dark-theme.png?dl=1') no-repeat;
+    height: 60px;
+    background-size: 242px 28px;
+    background-position: 24.6% 50%;
+}
+#pgBd {
+    color: #fff;
+}
+.download-bottom-area {
+    border-top: none;
+    background: none;
+}
+.download .formats-container {
+    border: 1px solid #373737;
+    background-color: #373737;
+}
+.download .formats {
+    list-style: none;
+    color: #888;
+    padding: 0;
+    background-color: #373737;
+    width: 170px;
+    z-index: 2;
+    cursor: default;
+}
+.download .formats li:hover {
+    background-color: #262626;
+}
+/* ####################################### */
+html {
+  scrollbar-color: #222 #26423b;
+}
+
+::-webkit-scrollbar {
+  height: 13px;
+}
+::-webkit-scrollbar-thumb {
+  background: #26423b;
+  border:1px solid #4a4a4a;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #316d4b;
+}
+::-webkit-scrollbar-thumb:active {
+  background: #316d4b;
+}
+::-webkit-scrollbar-track {
+  background: #4a4a4a;
+}
+::-webkit-scrollbar-track:hover {
+  background: #4a4a4a;
+}
+::-webkit-scrollbar-track:active {
+  background: #4a4a4a;
+}
+::-webkit-scrollbar-corner {
+  background: #4a4a4a;
+}
+
+body {
+  background:#000 !important;
+  color:#fff !important
+}
+
+img,.bcdaily-thumb-img {
+    filter:brightness(70%)
+}
+img:hover,.bcdaily-thumb-img:hover {
+    filter:none;
+}
+img.imageviewer_image {
+    filter:none
+}
+
+.bclogo svg {
+  filter:brightness(60%)
+}
+
+.inline_player .playbutton.busy::after {
+  opacity:0.3;
+  background-image:url('https://bandcamp.com/img/loading-dark.gif')
+}
+
+.inline_player .playbutton,
+.inline_player .volumeButton,
+.inline_player .nextsongcontrolbutton,
+.track_list .play_status {
+  background-color:#686868;
+  border-color:#595959;
+}
+
+.nextsongcontrolbutton .nextsongcontrolicon {
+  filter:drop-shadow(#090909b3 1px 1px 2px)
+}
+.nextsongcontrolbutton.active .nextsongcontrolicon {
+  filter:drop-shadow(#a3f204 1px 1px 2px) !important
+}
+
+.inline_player .progbar .thumb {
+  background-color:#000;
+  border-color:#ccc
+
+}
+.inline_player .nextbutton, .inline_player .prevbutton {
+  opacity:0.7
+}
+.track_list tr.lyricsRow td[colspan] div{
+  color: #f8f8f8;
+}
+
+input[type=text],input[type=password],textarea {
+  background-color:#121f12 !important;
+  color:rgb(64, 179, 51) !important
+}
+
+#autocomplete-results .see-all {
+  background-color: #f3f3f345 !important;
+}
+
+.deluxemenu {
+  color: #c9ebfb !important;
+  background: #00042f !important;
+}
+.deluxemenu button {
+  background: #1c1494;
+}
+.deluxeexportmenu table tr>td {
+  color: rgb(0,161,198) !important;
+}
+.deluxeexportmenu table tr>td:nth-child(3) {
+  color:rgb(0, 107, 198) !important
+}
+
+#discographyplayer {
+  background-color:#26423b !important;
+  color:#869593 !important;
+}
+#discographyplayer .playlist .playing {
+  background: #619aa9db !important;
+}
+#timeline {
+    background: rgba(34, 57, 42, 0.69) !important;
+}
+#bufferbar {
+  background: rgba(77, 79, 76, 0.59) !important;
+}
+#playhead {
+  background: rgb(42, 108, 33) !important;
+}
+#discographyplayer .playlist {
+  scrollbar-color: #222 #26423b !important;
+}
+
+#band-navbar {
+    background-color: #333 !important;
+}
+
+.hd.corp-home {
+  background-color:#26423b
+}
+#hub .bd-section.top-section {
+  opacity:0.8
+}
+
+#s-daily {
+    background: #262626 !important;
+}
+.franchise-description {
+  color: #d7d072
+}
+.footer-gradient {
+  background-image:linear-gradient(to bottom, #262626, #5e5e5e)
+}
+#s-daily dailyfooter {
+  background-color:#5e5e5e
+}
+#s-daily dailyfooter h2 {
+  -webkit-text-stroke: 2px #257110 !important;
+}
+#s-daily a.pagination-link {
+  -webkit-text-stroke: 2px #257110 !important;
+}
+#s-daily a.pagination-link .back-text {
+  -webkit-text-stroke: 2px #1c6c3f !important;
+}
+article-title {
+  color: #e3e3e3;
+}
+.mpmerchformats {
+  color:#909090;
+}
+article-footer {
+  color:#909090;
+}
+article > article-end {
+  filter:invert(75%)
+}
+article .icon {
+    filter: invert(50%);
+}
+
+.salesfeed .item-inner:hover {
+    background-color: #0e738c !important;
+}
+
+.hd.header-rework-2018 .hd-sub-head .blue-gradient {
+  background: -webkit-linear-gradient(left, #da5, #daf) !important;
+}
+.factoid .dots {
+  filter:brightness(300%);
+}
+
+.bdp_check_onlinkhover_container_shown {
+  background-color:#26423ba8 !important;
+}
+.bdp_check_onlinkhover_container:hover {
+  background-color:#2d7d39a8 !important;
+  box-shadow: #2db91f7a 0px 0px 5px;) !important;
+}
+
+
+
+  `
+  if (GM.addStyle) {
+    GM.addStyle(css)
+  } else {
+    const style = document.createElement('style')
+    style.type = 'text/css'
+    style.appendChild(document.createTextNode(css))
+    const head = document.head ? document.head : document.documentElement
+    head.appendChild(style)
+  }
+
+  window.setTimeout(humour, 3000)
+  darkModeInjected = true
+}
+
+function confirmDomain () {
+  return new Promise(function confirmDomainPromise (resolve, reject) {
+    GM.getValue('domains', '{}').then(function (v) {
+      const domains = JSON.parse(v)
+      if (document.location.hostname in domains) {
+        const isBandcamp = domains[document.location.hostname]
+        return resolve(isBandcamp)
+      } else {
+        window.setTimeout(function () {
+          const isBandcamp = window.confirm(`${SCRIPT_NAME}
+
+This page looks like a bandcamp page, but the URL ${document.location.hostname} is not a bandcamp URL.
+
+Do you want to run the userscript on this page?
+
+If this is a malicious website, running the userscript may leak personal data (e.g. played albums) to the website`)
+          domains[document.location.hostname] = isBandcamp
+          GM.setValue('domains', JSON.stringify(domains)).then(() => resolve(isBandcamp))
+        }, 3000)
+      }
+    })
+  })
+}
+
+async function setDomain (enabled) {
+  const domains = JSON.parse(await GM.getValue('domains', '{}'))
+  domains[document.location.hostname] = enabled
+  await GM.setValue('domains', JSON.stringify(domains))
+}
+
+function start () {
+  // Load settings and enable darkmode
+  GM.getValue('enabledFeatures', false).then((value) => getEnabledFeatures(value)).then(function () {
+    if (BANDCAMP && allFeatures.darkMode.enabled) {
+      darkMode()
+    }
+  })
+}
+
+function onLoaded () {
+  if (!BANDCAMP && document.querySelector('#legal.horizNav li.view-switcher.desktop a')) {
+    // Page is a bandcamp page but does not have a bandcamp domain
+    confirmDomain().then(function (isBandcamp) {
+      BANDCAMP = isBandcamp
+      if (isBandcamp) {
+        onLoaded()
+        GM.registerMenuCommand(SCRIPT_NAME + ' - disable on this page', () => setDomain(false).then(() => document.location.reload()))
+      } else {
+        GM.registerMenuCommand(SCRIPT_NAME + ' - enable on this page', () => setDomain(true).then(() => document.location.reload()))
+      }
+    })
+    return
+  } else if (!BANDCAMP) {
+    // Not a bandcamp page -> quit
+    return
+  }
+  if (allFeatures.darkMode.enabled && !darkModeInjected) {
+    // Darkmode in start() is only run on bandcamp domains
+    darkMode()
+  }
+
+  if (!BANDCAMP && !CAMPEXPLORER) {
+    return
+  }
+
+  const maintenanceContent = document.querySelector('.content')
+  if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') !== -1) {
+    console.log('Maintenance detected')
+  } else {
+    if (NOEMOJI) {
+      document.head.appendChild(document.createElement('style')).innerHTML = '@font-face{font-family:Symbola;src:local("Symbola Regular"),local("Symbola"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format("woff2"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format("woff"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format("truetype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format("opentype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format("svg")}' +
+        '.sharepanelchecksymbol,.bdp_check_onlinkhover_symbol,.bdp_check_onchecked_symbol,.volumeSymbol,.downloaddisk,.downloadlink,#user-nav .settingssymbol,.listened-symbol,.mark-listened-symbol,.minimizebutton{font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif}' +
+        '.downloaddisk,.downloadlink{font-weight: bolder}'
+    }
 
     if (allFeatures.releaseReminder.enabled) {
       showPastReleases()
@@ -4330,6 +4987,7 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
       }
     }
 
+    GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu)
     if (document.getElementById('user-nav')) {
       addMainMenuButtonToUserNav()
     }
@@ -4384,5 +5042,12 @@ if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') 
         musicPlayerRestoreState(JSON.parse(s))
       }
     })
-  })
+  }
+}
+
+start()
+if (document.readyState !== 'complete' || document.readyState !== 'loaded') {
+  document.addEventListener('DOMContentLoaded', onLoaded)
+} else {
+  onLoaded()
 }

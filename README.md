@@ -4,7 +4,12 @@
 
 A discography player for bandcamp.com and manager for your played albums
 
-This is a userscript. It's primarily designed for Firefox with [Greasemonkey](https://addons.mozilla.org/firefox/addon/greasemonkey/) and Chrome with [Tampermonkey](https://www.tampermonkey.net/). 
+This is a userscript. It's primarily designed for Firefox and Chrome with
+[Greasemonkey](https://addons.mozilla.org/firefox/addon/greasemonkey/) ![Firefox logo](https://raw.githubusercontent.com/OpenUserJS/OpenUserJS.org/master/public/images/ua/firefox16.png)
+,
+[Tampermonkey](https://www.tampermonkey.net/) ![Chrome logo](https://raw.githubusercontent.com/OpenUserJS/OpenUserJS.org/master/public/images/ua/chrome16.png) ![Firefox logo](https://raw.githubusercontent.com/OpenUserJS/OpenUserJS.org/master/public/images/ua/firefox16.png)
+or
+[FireMonkey](https://addons.mozilla.org/en-US/firefox/addon/firemonkey/) ![Firefox logo](https://raw.githubusercontent.com/OpenUserJS/OpenUserJS.org/master/public/images/ua/firefox16.png).
 General information about userscripts and how to use them can be found at [openuserjs.org/about/Userscript-Beginners-HOWTO](https://openuserjs.org/about/Userscript-Beginners-HOWTO).
 
 If you already have a userscript extension installed, you can click **[here](https://openuserjs.org/install/cuzi/Bandcamp_script_(Deluxe_Edition).user.js) to install** this script.
@@ -27,6 +32,7 @@ Features:
  *   Minimize/Close player
  *   Settings to disable individual functions
  *   Works on [campexplorer.io](https://campexplorer.io/)
+ *   Dark theme by [Simonus](https://userstyles.org/styles/171538/bandcamp-in-dark)
 
 Discography player:
 
