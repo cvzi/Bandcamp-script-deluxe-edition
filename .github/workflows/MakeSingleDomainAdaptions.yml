@@ -1,0 +1,28 @@
+name: MakeSingleDomainAdaptions
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+    - 'Bandcamp-script-Deluxe-Edition.user.js'
+  pull_request:
+    branches: [ master ]
+    paths:
+    - 'Bandcamp-script-Deluxe-Edition.user.js'
+jobs:
+  singleDomain:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: git config
+      run: |
+        git config --global user.name ${GITHUB_ACTOR}
+        git config --global user.email ${GITHUB_ACTOR}@users.noreply.github.com
+    - name: Modify userscript
+      run: |
+        node makeSingleDomain.js Bandcamp-script-Deluxe-Edition.user.js Bandcamp-script-Deluxe-Edition-Bandcamp.com-only.user.js
+    - name: git commit/push
+      run: |
+        git add Bandcamp-script-Deluxe-Edition-Bandcamp.com-only.user.js
+        git commit --allow-empty -m "Single domain adaptions"
+        git push
