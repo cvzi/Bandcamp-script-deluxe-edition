@@ -12,10 +12,9 @@ or
 [FireMonkey](https://addons.mozilla.org/en-US/firefox/addon/firemonkey/) ![Firefox logo](https://raw.githubusercontent.com/OpenUserJS/OpenUserJS.org/master/public/images/ua/firefox16.png).
 General information about userscripts and how to use them can be found at [openuserjs.org/about/Userscript-Beginners-HOWTO](https://openuserjs.org/about/Userscript-Beginners-HOWTO).
 
-If you already have a userscript extension installed, you can click **[here](https://openuserjs.org/install/cuzi/Bandcamp_script_(Deluxe_Edition).user.js) to install** this script.
+If you already have a userscript extension installed, you can **[click to install](https://openuserjs.org/install/cuzi/Bandcamp_script_(Deluxe_Edition).user.js)** this script.
 
-Since **Firefox 71** you may need to [change a setting in about:config](https://support.mozilla.org/en-US/kb/about-config-editor-firefox) to enable all features:  
-The `dom.media.mediasession.enabled` preference needs to be set to true.
+This userscript runs on all websites (`// @include *`) because bandcamp pages can have custom domains e.g. https://shop.stereoscenic.com/music (Discussion: [issue #3](../../issues/3)). If you don't want this feature, you can install the alternative version that only runs on bandcamp.com and campexplorer.io: **[Click to install alternative version](https://github.com/cvzi/Bandcamp-script-deluxe-edition/raw/master/Bandcamp-script-Deluxe-Edition-Bandcamp.com-only.user.js)**.
 
 Features:
  *   player on discography pages (similar to the player on tag pages)
