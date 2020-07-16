@@ -24,7 +24,6 @@
 // @connect          bcbits.com
 // @connect          *.bcbits.com
 // @connect          *
-// @include          https://bandcamp.com
 // @include          https://*
 // ==/UserScript==
 
