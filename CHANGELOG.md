@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.8](../../tree/v1.8) *(2020-07-18)*
+*   Dark mode: restore body's background image with adapted brightness
 ## [1.7](../../tree/v1.7) *(2020-07-15)*
 *   [FireMonkey support](https://addons.mozilla.org/en-US/firefox/addon/firemonkey/)
 *   [Dark mode ](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/4)
