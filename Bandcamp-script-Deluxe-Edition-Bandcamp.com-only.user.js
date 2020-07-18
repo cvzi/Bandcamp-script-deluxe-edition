@@ -8,7 +8,7 @@
 // @contributionURL  https://ko-fi.com/cuzicvzi
 // @icon             https://s1.bcbits.com/img/favicon/favicon-32x32.png
 // @license          MIT
-// @version          1.7
+// @version          1.8
 // @require          https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @run-at           document-start
 // @grant            GM.xmlHttpRequest
@@ -227,6 +227,45 @@ function timeSince (date) {
     return interval + ' minutes'
   }
   return Math.floor(seconds) + ' seconds'
+}
+
+function loadCrossSiteImage (url) {
+  return new Promise(function downloadCrossSiteImage (resolve, reject) {
+    var canvas = document.createElement('canvas')
+    var ctx = canvas.getContext('2d')
+
+    var img0 = document.createElement('img') // Load the image in a <img> to get the dimensions
+    img0.addEventListener('load', function onImgLoad () {
+      if (img0.height === 0 || img0.width === 0) {
+        reject(new Error('loadCrossSiteImage("$url") Error: Could not load image in <img>'))
+        return
+      }
+      canvas.height = img0.height
+      canvas.width = img0.width
+      // Download image data
+      GM.xmlHttpRequest({
+        method: 'GET',
+        overrideMimeType: 'text/plain; charset=x-user-defined',
+        url: url,
+        onload: function (resp) {
+          // Create a data url image
+          var dataurl = 'data:image/jpeg;base64,' + base64encode(resp.responseText)
+          var img1 = document.createElement('img')
+          img1.addEventListener('load', function () {
+            // Load data url image into canvas
+            ctx.drawImage(img1, 0, 0)
+            resolve(canvas)
+          })
+          img1.src = dataurl
+        },
+        onerror: function (response) {
+          console.log('loadCrossSiteImage("' + url + '") Error: ' + response.status + '\n' + ('error' in response ? response.error : ''))
+          reject(new Error('error' in response ? response.error : 'loadCrossSiteImage failed'))
+        }
+      })
+    })
+    img0.src = url
+  })
 }
 
 function removeViaQuerySelector (parent, selector) {
@@ -4389,7 +4428,6 @@ div.text,
 span {
     color: #ccc !important;
 }
-DIV#propOpenWrapper,
 div#dlg0_h.hd,
 div#pgBd.yui-skin-sam,
 div.blogunit-details-section,
@@ -4690,8 +4728,13 @@ html {
 }
 
 body {
-  background:#000 !important;
+  background-color:#000 !important;
   color:#fff !important
+}
+
+#propOpenWrapper {
+  background-color: #2626268f;
+  transition:background-color 500ms
 }
 
 img,.bcdaily-thumb-img {
@@ -4867,6 +4910,31 @@ article .icon {
   darkModeInjected = true
 }
 
+async function darkModeOnLoad () {
+  // Load body's background image and detect if it is light or dark and adapt it's transparency
+  const backgroudImageCSS = window.getComputedStyle(document.body).backgroundImage
+  const m = backgroudImageCSS.match(/["'](.*)["']/)
+  if (m && m[1]) {
+    const imageURL = m[1]
+    const canvas = await loadCrossSiteImage(imageURL)
+    const ctx = canvas.getContext('2d')
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data
+    let sum = 0.0
+    let div = 0
+    const stepSize = canvas.width * canvas.height / 1000
+    const len = data.length - 4
+    for (let i = 0; i < len; i += 4 * parseInt(stepSize * Math.random())) {
+      const v = Math.max(Math.max(data[i], data[i + 1]), data[i + 2])
+      sum += v
+      div++
+    }
+    const brightness = sum / div
+    const alpha = (brightness - 50) / 255
+    document.querySelector('#propOpenWrapper').style.backgroundColor = `rgba(0, 0, 0, ${alpha})`
+    console.log(`Brightness: ${brightness}, alpha: ${alpha}`)
+  }
+}
+
 function confirmDomain () {
   return new Promise(function confirmDomainPromise (resolve, reject) {
     GM.getValue('domains', '{}').then(function (v) {
@@ -4919,17 +4987,17 @@ function onLoaded () {
       }
     })
     return
-  } else if (!BANDCAMP) {
+  } else if (!BANDCAMP && !CAMPEXPLORER) {
     // Not a bandcamp page -> quit
     return
   }
-  if (allFeatures.darkMode.enabled && !darkModeInjected) {
-    // Darkmode in start() is only run on bandcamp domains
-    darkMode()
-  }
 
-  if (!BANDCAMP && !CAMPEXPLORER) {
-    return
+  if (allFeatures.darkMode.enabled) {
+    // Darkmode in start() is only run on bandcamp domains
+    if (!darkModeInjected) {
+      darkMode()
+    }
+    window.setTimeout(darkModeOnLoad, 0)
   }
 
   const maintenanceContent = document.querySelector('.content')
