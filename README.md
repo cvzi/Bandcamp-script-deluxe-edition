@@ -28,10 +28,10 @@ Features:
  *   Desktop notifications on song change (disabled by default, enable in script settings in the top right corner)
  *   Control playback with hardware multimedia keys or remote control (only Chrome)
  *   Set reminders for upcoming releases
- *   Minimize/Close player
+ *   Dark theme by [Simonus](https://userstyles.org/styles/171538/bandcamp-in-dark)
+ *   Lyrics from [genius.com](https://genius.com/) on album pages if bandcamp does not provide lyrics
  *   Settings to disable individual functions
  *   Works on [campexplorer.io](https://campexplorer.io/)
- *   Dark theme by [Simonus](https://userstyles.org/styles/171538/bandcamp-in-dark)
 
 Discography player:
 
@@ -40,6 +40,11 @@ Discography player:
 Album page:
 
 ![Screenshot of album page](screenshots/screenshotAlbumPage.webp)
+
+Dark theme album page:
+
+![Screenshot of dark mode album page](screenshots/screenshotAlbumPageDarkMode.png)
+
 
 [Changelog](CHANGELOG.md)
 

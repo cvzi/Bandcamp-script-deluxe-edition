@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.9](../../tree/v1.9) *(2020-07-29)*
+*   Dark mode settings: Always/Auto time/manual time
+*   Genius.com lyrics on album page if no lyrics are provided by bandcamp
 ## [1.8](../../tree/v1.8) *(2020-07-18)*
 *   Dark mode: restore body's background image with adapted brightness
 ## [1.7](../../tree/v1.7) *(2020-07-15)*
