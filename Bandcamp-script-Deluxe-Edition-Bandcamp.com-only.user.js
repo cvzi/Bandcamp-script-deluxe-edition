@@ -6,10 +6,11 @@
 // @supportURL       https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues
 // @contributionURL  https://buymeacoff.ee/cuzi
 // @contributionURL  https://ko-fi.com/cuzicvzi
-// @icon             https://s1.bcbits.com/img/favicon/favicon-32x32.png
+// @icon             https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png
 // @license          MIT
-// @version          1.8
+// @version          1.9
 // @require          https://unpkg.com/json5@2.1.0/dist/index.min.js
+// @require          https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
 // @run-at           document-start
 // @grant            GM.xmlHttpRequest
 // @grant            GM.setValue
@@ -23,6 +24,7 @@
 // @connect          *.bandcamp.com
 // @connect          bcbits.com
 // @connect          *.bcbits.com
+// @connect          genius.com
 // @include          https://bandcamp.com/*
 // @include          https://*.bandcamp.com/*
 // @include          https://campexplorer.io/
@@ -32,9 +34,8 @@
 // @author           cuzi
 // ==/OpenUserJS==
 
-/* globals JSON5, GM, unsafeWindow, MediaMetadata, MouseEvent, Response */
+/* globals geniusLyrics, JSON5, GM, unsafeWindow, MediaMetadata, MouseEvent, Response */
 
-// TODO genius lyrics?
 // TODO Mark as played automatically when played
 
 const BACKUP_REMINDER_DAYS = 35
@@ -60,6 +61,10 @@ const allFeatures = {
   albumPageAutoRepeatAll: {
     name: 'Always "repeat all" on album page',
     default: false
+  },
+  albumPageLyrics: {
+    name: 'Show lyrics from genius.com on album page',
+    default: true
   },
   markasplayed: {
     name: 'Show "mark as played" link on discography player',
@@ -105,6 +110,126 @@ const allFeatures = {
     name: (CHROME ? '🅳🅐🆁🅺🅼🅞🅳🅴' : '🅳🅰🆁🅺🅼🅾🅳🅴') + ' - enable <a href="https://userstyles.org/styles/171538/bandcamp-in-dark">dark theme by Simonus</a>',
     default: false
   }
+}
+
+const moreSettings = {
+  darkMode: {
+    true: async function populateDarkModeSettings (container) {
+      let darkModeValue = await GM.getValue('darkmode', '1')
+      const onChange = async function () {
+        const input = this
+        window.setTimeout(() => parentQuery(input, 'fieldset').classList.add('breathe'), 0)
+        document.getElementById('bcsde_mode_auto_status').innerHTML = ''
+        document.getElementById('bcsde_mode_const_time_from').classList.remove('errorblink')
+        document.getElementById('bcsde_mode_const_time_to').classList.remove('errorblink')
+        if (document.getElementById('bcsde_mode_always').checked) {
+          darkModeValue = '1'
+        } else if (document.getElementById('bcsde_mode_const_time').checked) {
+          let from = document.getElementById('bcsde_mode_const_time_from').value
+          let to = document.getElementById('bcsde_mode_const_time_to').value
+          const mFrom = from.match(/([0-2]?\d:[0-5]\d)/)
+          const mTo = to.match(/([0-2]?\d:[0-5]\d)/)
+          if (mFrom && mTo) {
+            from = mFrom[1]
+            to = mTo[1]
+            document.getElementById('bcsde_mode_const_time_from').value = from
+            document.getElementById('bcsde_mode_const_time_to').value = to
+            darkModeValue = `2#${from}->${to}`
+          } else {
+            if (!mFrom) {
+              document.getElementById('bcsde_mode_const_time_from').classList.add('errorblink')
+            }
+            if (!mTo) {
+              document.getElementById('bcsde_mode_const_time_to').classList.add('errorblink')
+            }
+          }
+        } else if (document.getElementById('bcsde_mode_auto').checked) {
+          let myPosition = null
+          let sunData = null
+          try {
+            myPosition = await getGPSLocation()
+            sunData = suntimes(new Date(), myPosition.latitude, myPosition.longitude)
+          } catch (e) {
+            document.getElementById('bcsde_mode_auto_status').innerHTML = 'Error:\n' + e
+          }
+          if (myPosition && sunData) {
+            const data = Object.assign(myPosition, sunData)
+            darkModeValue = '3#' + JSON.stringify(data)
+            document.getElementById('bcsde_mode_auto_status').innerHTML = `Source:   ${data.source}
+Location: ${data.latitude}, ${data.longitude}
+Sunrise:  ${data.sunrise.toLocaleTimeString()}
+Sunset:   ${data.sunset.toLocaleTimeString()}`
+          }
+        }
+        await GM.setValue('darkmode', darkModeValue)
+        window.setTimeout(() => parentQuery(input, 'fieldset').classList.remove('breathe'), 50)
+      }
+
+      const radioAlways = container.appendChild(document.createElement('input'))
+      radioAlways.setAttribute('type', 'radio')
+      radioAlways.setAttribute('name', 'mode')
+      radioAlways.setAttribute('value', 'always')
+      radioAlways.setAttribute('id', 'bcsde_mode_always')
+      radioAlways.checked = darkModeValue.startsWith('1')
+      radioAlways.addEventListener('change', onChange)
+      const labelAlways = container.appendChild(document.createElement('label'))
+      labelAlways.setAttribute('for', 'bcsde_mode_always')
+      labelAlways.appendChild(document.createTextNode('Always'))
+
+      container.appendChild(document.createElement('br'))
+
+      const radioConstTime = container.appendChild(document.createElement('input'))
+      radioConstTime.setAttribute('type', 'radio')
+      radioConstTime.setAttribute('name', 'mode')
+      radioConstTime.setAttribute('value', 'const_time')
+      radioConstTime.setAttribute('id', 'bcsde_mode_const_time')
+      radioConstTime.checked = darkModeValue.startsWith('2')
+      radioConstTime.addEventListener('change', onChange)
+
+      let [from, to] = ['22:00', '06:00']
+      if (darkModeValue.startsWith('2')) {
+        [from, to] = darkModeValue.substring(2).split('->')
+      }
+      const labelConstTime = container.appendChild(document.createElement('label'))
+      labelConstTime.setAttribute('for', 'bcsde_mode_const_time')
+      labelConstTime.appendChild(document.createTextNode('Time'))
+      const labelConstTimeFrom = container.appendChild(document.createElement('label'))
+      labelConstTimeFrom.setAttribute('for', 'bcsde_mode_const_time_from')
+      labelConstTimeFrom.appendChild(document.createTextNode(' from '))
+      const inputConstTimeFrom = container.appendChild(document.createElement('input'))
+      inputConstTimeFrom.setAttribute('type', 'text')
+      inputConstTimeFrom.setAttribute('value', from)
+      inputConstTimeFrom.setAttribute('id', 'bcsde_mode_const_time_from')
+      inputConstTimeFrom.addEventListener('change', onChange)
+      const labelConstTimeTo = container.appendChild(document.createElement('label'))
+      labelConstTimeTo.setAttribute('for', 'bcsde_mode_const_time_to')
+      labelConstTimeTo.appendChild(document.createTextNode(' to '))
+      const inputConstTimeTo = container.appendChild(document.createElement('input'))
+      inputConstTimeTo.setAttribute('type', 'text')
+      inputConstTimeTo.setAttribute('value', to)
+      inputConstTimeTo.setAttribute('id', 'bcsde_mode_const_time_to')
+      inputConstTimeTo.addEventListener('change', onChange)
+
+      container.appendChild(document.createElement('br'))
+
+      const radioAuto = container.appendChild(document.createElement('input'))
+      radioAuto.setAttribute('type', 'radio')
+      radioAuto.setAttribute('name', 'mode')
+      radioAuto.setAttribute('value', 'auto')
+      radioAuto.setAttribute('id', 'bcsde_mode_auto')
+      radioAuto.checked = darkModeValue.startsWith('3')
+      radioAuto.addEventListener('change', onChange)
+      const labelAuto = container.appendChild(document.createElement('label'))
+      labelAuto.setAttribute('for', 'bcsde_mode_auto')
+      labelAuto.appendChild(document.createTextNode('Auto (sunset till sunrise)'))
+      const preAutoStatus = container.appendChild(document.createElement('pre'))
+      preAutoStatus.setAttribute('id', 'bcsde_mode_auto_status')
+      preAutoStatus.setAttribute('style', 'font-family:monospace')
+
+      return 'Dark theme details'
+    }
+  }
+
 }
 
 var player, audio, currentDuration, timeline, playhead, bufferbar
@@ -229,6 +354,38 @@ function timeSince (date) {
   return Math.floor(seconds) + ' seconds'
 }
 
+function nowInTimeRange (range) {
+  // Format: range = 'hh:mm->hh:mm'
+  const m = range.match(/(\d{1,2}):(\d{1,2})->(\d{1,2}):(\d{1,2})/)
+  const [fromHours, fromMinutes, toHours, toMinutes] = [parseInt(m[1]), parseInt(m[2]), parseInt(m[3]), parseInt(m[4])]
+  const now = new Date()
+  const from = new Date()
+  from.setHours(fromHours)
+  from.setMinutes(fromMinutes)
+  const to = new Date()
+  to.setHours(toHours)
+  to.setMinutes(toMinutes)
+  if (to - from < 0) {
+    to.setDate(to.getDate() + 1)
+  }
+  return now > from && now < to
+}
+
+function nowInBetween (from, to) {
+  const [fromHours, fromMinutes, toHours, toMinutes] = [from.getHours(), from.getMinutes(), to.getHours(), to.getMinutes()]
+  const now = new Date()
+  from = new Date()
+  from.setHours(fromHours)
+  from.setMinutes(fromMinutes)
+  to = new Date()
+  to.setHours(toHours)
+  to.setMinutes(toMinutes)
+  if (to - from < 0) {
+    to.setDate(to.getDate() + 1)
+  }
+  return now > from && now < to
+}
+
 function loadCrossSiteImage (url) {
   return new Promise(function downloadCrossSiteImage (resolve, reject) {
     var canvas = document.createElement('canvas')
@@ -291,6 +448,95 @@ function firstChildWithText (parent) {
     }
   }
   return false
+}
+
+function parentQuery (node, q) {
+  const parents = [node.parentElement]
+  node = node.parentElement.parentElement
+  while (node) {
+    const lst = node.querySelectorAll(q)
+    for (let i = 0; i < lst.length; i++) {
+      if (parents.indexOf(lst[i]) !== -1) {
+        return lst[i]
+      }
+    }
+    parents.push(node)
+    node = node.parentElement
+  }
+  return null
+}
+
+function suntimes (date, lat, lng) {
+  // According to "Predicting Sunrise and Sunset Times" by Donald A. Teets:
+  // https://www.maa.org/sites/default/files/teets09010341463.pdf
+  lat = lat * Math.PI / 180.0
+  const dayOfYear = Math.round((date - new Date(date).setMonth(0, 0)) / 86400000)
+  const sunDist = 149598000.0
+  const radius = 6378.0
+  const epsilon = 0.409
+  const thetha = 2 * Math.PI / 365.25 * (dayOfYear - 80)
+  const n = 720 - 10 * Math.sin(2 * thetha) + 8 * Math.sin(2 * Math.PI / 365.25 * dayOfYear)
+  const z = sunDist * Math.sin(thetha) * Math.sin(epsilon)
+  const rp = Math.sqrt(sunDist * sunDist - z * z)
+  const t0 = 1440 / (2 * Math.PI) * Math.acos((radius - z * Math.sin(lat)) / (rp * Math.cos(lat)))
+  const sunriseMin = n - t0 - 5 - (4.0 * lng % 15.0) - date.getTimezoneOffset()
+  const sunsetMin = sunriseMin + 2 * t0
+  const sunrise = new Date(date)
+  sunrise.setHours(sunriseMin / 60, Math.round(sunriseMin % 60))
+  const sunset = new Date(date)
+  sunset.setHours(sunsetMin / 60, Math.round(sunsetMin % 60))
+  return { sunrise: sunrise, sunset: sunset }
+}
+
+function fromISO6709 (s) {
+  // Format: s = '+-DDMM+-DDDMM'
+  // Format: s = '+-DDMMSS+-DDDMMSS'
+  function convert (iso, negative) {
+    const mm = iso % 100
+    const dd = iso / 100
+    return (dd + mm / 60) * (negative ? -1 : 1)
+  }
+
+  const m = s.match(/([+-])(\d+)([+-])(\d+)/)
+  const lat = convert(parseInt(m[2]), m[1] === '-')
+  const lng = convert(parseInt(m[4]), m[3] === '-')
+
+  return { latitude: lat, longitude: lng }
+}
+
+function getGPSLocation () {
+  return new Promise(function downloadCrossSiteImage (resolve, reject) {
+    navigator.geolocation.getCurrentPosition(function onSuccess (position) {
+      resolve({
+        source: `navigator.geolocation@${new Date(position.timestamp).toLocaleString()}`,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      })
+    }, function onError (err) {
+      console.log('getGPSLocation Error:')
+      console.log(err)
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+      console.log('getGPSLocation: Timezone: ' + tz)
+      GM.xmlHttpRequest({
+        url: 'https://raw.githubusercontent.com/iospirit/NSTimeZone-ISCLLocation/master/zone.tab',
+        onload: function (response) {
+          if (response.responseText.indexOf(tz) !== -1) {
+            const line = response.responseText.split(tz)[0].split('\n').pop()
+            const myPosition = fromISO6709(line)
+            myPosition.source = 'Browser timezone ' + tz
+            resolve(myPosition)
+          } else if (response.status !== 200) {
+            reject(new Error('Could not download time zone locations: http status=' + response.status))
+          } else {
+            reject(new Error('Unkown time zone location: ' + tz))
+          }
+        },
+        onerror: function (response) {
+          reject(new Error('Could not download time zone locations: ' + response.error))
+        }
+      })
+    })
+  })
 }
 
 const _dateOptions = { year: 'numeric', month: 'short', day: 'numeric' }
@@ -1830,21 +2076,21 @@ function getTralbumData (url, cb) {
             msg = response.responseText
           }
           window.alert('An error occured. Please clear your cookies of bandcamp.com and try again.\n\nOriginal error:\n' + msg)
-          reject(response)
+          reject(new Error('Too many cookies'))
           return
         }
         const TralbumData = JSON5.parse(response.responseText.split('var TralbumData =')[1].split('\n};\n')[0].replace(/"\s+\+\s+"/, '') + '\n}')
-        correctTralbumData(TralbumData)
+        correctTralbumData(TralbumData, response.responseText)
         resolve(TralbumData)
       },
       onerror: function getTralbumDataOnError (response) {
         console.log('getTralbumData(' + url + ') Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
-        reject(response)
+        reject(new Error('error' in response ? response.error : 'getTralbumData failed'))
       }
     })
   })
 }
-function correctTralbumData (TralbumData) {
+function correctTralbumData (TralbumData, html) {
   // Corrections for single tracks
   if (TralbumData.current.type === 'track' && TralbumData.current.title.toLowerCase().indexOf('single') === -1) {
     TralbumData.current.title += ' - Single'
@@ -1852,6 +2098,18 @@ function correctTralbumData (TralbumData) {
   for (let i = 0; i < TralbumData.trackinfo.length; i++) {
     if (TralbumData.trackinfo[i].track_num === null) {
       TralbumData.trackinfo[i].track_num = i + 1
+    }
+  }
+  // Add tags from html
+  if (html && html.indexOf('tags-inline-label') !== -1) {
+    const m = html.split('tags-inline-label')[1].split('</div>')[0].match(/\/tag\/[^"]+"/g)
+    if (m && m.length > 0) {
+      TralbumData.tags = []
+      m.forEach(function (t) {
+        t = t.split('/').pop()
+        t = t.substring(0, t.length - 1)
+        TralbumData.tags.push(t)
+      })
     }
   }
   return TralbumData
@@ -3501,6 +3759,30 @@ function mainMenu (startBackup) {
       box-shadow: 2px 2px 5px #5555;
       transition: box-shadow 500ms;
     }
+    .deluxemenu fieldset{
+      border: 1px solid #000a;
+      border-radius: 4px;
+      box-shadow: 1px 1px 3px #0005;
+    }
+    .deluxemenu fieldset legend{
+      margin-left: 10px;
+      color: #000a
+    }
+    .breathe {
+      animation: breathe 1.5s linear infinite
+    }
+    @keyframes breathe {
+      50% { opacity: 0.3 }
+    }
+    .errorblink {
+      animation: errorblink 1.5s linear infinite;
+      border: 2px solid red;
+    }
+    @keyframes errorblink {
+      50% { border-color:#6a0c41 }
+    }
+
+
   `
 
   if (startBackup === true) {
@@ -3556,6 +3838,7 @@ function mainMenu (startBackup) {
       window.setTimeout(function resetBoxShadowTimeout () {
         input.style.boxShadow = ''
       }, 3000)
+      updateMoreVisibility()
     }
 
     const thresholdOnChange = async function onThresholdChange () {
@@ -3577,6 +3860,16 @@ function mainMenu (startBackup) {
       window.setTimeout(function resetBoxShadowTimeout () {
         input.style.boxShadow = ''
       }, 3000)
+    }
+    const updateMoreVisibility = function () {
+      for (const feature in allFeatures) {
+        if (document.getElementById('feature_' + feature + '_more_on')) {
+          document.getElementById('feature_' + feature + '_more_on').style.display = allFeatures[feature].enabled ? 'block' : 'none'
+        }
+        if (document.getElementById('feature_' + feature + '_more_off')) {
+          document.getElementById('feature_' + feature + '_more_off').style.display = allFeatures[feature].enabled ? 'none' : 'block'
+        }
+      }
     }
 
     for (const feature in allFeatures) {
@@ -3605,6 +3898,38 @@ function mainMenu (startBackup) {
         label.innerHTML = 'seconds or percentage.'
         inputThreshold.addEventListener('change', thresholdOnChange)
       }
+
+      if (feature in moreSettings) {
+        if (typeof (moreSettings[feature]) === 'function') {
+          const moreSettinsContainer = main.appendChild(document.createElement('fieldset'))
+          moreSettings[feature](moreSettinsContainer).then(function (v) {
+            if (v) {
+              moreSettinsContainer.appendChild(document.createElement('legend')).appendChild(document.createTextNode(v))
+            }
+          })
+        } else {
+          if (true in moreSettings[feature]) {
+            const moreSettinsContainerOn = main.appendChild(document.createElement('fieldset'))
+            moreSettinsContainerOn.setAttribute('id', 'feature_' + feature + '_more_on')
+            moreSettinsContainerOn.style.display = allFeatures[feature].enabled ? 'block' : 'none'
+            moreSettings[feature].true(moreSettinsContainerOn).then(function (v) {
+              if (v) {
+                moreSettinsContainerOn.appendChild(document.createElement('legend')).appendChild(document.createTextNode(v))
+              }
+            })
+          }
+          if (false in moreSettings[feature]) {
+            const moreSettinsContainerOff = main.appendChild(document.createElement('fieldset'))
+            moreSettinsContainerOff.setAttribute('id', 'feature_' + feature + '_more_off')
+            moreSettinsContainerOff.style.display = allFeatures[feature].enabled ? 'none' : 'block'
+            moreSettings[feature].false(moreSettinsContainerOff).then(function (v) {
+              if (v) {
+                moreSettinsContainerOff.appendChild(document.createElement('legend')).appendChild(document.createTextNode(v))
+              }
+            })
+          }
+        }
+      }
     }
 
     // Hint
@@ -3627,14 +3952,26 @@ function mainMenu (startBackup) {
       }
     })
 
-    const bytes = metricPrefix(JSON.stringify(tralbumdata).length - 2, 1, 1024) + 'Bytes'
     const clearCacheButton = buttons.appendChild(document.createElement('button'))
-    clearCacheButton.appendChild(document.createTextNode('Clear cache (' + bytes + ')'))
+    clearCacheButton.appendChild(document.createTextNode('Clear cache'))
     clearCacheButton.style.color = 'black'
     clearCacheButton.addEventListener('click', function onClearCacheButtonClick () {
-      GM.setValue('tralbumdata', '{}').then(function showClearedLabel () {
+      Promise.all([
+        GM.setValue('genius_selectioncache', '{}'),
+        GM.setValue('genius_requestcache', '{}'),
+        GM.setValue('tralbumdata', '{}')
+      ]).then(function showClearedLabel () {
         clearCacheButton.innerHTML = 'Cleared'
       })
+    })
+    Promise.all([
+      GM.getValue('genius_selectioncache', '{}'),
+      GM.getValue('genius_requestcache', '{}')
+    ]).then(function (values) {
+      JSON.stringify(tralbumdata)
+      const bytesN = values[0].length - 2 + values[1].length - 2 + JSON.stringify(tralbumdata).length - 2
+      const bytes = metricPrefix(bytesN, 1, 1024) + 'Bytes'
+      clearCacheButton.replaceChild(document.createTextNode('Clear cache (' + bytes + ')'), clearCacheButton.firstChild)
     })
 
     let myalbumsLength = 0
@@ -4342,20 +4679,415 @@ function addDownloadLinksToAlbumPage () {
   }
 }
 
-function addMainMenuButtonToUserNav () {
-  const userNav = document.getElementById('user-nav')
-  const li = userNav.insertBefore(document.createElement('li'), userNav.firstChild)
+function addLyricsToAlbumPage () {
+  // Load lyrics from html into TralbumData
+  const TralbumData = unsafeWindow.TralbumData
+  function findInTralbumData (url) {
+    for (let i = 0; i < TralbumData.trackinfo.length; i++) {
+      const t = TralbumData.trackinfo[i]
+      if (url.endsWith(t.title_link)) {
+        return t
+      }
+    }
+    return null
+  }
+  const tracks = Array.from(document.querySelectorAll('#track_table .track_row_view .title a')).map(a => findInTralbumData(a.href))
+  document.querySelectorAll('#track_table .track_row_view .title a').forEach(function (a) {
+    const tr = parentQuery(a, 'tr[rel]')
+    const trackNum = tr.getAttribute('rel').split('tracknum=')[1]
+    const lyricsRow = document.querySelector('#track_table tr#lyrics_row_' + trackNum)
+    if (lyricsRow) {
+      const i = parseInt(lyricsRow.id.split('lyrics_row_')[1]) - 1
+      tracks[i].lyrics = lyricsRow.querySelector('div').textContent
+    } else {
+      // Add genius link
+      const lyricsLink = tr.querySelector('.info_link a')
+      lyricsLink.dataset.trackNum = trackNum
+      lyricsLink.href = '#geniuslyrics-' + trackNum
+      lyricsLink.appendChild(document.createTextNode('genius'))
+      lyricsLink.addEventListener('click', function () {
+        loadGeniusLyrics(parseInt(this.dataset.trackNum))
+      })
+    }
+  })
+}
+
+var genius = null
+var geniusContainerTr = null
+var geniusTrackNum = -1
+var geniusArtistsArr = []
+var geniusTitle = ''
+function geniusGetCleanLyricsContainer () {
+  geniusContainerTr.innerHTML = `
+                    <td colspan="5">
+                      <div></div>
+                    </td>
+`
+
+  return geniusContainerTr.querySelector('div')
+}
+function geniusAddLyrics (force, beLessSpecific) {
+  genius.f.loadLyrics(force, beLessSpecific, geniusTitle, geniusArtistsArr, true)
+}
+function geniusHideLyrics () {
+  document.querySelectorAll('.loadingspinner').forEach((spinner) => spinner.remove())
+  document.querySelectorAll('#track_table tr.showlyrics').forEach(e => e.classList.remove('showlyrics'))
+}
+function geniusSetFrameDimensions (container, iframe) {
+  const width = iframe.style.width = '500px'
+  const height = iframe.style.height = '650px'
+
+  if (genius.option.themeKey === 'spotify') {
+    iframe.style.backgroundColor = 'black'
+  } else {
+    iframe.style.backgroundColor = ''
+  }
+
+  return [width, height]
+}
+function geniusAddCss () {
+  document.head.appendChild(document.createElement('style')).innerHTML = `
+  #myconfigwin39457845 {
+    z-index:2060 !important;
+    position:fixed !important;
+    background-color:${darkModeModeCurrent === true ? '#a2a2a2' : 'white'} !important;
+    color:${darkModeModeCurrent === true ? 'white' : 'black'} !important;
+  }
+  #myconfigwin39457845 h1 {
+    margin:5px;
+  }
+  #myconfigwin39457845 div {
+    background-color:${darkModeModeCurrent === true ? '#3E3E3E' : '#EFEFEF'} !important
+  }
+  #myconfigwin39457845 .divAutoShow {
+    display:none
+  }
+  #myconfigwin39457845  button {
+    background-color: #cacaca !important;
+    color: black !important;
+    border: 2px outset !important;
+    padding: 1px !important;
+    font-size: 1.2em !important;
+  }
+  #lyricsiframe {
+    opacity:0.1;
+    transition:opacity 2s;
+    margin:0px;
+    padding:0px;
+    position:relative;
+  }
+  .lyricsnavbar {
+    font-size : 0.7em;
+    text-align:right;
+    padding: 0px 10px 0px 0px !important;
+    background:${darkModeModeCurrent === true ? '#7d7c7c' : '#fafafa'} !important;
+   }
+  .lyricsnavbar span,.lyricsnavbar a:link,.lyricsnavbar a:visited  {
+    color:#606060;
+    text-decoration:none;
+    transition:color 400ms;
+   }
+  .lyricsnavbar a:hover,.lyricsnavbar span:hover {
+    color:#9026e0;
+    text-decoration:none;
+  }
+  .loadingspinner {
+      color:black;
+      font-size:12px;
+      line-height:15px;
+      width:15px !important;
+      height:15px !important;
+      padding: 2px !important;
+    }
+  .loadingspinnerholder {
+    z-index:10;
+    cursor:progress;
+    position:relative;
+    width:20px !important;
+    height:20px !important;
+  }
+  .searchresultlist {
+    margin:0px !important;
+    padding:0px !important;
+    border:1px solid black;
+    border-radius: 3px;
+    width: 450px !important;
+  }
+  .searchresultlist ol {
+    list-style: none;
+    padding: 0px !important;
+    margin:0px; !important
+  }
+  .searchresultlist ol li {
+    width: 430px !important;
+  }
+  .searchresultlist ol li div {
+    width: auto !important;
+  }
+  `
+}
+function geniusCreateSpinner (spinnerHolder) {
+  geniusContainerTr.querySelector('div').insertBefore(spinnerHolder, geniusContainerTr.querySelector('div').firstChild)
+
+  const spinner = spinnerHolder.appendChild(document.createElement('div'))
+  spinner.classList.add('loadingspinner')
+
+  return spinner
+}
+
+function geniusShowSearchField (query) {
+  const b = geniusGetCleanLyricsContainer()
+  console.log(b)
+
+  b.style.border = '1px solid black'
+  b.style.borderRadius = '3px'
+  b.style.padding = '5px'
+
+  b.appendChild(document.createTextNode('Search genius.com: '))
+  b.style.paddingRight = '15px'
+  const input = b.appendChild(document.createElement('input'))
+  input.className = 'SearchInputBox__input'
+  input.placeholder = 'Search genius.com...'
+  input.style = 'width: 300px;background-color: #F3F3F3;padding: 10px 30px 10px 10px;font-size: 14px; border: none;color: #333;margin: 6px 0;height: 17px;border-radius: 3px;'
+
+  const span = b.appendChild(document.createElement('span'))
+  span.style = 'cursor:pointer; margin-left: -25px;'
+  span.appendChild(document.createTextNode(' \uD83D\uDD0D'))
+
+  if (query) {
+    input.value = query
+  } else if (genius.current.artists) {
+    input.value = genius.current.artists
+  }
+  input.addEventListener('change', function onSearchLyricsButtonClick () {
+    if (input.value) {
+      genius.f.searchByQuery(input.value, b)
+    }
+  })
+  input.addEventListener('keyup', function onSearchLyricsKeyUp (ev) {
+    if (ev.keyCode === 13) {
+      ev.preventDefault()
+      if (input.value) {
+        genius.f.searchByQuery(input.value, b)
+      }
+    }
+  })
+  span.addEventListener('click', function onSearchLyricsKeyUp (ev) {
+    if (input.value) {
+      genius.f.searchByQuery(input.value, b)
+    }
+  })
+
+  input.focus()
+}
+function geniusListSongs (hits, container, query) {
+  if (!container) {
+    container = geniusGetCleanLyricsContainer()
+  }
+
+  // Back to search button
+  const backToSearchButton = document.createElement('a')
+  backToSearchButton.href = '#'
+  backToSearchButton.appendChild(document.createTextNode('Back to search'))
+  backToSearchButton.addEventListener('click', function backToSearchButtonClick (ev) {
+    ev.preventDefault()
+    if (query) {
+      geniusShowSearchField(query)
+    } else if (genius.current.artists) {
+      geniusShowSearchField(genius.current.artists + ' ' + genius.current.title)
+    } else {
+      geniusShowSearchField()
+    }
+  })
+
+  const separator = document.createElement('span')
+  separator.setAttribute('class', 'second-line-separator')
+  separator.setAttribute('style', 'padding:0px 3px')
+  separator.appendChild(document.createTextNode('•'))
+
+  // Hide button
+  const hideButton = document.createElement('a')
+  hideButton.href = '#'
+  hideButton.appendChild(document.createTextNode('Hide'))
+  hideButton.addEventListener('click', function hideButtonClick (ev) {
+    ev.preventDefault()
+    geniusHideLyrics()
+  })
+
+  // List search results
+  const trackhtml = '<div style="float:left;"><div class="onhover" style="margin-top:-0.25em;display:none"><span style="color:black;font-size:2.0em">🅖</span></div><div class="onout"><span style="font-size:1.5em">📄</span></div></div>' +
+  '<div style="float:left; margin-left:5px">$artist • $title <br><span style="font-size:0.7em">👁 $stats.pageviews $lyrics_state</span></div><div style="clear:left;"></div>'
+  container.innerHTML = '<ol class="tracklist" style="font-size:1.15em"></ol>'
+
+  container.classList.add('searchresultlist')
+  if (darkModeModeCurrent === true) {
+    container.style.backgroundColor = '#262626'
+    container.style.position = 'relative'
+  }
+
+  container.insertBefore(hideButton, container.firstChild)
+  container.insertBefore(separator, container.firstChild)
+  container.insertBefore(backToSearchButton, container.firstChild)
+
+  const ol = container.querySelector('ol')
+  const searchresultsLengths = hits.length
+  const title = genius.current.title
+  const artists = genius.current.artists
+  const onclick = function onclick () {
+    genius.f.rememberLyricsSelection(title, artists, this.dataset.hit)
+    genius.f.showLyrics(JSON.parse(this.dataset.hit), searchresultsLengths)
+  }
+  const mouseover = function onmouseover () {
+    this.querySelector('.onhover').style.display = 'block'
+    this.querySelector('.onout').style.display = 'none'
+    this.style.backgroundColor = darkModeModeCurrent === true ? 'rgb(70, 70, 70)' : 'rgb(200, 200, 200)'
+  }
+  const mouseout = function onmouseout () {
+    this.querySelector('.onhover').style.display = 'none'
+    this.querySelector('.onout').style.display = 'block'
+    this.style.backgroundColor = darkModeModeCurrent === true ? '#262626' : 'rgb(255, 255, 255)'
+  }
+
+  hits.forEach(function forEachHit (hit) {
+    const li = document.createElement('li')
+    if (darkModeModeCurrent === true) {
+      li.style.backgroundColor = '#262626'
+    }
+    li.style.cursor = 'pointer'
+    li.style.transition = 'background-color 0.2s'
+    li.style.padding = '3px'
+    li.style.margin = '2px'
+    li.style.borderRadius = '3px'
+    li.innerHTML = trackhtml.replace(/\$title/g, hit.result.title_with_featured).replace(/\$artist/g, hit.result.primary_artist.name).replace(/\$lyrics_state/g, hit.result.lyrics_state).replace(/\$stats\.pageviews/g, genius.f.metricPrefix(hit.result.stats.pageviews, 1))
+    li.dataset.hit = JSON.stringify(hit)
+
+    li.addEventListener('click', onclick)
+    li.addEventListener('mouseover', mouseover)
+    li.addEventListener('mouseout', mouseout)
+    ol.appendChild(li)
+  })
+}
+function geniusOnLyricsReady (song, container) {
+  container.parentNode.parentNode.dataset.loaded = 'loaded'
+}
+function geniusOnNoResults (songTitle, songArtistsArr) {
+  geniusContainerTr.dataset.loaded = 'loaded'
+  document.querySelectorAll('#track_table tr.showlyrics').forEach(e => e.classList.remove('showlyrics'))
+  document.querySelector(`#track_table tr[rel="tracknum=${geniusTrackNum}"]`).classList.add('showlyrics')
+  geniusShowSearchField(songArtistsArr.join(' ') + ' ' + songTitle)
+}
+function initGenius () {
+  if (!genius) {
+    genius = geniusLyrics({
+      GM: {
+        xmlHttpRequest: GM.xmlHttpRequest,
+        getValue: (name, defaultValue) => GM.getValue('genius_' + name, defaultValue),
+        setValue: (name, value) => GM.setValue('genius_' + name, value)
+      },
+      scriptName: SCRIPT_NAME,
+      scriptIssuesURL: 'https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues',
+      scriptIssuesTitle: 'Report problem: github.com/cvzi/Bandcamp-script-deluxe-edition/issues',
+      domain: document.location.origin + '/',
+      emptyURL: document.location.origin + '/robots.txt',
+      addCss: geniusAddCss,
+      listSongs: geniusListSongs,
+      showSearchField: geniusShowSearchField,
+      addLyrics: geniusAddLyrics,
+      hideLyrics: geniusHideLyrics,
+      getCleanLyricsContainer: geniusGetCleanLyricsContainer,
+      setFrameDimensions: geniusSetFrameDimensions,
+      // onResize: onResize,
+      createSpinner: geniusCreateSpinner,
+      onLyricsReady: geniusOnLyricsReady,
+      onNoResults: geniusOnNoResults
+    })
+  }
+}
+
+function loadGeniusLyrics (trackNum) {
+  // Toggle lyrics
+  geniusContainerTr = document.getElementById('lyrics_row_' + trackNum)
+  let tr
+  if (geniusContainerTr) {
+    tr = document.querySelector(`#track_table tr[rel="tracknum=${trackNum}"]`)
+    if ('loaded' in geniusContainerTr.dataset && geniusContainerTr.dataset.loaded === 'loaded') {
+      if (tr.classList.contains('showlyrics')) {
+        // Hide lyrics if already loaded
+        document.querySelectorAll('#track_table tr.showlyrics').forEach(e => e.classList.remove('showlyrics'))
+      } else {
+        // Show lyrics again
+        document.querySelectorAll('#track_table tr.showlyrics').forEach(e => e.classList.remove('showlyrics'))
+        tr.classList.add('showlyrics')
+      }
+      return
+    } else if (geniusTrackNum === trackNum) {
+      // Lyrics currently loading
+      console.log('loadGeniusLyrics already loading trackNum=' + trackNum)
+      return
+    }
+  }
+
+  geniusTrackNum = trackNum
+  if (!geniusContainerTr) {
+    geniusContainerTr = document.createElement('tr')
+    geniusContainerTr.className = 'lyricsRow'
+    geniusContainerTr.setAttribute('id', 'lyrics_row_' + trackNum)
+    tr = document.querySelector(`#track_table tr[rel="tracknum=${trackNum}"]`)
+    if (tr.nextElementSibling) {
+      tr.parentNode.insertBefore(geniusContainerTr, tr.nextElementSibling)
+    } else {
+      tr.parentNode.appendChild(geniusContainerTr)
+    }
+    document.querySelectorAll('#track_table tr.showlyrics').forEach(e => e.classList.remove('showlyrics'))
+    tr.classList.add('showlyrics')
+
+    const spinnerHolder = geniusContainerTr.appendChild(document.createElement('div'))
+    spinnerHolder.classList.add('loadingspinnerholder')
+    const spinner = spinnerHolder.appendChild(document.createElement('div'))
+    spinner.classList.add('loadingspinner')
+  }
+
+  initGenius()
+
+  const track = unsafeWindow.TralbumData.trackinfo.find((t) => t.track_num === trackNum)
+  geniusTitle = track.title
+  geniusArtistsArr = unsafeWindow.TralbumData.artist.split(/&|,|ft\.?|feat\.?/).map(s => s.trim())
+
+  geniusAddLyrics()
+}
+
+function appendMainMenuButtonTo (ul) {
+  const li = ul.insertBefore(document.createElement('li'), ul.firstChild)
   li.className = 'menubar-item hoverable'
   li.title = 'userscript settings - ' + SCRIPT_NAME
   const a = li.appendChild(document.createElement('a'))
   a.className = 'settingssymbol'
   a.style.fontSize = '24px'
+  a.style.transition = 'transform 2s ease-out'
   if (NOEMOJI) {
     a.appendChild(document.createTextNode('\u26ED'))
   } else {
     a.appendChild(document.createTextNode('\u2699\uFE0F'))
   }
+  a.addEventListener('mouseover', function () {
+    this.style.transform = 'rotate(360deg)'
+  })
   li.addEventListener('click', () => mainMenu())
+}
+
+function appendMainMenuButtonLeftTo (leftOf) {
+  const rect = leftOf.getBoundingClientRect()
+  const ul = document.createElement('ul')
+  ul.className = 'bcsde_settingsbar'
+  appendMainMenuButtonTo(document.body.appendChild(ul))
+  document.head.appendChild(document.createElement('style')).innerHTML = `
+  .bcsde_settingsbar {position:absolute; top:-15px; left:${rect.right}px; list-style-type: none; padding:0; margin:0; opacity:0.6; transition:top 300ms}
+  .bcsde_settingsbar:hover {top:${rect.top}px}
+  .bcsde_settingsbar a:hover {text-decoration:none}
+  .bcsde_settingsbar li {float:left; padding:0; margin:0}`
+  window.addEventListener('resize', function () {
+    ul.style.left = leftOf.getBoundingClientRect().right + 'px'
+  })
 }
 
 function humour () {
@@ -4374,6 +5106,18 @@ function humour () {
 function darkMode () {
   // CSS taken from https://userstyles.org/styles/171538/bandcamp-in-dark by Simonus (Version from January 24, 2020)
   // https://userstyles.org/api/v1/styles/css/171538
+
+  let propOpenWrapperBackgroundColor = '#2626268f'
+  try {
+    const brightnessStr = window.localStorage.getItem('bcsde_bgimage_brightness')
+    if (brightnessStr !== null) {
+      const brightness = parseFloat(brightnessStr)
+      const alpha = (brightness - 50) / 255
+      propOpenWrapperBackgroundColor = `rgba(0, 0, 0, ${alpha})`
+    }
+  } catch (e) {
+    console.log('Could not access window.localStorage: ' + e)
+  }
 
   const css = `
 /* Bandcamp: Stick Track List to Player https://userstyles.org/styles/123397/ */
@@ -4733,7 +5477,7 @@ body {
 }
 
 #propOpenWrapper {
-  background-color: #2626268f;
+  background-color: ${propOpenWrapperBackgroundColor} !important;
   transition:background-color 500ms
 }
 
@@ -4804,6 +5548,13 @@ input[type=text],input[type=password],textarea {
 }
 .deluxeexportmenu table tr>td:nth-child(3) {
   color:rgb(0, 107, 198) !important
+}
+.deluxemenu fieldset{
+  border: 1px solid #fffa !important;
+  box-shadow: 1px 1px 3px #fff5 !important;
+}
+.deluxemenu fieldset legend{
+  color: #fffa !important
 }
 
 #discographyplayer {
@@ -4911,11 +5662,28 @@ article .icon {
 }
 
 async function darkModeOnLoad () {
+  const yes = await darkModeMode()
+  if (!yes) {
+    return
+  }
+
   // Load body's background image and detect if it is light or dark and adapt it's transparency
   const backgroudImageCSS = window.getComputedStyle(document.body).backgroundImage
-  const m = backgroudImageCSS.match(/["'](.*)["']/)
-  if (m && m[1]) {
-    const imageURL = m[1]
+  let imageURL = backgroudImageCSS.match(/["'](.*)["']/)
+  let shouldUpdate = false
+  if (imageURL && imageURL[1]) {
+    imageURL = imageURL[1]
+    shouldUpdate = true
+    try {
+      const editTime = parseInt(window.localStorage.getItem('bcsde_bgimage_brightness_time'))
+      if (Date.now() - editTime < 604800000) {
+        shouldUpdate = false
+      }
+    } catch (e) {
+      console.log('Could not read from window.localStorage: ' + e)
+    }
+  }
+  if (shouldUpdate) {
     const canvas = await loadCrossSiteImage(imageURL)
     const ctx = canvas.getContext('2d')
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data
@@ -4931,12 +5699,30 @@ async function darkModeOnLoad () {
     const brightness = sum / div
     const alpha = (brightness - 50) / 255
     document.querySelector('#propOpenWrapper').style.backgroundColor = `rgba(0, 0, 0, ${alpha})`
-    console.log(`Brightness: ${brightness}, alpha: ${alpha}`)
+    console.log(`Brightness updated: ${brightness}, alpha: ${alpha}`)
+    try {
+      window.localStorage.setItem('bcsde_bgimage_brightness', brightness)
+      window.localStorage.setItem('bcsde_bgimage_brightness_time', Date.now())
+    } catch (e) {
+      console.log('Could not write to window.localStorage: ' + e)
+    }
+  }
+}
+
+async function updateSuntimes () {
+  const value = await GM.getValue('darkmode', '1')
+  if (value.startsWith('3#')) {
+    const data = JSON.parse(value.substring(2))
+    const sunData = suntimes(new Date(), data.latitude, data.longitude)
+    const newValue = '3#' + JSON.stringify(Object.assign(data, sunData))
+    if (newValue !== value) {
+      await GM.setValue('darkmode', newValue)
+    }
   }
 }
 
 function confirmDomain () {
-  return new Promise(function confirmDomainPromise (resolve, reject) {
+  return new Promise(function confirmDomainPromise (resolve) {
     GM.getValue('domains', '{}').then(function (v) {
       const domains = JSON.parse(v)
       if (document.location.hostname in domains) {
@@ -4965,11 +5751,34 @@ async function setDomain (enabled) {
   await GM.setValue('domains', JSON.stringify(domains))
 }
 
+var darkModeModeCurrent = null
+async function darkModeMode () {
+  if (darkModeModeCurrent != null) {
+    return darkModeModeCurrent
+  }
+  const value = await GM.getValue('darkmode', '1')
+  darkModeModeCurrent = false
+  if (value.startsWith('1')) {
+    darkModeModeCurrent = true
+  } else if (value.startsWith('2#')) {
+    darkModeModeCurrent = nowInTimeRange(value.substring(2))
+  } else if (value.startsWith('3#')) {
+    const data = JSON.parse(value.substring(2))
+    window.setTimeout(updateSuntimes, Math.random() * 10000)
+    darkModeModeCurrent = nowInBetween(new Date(data.sunset), new Date(data.sunrise))
+  }
+  return darkModeModeCurrent
+}
+
 function start () {
   // Load settings and enable darkmode
   GM.getValue('enabledFeatures', false).then((value) => getEnabledFeatures(value)).then(function () {
     if (BANDCAMP && allFeatures.darkMode.enabled) {
-      darkMode()
+      darkModeMode().then(function (yes) {
+        if (yes) {
+          darkMode()
+        }
+      })
     }
   })
 }
@@ -4995,7 +5804,11 @@ function onLoaded () {
   if (allFeatures.darkMode.enabled) {
     // Darkmode in start() is only run on bandcamp domains
     if (!darkModeInjected) {
-      darkMode()
+      darkModeMode().then(function (yes) {
+        if (yes) {
+          darkMode()
+        }
+      })
     }
     window.setTimeout(darkModeOnLoad, 0)
   }
@@ -5037,6 +5850,13 @@ function onLoaded () {
       if (allFeatures.albumPageDownloadLinks.enabled) {
         window.setTimeout(addDownloadLinksToAlbumPage, 500)
       }
+      if (allFeatures.albumPageLyrics.enabled) {
+        window.setTimeout(addLyricsToAlbumPage, 500)
+      }
+      if (unsafeWindow.TralbumData && unsafeWindow.TralbumData.current && unsafeWindow.TralbumData.trackinfo) {
+        const TralbumData = correctTralbumData(JSON.parse(JSON.stringify(unsafeWindow.TralbumData)), document.body.innerHTML)
+        storeTralbumDataPermanently(TralbumData)
+      }
     }
 
     if (document.querySelector('.share-panel-wrapper-desktop')) {
@@ -5057,7 +5877,9 @@ function onLoaded () {
 
     GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu)
     if (document.getElementById('user-nav')) {
-      addMainMenuButtonToUserNav()
+      appendMainMenuButtonTo(document.getElementById('user-nav'))
+    } else if (document.getElementById('customHeaderWrapper')) {
+      appendMainMenuButtonLeftTo(document.getElementById('customHeaderWrapper'))
     }
 
     if (document.getElementById('carousel-player') || document.querySelector('.play-carousel')) {
@@ -5102,6 +5924,10 @@ function onLoaded () {
           }
         }
       }, 3000)
+    }
+
+    if (document.location.pathname === '/robots.txt') {
+      initGenius()
     }
 
     GM.getValue('musicPlayerState', '{}').then(function restoreState (s) {
