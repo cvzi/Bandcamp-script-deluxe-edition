@@ -8,7 +8,7 @@
 // @contributionURL  https://ko-fi.com/cuzicvzi
 // @icon             https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png
 // @license          MIT
-// @version          1.9
+// @version          1.10
 // @require          https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @require          https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
 // @run-at           document-start
@@ -5644,7 +5644,9 @@ article .icon {
   box-shadow: #2db91f7a 0px 0px 5px;) !important;
 }
 
-
+.lyricsText {
+  color:#9b9b9b;
+}
 
   `
   if (GM.addStyle) {
