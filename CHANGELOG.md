@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.10](../../tree/v1.10) *(2020-09-16)*
+*   Improved lyrics color in dark mode
 ## [1.9](../../tree/v1.9) *(2020-07-29)*
 *   Dark mode settings: Always/Auto time/manual time
 *   Genius.com lyrics on album page if no lyrics are provided by bandcamp
