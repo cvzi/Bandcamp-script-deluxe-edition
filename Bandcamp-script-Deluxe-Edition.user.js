@@ -1,14 +1,15 @@
 // ==UserScript==
 // @name             Bandcamp script (Deluxe Edition)
-// @description      A discography player for bandcamp.com and manage your played albums
+// @description      A discography player for bandcamp.com, manager of your played albums and various other improvements and tools
 // @namespace        https://openuserjs.org/users/cuzi
+// @author           cuzi
 // @copyright        2019, cuzi (https://openuserjs.org/users/cuzi)
 // @supportURL       https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues
 // @contributionURL  https://buymeacoff.ee/cuzi
 // @contributionURL  https://ko-fi.com/cuzicvzi
 // @icon             https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png
 // @license          MIT
-// @version          1.10
+// @version          1.11
 // @require          https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @require          https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
 // @run-at           document-start
@@ -325,6 +326,10 @@ function base64encode (s) {
     }
   }
   return o
+}
+
+function decodeHTMLentities (input) {
+  return new window.DOMParser().parseFromString(input, 'text/html').documentElement.textContent
 }
 
 function timeSince (date) {
@@ -2078,9 +2083,28 @@ function getTralbumData (url, cb) {
           reject(new Error('Too many cookies'))
           return
         }
-        const TralbumData = JSON5.parse(response.responseText.split('var TralbumData =')[1].split('\n};\n')[0].replace(/"\s+\+\s+"/, '') + '\n}')
-        correctTralbumData(TralbumData, response.responseText)
-        resolve(TralbumData)
+        let TralbumData = null
+        try {
+          if (response.responseText.indexOf('var TralbumData =') !== -1) {
+            TralbumData = JSON5.parse(response.responseText.split('var TralbumData =')[1].split('\n};\n')[0].replace(/"\s+\+\s+"/, '') + '\n}')
+          } else if (response.responseText.indexOf('data-tralbum="') !== -1) {
+            let str = response.responseText.split('data-tralbum="')[1].split('"')[0]
+            str = decodeHTMLentities(response.responseText.split('data-tralbum="')[1].split('"')[0])
+            TralbumData = JSON.parse(str)
+          }
+        } catch (e) {
+          window.alert('An error occured when parsing TralbumData from url=' + url + '.\n\nOriginal error:\n' + e)
+          reject(e)
+          return
+        }
+        if (TralbumData) {
+          correctTralbumData(TralbumData, response.responseText)
+          resolve(TralbumData)
+        } else {
+          const msg = 'Could not parse TralbumData from url=' + url
+          window.alert(msg)
+          reject(new Error(msg))
+        }
       },
       onerror: function getTralbumDataOnError (response) {
         console.log('getTralbumData(' + url + ') Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
@@ -2089,7 +2113,8 @@ function getTralbumData (url, cb) {
     })
   })
 }
-function correctTralbumData (TralbumData, html) {
+function correctTralbumData (TralbumDataObj, html) {
+  const TralbumData = JSON.parse(JSON.stringify(TralbumDataObj))
   // Corrections for single tracks
   if (TralbumData.current.type === 'track' && TralbumData.current.title.toLowerCase().indexOf('single') === -1) {
     TralbumData.current.title += ' - Single'
@@ -2109,6 +2134,49 @@ function correctTralbumData (TralbumData, html) {
         t = t.substring(0, t.length - 1)
         TralbumData.tags.push(t)
       })
+    }
+  }
+  // Remove stuff we don't use to save storage space
+  delete TralbumData.current.require_email_0
+  delete TralbumData.current.audit
+  delete TralbumData.current.download_pref
+  delete TralbumData.current.set_price
+  delete TralbumData.current.killed
+  delete TralbumData.current.auto_repriced
+  delete TralbumData.current.minimum_price_nonzero
+  delete TralbumData.current.minimum_price
+  delete TralbumData.current.purchase_url
+  delete TralbumData.current.new_desc_format
+  delete TralbumData.current.private
+  delete TralbumData.current.is_set_price
+  delete TralbumData.current.require_email
+  delete TralbumData.current.upc
+  delete TralbumData.packages
+  delete TralbumData.last_subscription_item
+  delete TralbumData.last_subscription_item
+  delete TralbumData.has_discounts
+  delete TralbumData.is_bonus
+  delete TralbumData.play_cap_data
+  delete TralbumData.client_id_sig
+  delete TralbumData.is_purchased
+  delete TralbumData.items_purchased
+  delete TralbumData.is_private_stream
+  delete TralbumData.is_band_member
+  delete TralbumData.licensed_version_ids
+  delete TralbumData.package_associated_license_id
+  for (let i = 0; i < TralbumData.trackinfo.length; i++) {
+    delete TralbumData.trackinfo[i].is_draft
+    delete TralbumData.trackinfo[i].album_preorder
+    delete TralbumData.trackinfo[i].unreleased_track
+    for (const attr in TralbumData.trackinfo[i]) {
+      if (TralbumData.trackinfo[i][attr] === null) {
+        delete TralbumData.trackinfo[i][attr]
+      }
+    }
+  }
+  for (const attr in TralbumData) {
+    if (TralbumData[attr] === null) {
+      delete TralbumData[attr]
     }
   }
   return TralbumData
@@ -3907,7 +3975,7 @@ function mainMenu (startBackup) {
             }
           })
         } else {
-          if (true in moreSettings[feature]) {
+          if ('true' in moreSettings[feature]) {
             const moreSettinsContainerOn = main.appendChild(document.createElement('fieldset'))
             moreSettinsContainerOn.setAttribute('id', 'feature_' + feature + '_more_on')
             moreSettinsContainerOn.style.display = allFeatures[feature].enabled ? 'block' : 'none'
@@ -3917,7 +3985,7 @@ function mainMenu (startBackup) {
               }
             })
           }
-          if (false in moreSettings[feature]) {
+          if ('false' in moreSettings[feature]) {
             const moreSettinsContainerOff = main.appendChild(document.createElement('fieldset'))
             moreSettinsContainerOff.setAttribute('id', 'feature_' + feature + '_more_off')
             moreSettinsContainerOff.style.display = allFeatures[feature].enabled ? 'none' : 'block'
@@ -4663,7 +4731,8 @@ function addDownloadLinksToAlbumPage () {
     } else if (document.querySelector('#trackInfo .download-link')) {
       // Single track page
       const t = TralbumData.trackinfo[0]
-      const mp3 = t.file[Object.keys(t.file)[0]].replace(/^\/\//, 'http://')
+      const prop = Object.keys(t.file)[0]
+      const mp3 = t.file[prop].replace(/^\/\//, 'http://')
       const a = document.createElement('a')
       a.className = 'downloaddisk'
       a.href = mp3
@@ -4695,14 +4764,16 @@ function addLyricsToAlbumPage () {
     const tr = parentQuery(a, 'tr[rel]')
     const trackNum = tr.getAttribute('rel').split('tracknum=')[1]
     const lyricsRow = document.querySelector('#track_table tr#lyrics_row_' + trackNum)
+    const lyricsLink = tr.querySelector('.geniuslink')
     if (lyricsRow) {
       const i = parseInt(lyricsRow.id.split('lyrics_row_')[1]) - 1
       tracks[i].lyrics = lyricsRow.querySelector('div').textContent
-    } else {
+    } else if (!lyricsLink) {
       // Add genius link
       const lyricsLink = tr.querySelector('.info_link a')
       lyricsLink.dataset.trackNum = trackNum
       lyricsLink.href = '#geniuslyrics-' + trackNum
+      lyricsLink.classList.add('geniuslink')
       lyricsLink.appendChild(document.createTextNode('genius'))
       lyricsLink.addEventListener('click', function () {
         loadGeniusLyrics(parseInt(this.dataset.trackNum))
