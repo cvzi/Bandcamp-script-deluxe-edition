@@ -9,7 +9,7 @@
 // @contributionURL  https://ko-fi.com/cuzicvzi
 // @icon             https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png
 // @license          MIT
-// @version          1.11
+// @version          1.12
 // @require          https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @require          https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
 // @run-at           document-start
@@ -5719,6 +5719,19 @@ article .icon {
   color:#9b9b9b;
 }
 
+/* Upcoming releases reminder */
+#pastreleases {
+  background-color:#154a86!important
+ }
+#pastreleases .entry:nth-child(odd) {
+  background-color:#3e6c9f!important
+}
+#pastreleases .entry.future {
+  background-color:#4783c8!important;
+}
+#pastreleases .entry.future:nth-child(odd) {
+  background-color:#11447d!important;
+}
   `
   if (GM.addStyle) {
     GM.addStyle(css)
