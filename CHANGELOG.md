@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.12](../../tree/v1.12) *(2020-10-02)*
+*   Release reminders are now also in darkmode
 ## [1.11](../../tree/v1.11) *(2020-09-25)*
 *   TralbumData has changed, it is now in `<script data-tralbum="...TralbumData...">`
 ## [1.10](../../tree/v1.10) *(2020-09-16)*
