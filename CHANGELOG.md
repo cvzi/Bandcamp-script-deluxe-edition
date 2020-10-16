@@ -1,7 +1,10 @@
 # Changelog
 
+## [1.13](../../tree/v1.13) *(2020-10-16)*
+*   Discography player sidebar. Thanks to [Senne](https://greasyfork.org/en/scripts/390404-bandcamp-script-deluxe-edition/discussions/64441)
+*   Dark mode improved
 ## [1.12](../../tree/v1.12) *(2020-10-02)*
-*   Release reminders are now also in darkmode
+*   Release reminders are now also in dark mode
 ## [1.11](../../tree/v1.11) *(2020-09-25)*
 *   TralbumData has changed, it is now in `<script data-tralbum="...TralbumData...">`
 ## [1.10](../../tree/v1.10) *(2020-09-16)*
@@ -13,7 +16,7 @@
 *   Dark mode: restore body's background image with adapted brightness
 ## [1.7](../../tree/v1.7) *(2020-07-15)*
 *   [FireMonkey support](https://addons.mozilla.org/en-US/firefox/addon/firemonkey/)
-*   [Dark mode ](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/4)
+*   [Dark mode](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/4)
 *   [Support shop pages](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/3)
 ## [1.6](../../tree/v1.6) *(2020-06-11)*
 *   Fix lyrics on album page when "The time has come to open thy wallet" was avoided
