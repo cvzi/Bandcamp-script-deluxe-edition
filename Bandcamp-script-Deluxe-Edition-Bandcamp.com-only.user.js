@@ -9,7 +9,7 @@
 // @contributionURL  https://ko-fi.com/cuzicvzi
 // @icon             https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png
 // @license          MIT
-// @version          1.12
+// @version          1.13
 // @require          https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @require          https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
 // @run-at           document-start
@@ -91,6 +91,14 @@ const allFeatures = {
     name: 'Show download link on discography player',
     default: true
   },
+  discographyplayerSidebar: {
+    name: 'Show discography player as a sidebar on the right',
+    default: false
+  },
+  discographyplayerPersist: {
+    name: 'Recover discography player on next page',
+    default: true
+  },
   backupReminder: {
     name: 'Remind me to backup my played albums every month',
     default: true
@@ -98,10 +106,6 @@ const allFeatures = {
   nextSongNotifications: {
     name: 'Show a notification when a new song starts',
     default: false
-  },
-  discographyplayerPersist: {
-    name: 'Recover discography player on next page',
-    default: true
   },
   releaseReminder: {
     name: 'Show new releases that I have saved',
@@ -229,6 +233,22 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`
 
       return 'Dark theme details'
     }
+  },
+  discographyplayerSidebar: {
+    true: function checkScreenSize (container) {
+      if (!window.matchMedia('(min-width: 1600px)').matches) {
+        const span = container.appendChild(document.createElement('span'))
+        span.appendChild(document.createTextNode('Your screen/browser window is not wide enough for this option. Width of at least 1600px required'))
+        container.style.opacity = 1
+      } else {
+        container.style.opacity = 0
+      }
+      return fullfill()
+    },
+    false: function removeContainerAboutScreenSize (container) {
+      container.style.opacity = 0
+      return fullfill()
+    }
   }
 
 }
@@ -299,6 +319,48 @@ function fixFilename (s) {
     s = s.replace(char, '')
   })
   return s
+}
+
+function fullfill (x) {
+  return new Promise(resolve => resolve(x))
+}
+
+const stylesToInsert = []
+function addStyle (css) {
+  if (GM.addStyle && css) {
+    return GM.addStyle(css)
+  } else {
+    if (css) {
+      stylesToInsert.push(css)
+    }
+    const head = (document.head ? document.head : document.documentElement)
+    if (head) {
+      let style = document.createElement('style')
+      if (style) {
+        while (stylesToInsert.length) {
+          head.append(style)
+          style.type = 'text/css'
+          style.appendChild(document.createTextNode(stylesToInsert.shift()))
+          style = document.createElement('style')
+        }
+        return fullfill(style)
+      }
+    }
+    // document was not ready, wait
+    return new Promise((resolve) => window.setTimeout(() => addStyle(false).then(resolve), 100))
+  }
+}
+
+function css2rgb (colorStr) {
+  const div = document.body.appendChild(document.createElement('div'))
+  div.style.color = colorStr
+  const m = window.getComputedStyle(div).color.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i)
+  div.remove()
+  if (m) {
+    m.shift()
+    return m
+  }
+  return null
 }
 
 function base64encode (s) {
@@ -386,7 +448,7 @@ function nowInBetween (from, to) {
   to.setHours(toHours)
   to.setMinutes(toMinutes)
   if (to - from < 0) {
-    to.setDate(to.getDate() + 1)
+    from.setDate(from.getDate() - 1)
   }
   return now > from && now < to
 }
@@ -868,19 +930,37 @@ function musicPlayerPlaySong (next, startTime) {
   })
 
   // Animate
-  currentlyPlaying.style.marginLeft = -parseInt(currentlyPlaying.clientWidth + 1) + 'px'
-  nextInRow.style.width = '99%'
+  if (allFeatures.discographyplayerSidebar.enabled && window.matchMedia('(min-width: 1600px)').matches) {
+    // Slide up
+    currentlyPlaying.style.marginTop = -parseInt(currentlyPlaying.clientHeight + 1) + 'px'
+    nextInRow.style.height = '99%'
+    nextInRow.style.width = '99%'
+    clearTimeout(ivSlideInNextSong)
+    ivSlideInNextSong = window.setTimeout(function slideInSongInterval () {
+      currentlyPlaying.remove()
+      const clone = nextInRow.cloneNode(true)
+      clone.style.height = '0%'
+      clone.className = 'nextInRow'
+      nextInRow.className = 'currentlyPlaying'
+      nextInRow.parentNode.appendChild(clone)
+    }, 600)
+  } else {
+    // Slide to the left
+    currentlyPlaying.style.marginLeft = -parseInt(currentlyPlaying.clientWidth + 1) + 'px'
+    nextInRow.style.height = '99%'
+    nextInRow.style.width = '99%'
 
-  clearTimeout(ivSlideInNextSong)
+    clearTimeout(ivSlideInNextSong)
 
-  ivSlideInNextSong = window.setTimeout(function slideInSongInterval () {
-    currentlyPlaying.remove()
-    const clone = nextInRow.cloneNode(true)
-    clone.style.width = '0%'
-    clone.className = 'nextInRow'
-    nextInRow.className = 'currentlyPlaying'
-    nextInRow.parentNode.appendChild(clone)
-  }, 7 * 1000)
+    ivSlideInNextSong = window.setTimeout(function slideInSongInterval () {
+      currentlyPlaying.remove()
+      const clone = nextInRow.cloneNode(true)
+      clone.style.width = '0%'
+      clone.className = 'nextInRow'
+      nextInRow.className = 'currentlyPlaying'
+      nextInRow.parentNode.appendChild(clone)
+    }, 7 * 1000)
+  }
 
   window.setTimeout(() => player.querySelector('.playlist .playing').scrollIntoView({ block: 'nearest' }), 200)
 }
@@ -1195,7 +1275,7 @@ async function musicPlayerCollectListenedClick (ev) {
 }
 
 function musicPlayerUpdatePositionState () {
-  if ('setPositionState' in navigator.mediaSession) {
+  if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
     console.log('Updating position state...')
     navigator.mediaSession.setPositionState({
       duration: audio.duration || currentDuration || 180,
@@ -1461,7 +1541,7 @@ function musicPlayerCreate () {
   <div class="closebutton" title="Close player">x</div>
 </div>`
 
-  document.head.appendChild(document.createElement('style')).innerHTML = `
+  addStyle(`
 .cll{
   clear:left;
 }
@@ -1638,7 +1718,7 @@ function musicPlayerCreate () {
   width:10px;
   height:10px;
   border-radius: 50%;
-  background:rgba(50,50,50,1.0);;
+  background:rgba(50,50,50,1.0);
   cursor:pointer;
 }
 .bufferbaranimation{
@@ -1885,8 +1965,76 @@ function musicPlayerCreate () {
     border-color: #fff;
     border-style: solid;
 }
+`)
 
-`
+  if (allFeatures.discographyplayerSidebar.enabled) {
+    // Sidebar discographyplayer
+    addStyle(`
+@media (min-width: 1600px) {
+  #menubar-wrapper:hover {
+    z-index:1100;
+  }
+  #discographyplayer {
+    display: block;
+    bottom: 0px;
+    height: 100vh;
+    max-height: 100vh;
+    width: calc((100vw - 915px - 35px) / 2);
+    right: 0px;
+    border-left: 1px solid #0007;
+    padding-left: 1px;
+  }
+  #discographyplayer .playlist {
+    height: calc(100vh - 80px - 80px - 50px - 13px);
+    max-height: calc(100vh - 80px - 80px - 50px - 13px);
+  }
+  #discographyplayer .playlist .playlistentry {
+    overflow-x:hidden;
+  }
+  #discographyplayer .col25 {
+    width: 98%;
+  }
+  #discographyplayer .col.nowPlaying {
+    height: 70px;
+  }
+  #discographyplayer .col.col25.colcontrols {
+    height: 85px;
+  }
+  #discographyplayer .col35 {
+    width: 97%;
+  }
+  #discographyplayer .col15 {
+    width: 96%;
+  }
+  #discographyplayer .colvolumecontrols {
+    height: 50px
+  }
+  #playhead, #bufferbar {
+    height: 25px;
+    border-radius: 0;
+  }
+  #discographyplayer .audioplayer a.downloadlink {
+    position: fixed;
+    bottom: 5px;
+    right: 5px;
+    z-index: 10;
+  }
+  #discographyplayer .minimizebutton {
+    display:none;
+  }
+  #discographyplayer .currentlyPlaying{
+    transition: margin-top 1s ease-in-out;
+    width:99%;
+    height:99%;
+  }
+  #discographyplayer .nextInRow {
+    height:0%;
+    width:99%;
+    transition: height 1s ease-in-out;
+  }
+}
+    `)
+  }
 
   audio = player.querySelector('audio')
   addLogVolume(audio)
@@ -2353,7 +2501,7 @@ function makeAlbumCoversGreat () {
   margin-top: -50px;
 }
 `
-    document.head.appendChild(document.createElement('style')).innerHTML = `
+    addStyle(`
 .music-grid-item .art-play {
   position: absolute;
   width: 74px;
@@ -2389,7 +2537,7 @@ function makeAlbumCoversGreat () {
 }
 
 ${CAMPEXPLORER ? campExplorerCSS : ''}
-`
+`)
   }
   const onclick = function onclick (ev) {
     ev.preventDefault()
@@ -2425,7 +2573,7 @@ async function makeAlbumLinksGreat (parentElement) {
 
   if (!('makeAlbumLinksGreat' in document.head.dataset)) {
     document.head.dataset.makeAlbumLinksGreat = true
-    document.head.appendChild(document.createElement('style')).innerHTML = `
+    addStyle(`
     .bdp_check_onlinkhover_container { z-index:1002; position:absolute; display:none }
     .bdp_check_onlinkhover_container_shown { display:block; background-color:rgba(255,255,255,0.9); padding:0px 2px 0px 0px; border-radius:5px  }
     .bdp_check_onlinkhover_container:hover { position:absolute; transition: all 300ms linear; background-color:rgba(255,255,255,0.9); padding:0px 10px 0px 7px; border-radius:5px }
@@ -2442,7 +2590,7 @@ async function makeAlbumLinksGreat (parentElement) {
     a:hover .bdp_check_onchecked_symbol { text-shadow: 1px 1px #fff; color:rgba(0,50,0,1.0); transition: all 300ms linear }
     a:hover .bdp_check_onchecked_text { text-shadow: 1px 1px #000; color:rgba(200,255,200,0.8); transition: all 300ms linear }
 
-    `
+    `)
   }
 
   const excluded = [...document.querySelectorAll('#carousel-player .now-playing a')]
@@ -2747,7 +2895,7 @@ function makeCarouselPlayerGreatAgain () {
   let lastMediaHubMeta = [null, null]
   const updateChromePositionState = function () {
     const audio = document.querySelector('body>audio')
-    if (audio && 'setPositionState' in navigator.mediaSession) {
+    if (audio && 'mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
       navigator.mediaSession.setPositionState({
         duration: audio.duration || 180,
         playbackRate: audio.playbackRate,
@@ -2851,7 +2999,7 @@ function makeCarouselPlayerGreatAgain () {
     addChromeMediaHubToCarouselPlayer()
   }, 2000)
 
-  document.head.appendChild(document.createElement('style')).innerHTML = `
+  addStyle(`
   #carousel-player a.carousellistenedstatus:link,#carousel-player a.carousellistenedstatus:visited,#carousel-player a.carousellistenedstatus:hover{
     text-decoration:none;
     cursor:default
@@ -2867,7 +3015,7 @@ function makeCarouselPlayerGreatAgain () {
   #carousel-player .mark-listened:hover .mark-listened-symbol{
     text-shadow:1px 0px #0AF,-1px 0px #0AF,0px -1px #0AF,0px 1px #0AF
   }
-  `
+  `)
 }
 
 async function addListenedButtonToCollectControls () {
@@ -3109,7 +3257,7 @@ function addVolumeBarToAlbumPage () {
     return
   }
 
-  document.head.appendChild(document.createElement('style')).innerHTML = `
+  addStyle(`
     /* Hide if inline_player is hidden */
     .hidden .volumeButton,.hidden .volumeControl,.hidden .volumeLabel{
       display:none
@@ -3173,7 +3321,7 @@ function addVolumeBarToAlbumPage () {
       filter:drop-shadow(#0060F2 1px 1px 2px);
     }
 
-  `
+  `)
 
   const playbutton = document.querySelector('#trackInfoInner .playbutton')
   const volumeButton = playbutton.cloneNode(true)
@@ -3389,7 +3537,7 @@ function addVolumeBarToAlbumPage () {
 
   let lastMediaHubTitle = null
   const updateChromePositionState = function () {
-    if (audioAlbumPage && 'setPositionState' in navigator.mediaSession) {
+    if (audioAlbumPage && 'mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
       navigator.mediaSession.setPositionState({
         duration: audioAlbumPage.duration || 180,
         playbackRate: audioAlbumPage.playbackRate,
@@ -3514,7 +3662,7 @@ function addReleaseDateButton () {
   }
   const key = albumKey(TralbumData.url)
 
-  document.head.appendChild(document.createElement('style')).innerHTML = `
+  addStyle(`
   .releaseReminderButton {
     font-size:13px;
     font-weight:700;
@@ -3529,7 +3677,7 @@ function addReleaseDateButton () {
   .releaseReminderButton:hover .releaseLabel {
     text-decoration:underline
   }
-  `
+  `)
 
   const div = document.querySelector('.share-collect-controls').appendChild(document.createElement('div'))
   div.style = 'margin-top:4px'
@@ -3618,7 +3766,7 @@ async function showPastReleases (ev, forceShow) {
   }
 
   if (!document.getElementById('pastreleases')) {
-    document.head.appendChild(document.createElement('style')).innerHTML = `
+    addStyle(`
     #pastreleases {
       position:fixed;
       bottom:1%;
@@ -3705,7 +3853,7 @@ async function showPastReleases (ev, forceShow) {
       font-size: small;
       padding-right:3px
     }
-    `
+    `)
   }
   const div = document.body.appendChild(document.getElementById('pastreleases') || document.createElement('div'))
   div.setAttribute('id', 'pastreleases')
@@ -3808,7 +3956,7 @@ async function showPastReleases (ev, forceShow) {
 }
 
 function mainMenu (startBackup) {
-  document.head.appendChild(document.createElement('style')).innerHTML = `
+  addStyle(`
     .deluxemenu {
       position:fixed;
       height:auto;
@@ -3850,8 +3998,7 @@ function mainMenu (startBackup) {
       50% { border-color:#6a0c41 }
     }
 
-
-  `
+  `)
 
   if (startBackup === true) {
     exportMenu()
@@ -3878,7 +4025,7 @@ function mainMenu (startBackup) {
   `
 
   window.setTimeout(function moveMenuIntoView () {
-    main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
+    main.style.maxHeight = (document.documentElement.clientHeight - 150) + 'px'
     main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
     main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
   }, 0)
@@ -4055,16 +4202,42 @@ function mainMenu (startBackup) {
       document.querySelector('.deluxemenu').remove()
       exportMenu()
     })
+
+    main.appendChild(document.createElement('br'))
+    main.appendChild(document.createElement('br'))
+
+    const donateLink = main.appendChild(document.createElement('a'))
+    const donateButton = donateLink.appendChild(document.createElement('button'))
+    donateButton.appendChild(document.createTextNode('\u2764\uFE0F Donate & Support'))
+    donateButton.style.color = '#e81224'
+    donateLink.setAttribute('href', 'https://github.com/cvzi/Bandcamp-script-deluxe-edition#donate')
+    donateLink.setAttribute('target', '_blank')
+
+    main.appendChild(document.createElement('br'))
+    main.appendChild(document.createElement('br'))
   })
   window.setTimeout(function moveMenuIntoView () {
+    let moveLeft = 0
     main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
     main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
-    main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
-  }, 0)
+    if (document.querySelector('#discographyplayer')) {
+      if (document.querySelector('#discographyplayer').clientHeight < 100) {
+        main.style.maxHeight = (document.documentElement.clientHeight - 150) + 'px'
+        main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
+      } else if (document.querySelector('#discographyplayer').clientHeight > 300) {
+        main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
+        main.style.maxWidth = (document.documentElement.clientWidth - 40 - document.querySelector('#discographyplayer').clientWidth) + 'px'
+        moveLeft = document.querySelector('#discographyplayer').clientWidth + 20
+      }
+    }
+    window.setTimeout(function () {
+      main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth) - moveLeft) + 'px'
+    }, 10)
+  }, 10)
 }
 
 function exportMenu (showClearButton) {
-  document.head.appendChild(document.createElement('style')).innerHTML = `
+  addStyle(`
     .deluxeexportmenu table {
     }
 
@@ -4086,7 +4259,7 @@ function exportMenu (showClearButton) {
       font-size:3em;
       display:none;
     }
-  `
+  `)
 
   // Blur background
   if (document.getElementById('centerWrapper')) { document.getElementById('centerWrapper').style.filter = 'blur(4px)' }
@@ -4550,7 +4723,7 @@ function checkBackupStatus () {
 function showBackupHint (lastBackup, changedRecords) {
   const since = timeSince(lastBackup)
 
-  document.head.appendChild(document.createElement('style')).innerHTML = `
+  addStyle(`
     .backupreminder {
       position:fixed;
       height:auto;
@@ -4565,7 +4738,7 @@ function showBackupHint (lastBackup, changedRecords) {
       color:black;
       background:white;
     }
-  `
+  `)
 
   // Blur background
   if (document.getElementById('centerWrapper')) { document.getElementById('centerWrapper').style.filter = 'blur(4px)' }
@@ -4626,28 +4799,49 @@ function showBackupHint (lastBackup, changedRecords) {
   }, 0)
 }
 
-function downloadMp3FromLink (ev, a, addSpinner, removeSpinner) {
+function downloadMp3FromLink (ev, a, addSpinner, removeSpinner, noGM) {
   const url = a.href
-
-  if (GM.download) {
+  if (GM.download && !noGM) {
     // Use Tampermonkey GM.download function
+    console.log('Using GM.download function')
     ev.preventDefault()
     addSpinner(a)
+    let GMdownloadStatus = 0
     GM.download({
       url: url,
       name: a.download || 'default.mp3',
-      onerror: function downloadMp3FromLinkOnError () {
-        window.alert('Could not download via GM.download')
-        document.location.href = url
+      onerror: function downloadMp3FromLinkOnError (e) {
+        console.log('GM.download onerror:', e)
       },
       ontimeout: function downloadMp3FromLinkOnTimeout () {
         window.alert('Could not download via GM.download. Time out.')
         document.location.href = url
       },
       onload: function downloadMp3FromLinkOnLoad () {
+        console.log('Successfully downloaded via GM.download')
+        GMdownloadStatus = 1
         window.setTimeout(() => removeSpinner(a), 500)
       }
+    }).then(function (o) {
+      console.log('GM.download() finished')
+      GMdownloadStatus = 1
+      window.setTimeout(() => removeSpinner(a), 500)
+    }).catch(function (e) {
+      GMdownloadStatus = 0
+      console.log('GM.download() failed', e)
+      window.setTimeout(function () {
+        if (GMdownloadStatus !== 1) {
+          if (url.startsWith('data')) {
+            console.log('GM.download failed with data url')
+            document.location.href = url
+          } else {
+            console.log('Trying again with GM.download disabled')
+            downloadMp3FromLink(ev, a, addSpinner, removeSpinner, true)
+          }
+        }
+      }, 1000)
     })
+    return
   }
 
   if (!url.startsWith('http') || navigator.userAgent.indexOf('Chrome') !== -1) {
@@ -4659,14 +4853,14 @@ function downloadMp3FromLink (ev, a, addSpinner, removeSpinner) {
 
   // Use GM.xmlHttpRequest to download and offer data uri
   ev.preventDefault()
-
+  console.log('Using GM.xmlHttpRequest to download and then offer data uri')
   addSpinner(a)
-
   GM.xmlHttpRequest({
     method: 'GET',
     overrideMimeType: 'text/plain; charset=x-user-defined',
     url: url,
     onload: function onMp3Load (response) {
+      console.log('Successfully received data via GM.xmlHttpRequest, starting download')
       a.href = 'data:audio/mpeg;base64,' + base64encode(response.responseText)
       window.setTimeout(() => a.click(), 10)
     },
@@ -4678,7 +4872,7 @@ function downloadMp3FromLink (ev, a, addSpinner, removeSpinner) {
 }
 
 function addDownloadLinksToAlbumPage () {
-  document.head.appendChild(document.createElement('style')).innerHTML = `
+  addStyle(`
   .download-col .downloaddisk:hover {
     text-decoration:none
   }
@@ -4695,7 +4889,7 @@ function addDownloadLinksToAlbumPage () {
   @keyframes spinnerrotation {
     from {transform: rotate(0deg)}
     to {transform: rotate(359deg)}
-  }`
+  }`)
 
   const addSpiner = function downloadLinksOnAlbumPageAddSpinner (el) {
     el.style = ''
@@ -4817,7 +5011,7 @@ function geniusSetFrameDimensions (container, iframe) {
   return [width, height]
 }
 function geniusAddCss () {
-  document.head.appendChild(document.createElement('style')).innerHTML = `
+  addStyle(`
   #myconfigwin39457845 {
     z-index:2060 !important;
     position:fixed !important;
@@ -4895,7 +5089,7 @@ function geniusAddCss () {
   .searchresultlist ol li div {
     width: auto !important;
   }
-  `
+  `)
 }
 function geniusCreateSpinner (spinnerHolder) {
   geniusContainerTr.querySelector('div').insertBefore(spinnerHolder, geniusContainerTr.querySelector('div').firstChild)
@@ -5151,11 +5345,11 @@ function appendMainMenuButtonLeftTo (leftOf) {
   const ul = document.createElement('ul')
   ul.className = 'bcsde_settingsbar'
   appendMainMenuButtonTo(document.body.appendChild(ul))
-  document.head.appendChild(document.createElement('style')).innerHTML = `
+  addStyle(`
   .bcsde_settingsbar {position:absolute; top:-15px; left:${rect.right}px; list-style-type: none; padding:0; margin:0; opacity:0.6; transition:top 300ms}
   .bcsde_settingsbar:hover {top:${rect.top}px}
   .bcsde_settingsbar a:hover {text-decoration:none}
-  .bcsde_settingsbar li {float:left; padding:0; margin:0}`
+  .bcsde_settingsbar li {float:left; padding:0; margin:0}`)
   window.addEventListener('resize', function () {
     ul.style.left = leftOf.getBoundingClientRect().right + 'px'
   })
@@ -5181,7 +5375,7 @@ function darkMode () {
   let propOpenWrapperBackgroundColor = '#2626268f'
   try {
     const brightnessStr = window.localStorage.getItem('bcsde_bgimage_brightness')
-    if (brightnessStr !== null) {
+    if (brightnessStr !== null && brightnessStr !== 'null') {
       const brightness = parseFloat(brightnessStr)
       const alpha = (brightness - 50) / 255
       propOpenWrapperBackgroundColor = `rgba(0, 0, 0, ${alpha})`
@@ -5191,6 +5385,12 @@ function darkMode () {
   }
 
   const css = `
+:root {
+  --pgBdColor: #262626;
+  --propOpenWrapperBackgroundColor: ${propOpenWrapperBackgroundColor}
+}
+
+
 /* Bandcamp: Stick Track List to Player https://userstyles.org/styles/123397/ */
 
 /* move merchandising down, so playlist or track description moves up below player */
@@ -5247,7 +5447,7 @@ div#dlg0_h.hd,
 div#pgBd.yui-skin-sam,
 div.blogunit-details-section,
 div.collection-item-details-container {
-    background: #262626 !important;
+    background: var(--pgBdColor) !important;
 }
 div.collection-item-artist,
 h1 {
@@ -5548,7 +5748,7 @@ body {
 }
 
 #propOpenWrapper {
-  background-color: ${propOpenWrapperBackgroundColor} !important;
+  background-color: var(--propOpenWrapperBackgroundColor) !important;
   transition:background-color 500ms
 }
 
@@ -5733,15 +5933,7 @@ article .icon {
   background-color:#11447d!important;
 }
   `
-  if (GM.addStyle) {
-    GM.addStyle(css)
-  } else {
-    const style = document.createElement('style')
-    style.type = 'text/css'
-    style.appendChild(document.createTextNode(css))
-    const head = document.head ? document.head : document.documentElement
-    head.appendChild(style)
-  }
+  addStyle(css)
 
   window.setTimeout(humour, 3000)
   darkModeInjected = true
@@ -5757,9 +5949,11 @@ async function darkModeOnLoad () {
   const backgroudImageCSS = window.getComputedStyle(document.body).backgroundImage
   let imageURL = backgroudImageCSS.match(/["'](.*)["']/)
   let shouldUpdate = false
+  let hasBackgroundImage = false
   if (imageURL && imageURL[1]) {
     imageURL = imageURL[1]
     shouldUpdate = true
+    hasBackgroundImage = true
     try {
       const editTime = parseInt(window.localStorage.getItem('bcsde_bgimage_brightness_time'))
       if (Date.now() - editTime < 604800000) {
@@ -5791,6 +5985,45 @@ async function darkModeOnLoad () {
       window.localStorage.setItem('bcsde_bgimage_brightness_time', Date.now())
     } catch (e) {
       console.log('Could not write to window.localStorage: ' + e)
+    }
+  }
+
+  if (!hasBackgroundImage) {
+    // No background image, check background color
+    const color = window.getComputedStyle(document.body).backgroundColor
+    if (color) {
+      const m = color.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/)
+      if (m) {
+        const [, r, g, b] = m
+        if (r < 70 && g < 70 && b < 70) {
+          addStyle(`
+            :root {
+              --propOpenWrapperBackgroundColor: rgb(${r}, ${g}, ${b})
+            }
+          `)
+        }
+      }
+    }
+  }
+  // pgBd background color
+  if (document.getElementById('custom-design-rules-style')) {
+    const customCss = document.getElementById('custom-design-rules-style').textContent
+    if (customCss.indexOf('#pgBd') !== -1) {
+      const pgBdStyle = customCss.split('#pgBd')[1].split('}')[0]
+      const m = pgBdStyle.match(/background(-color)?\s*:\s*(.+?)[;\s]/m)
+      if (m && m.length > 2 && m[2]) {
+        const color = css2rgb(m[2])
+        if (color) {
+          const [r, g, b] = color
+          if (r < 70 && g < 70 && b < 70) {
+            addStyle(`
+              :root {
+                --pgBdColor: rgb(${r}, ${g}, ${b});
+              }
+            `)
+          }
+        }
+      }
     }
   }
 }
@@ -5904,9 +6137,9 @@ function onLoaded () {
     console.log('Maintenance detected')
   } else {
     if (NOEMOJI) {
-      document.head.appendChild(document.createElement('style')).innerHTML = '@font-face{font-family:Symbola;src:local("Symbola Regular"),local("Symbola"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format("woff2"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format("woff"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format("truetype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format("opentype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format("svg")}' +
+      addStyle('@font-face{font-family:Symbola;src:local("Symbola Regular"),local("Symbola"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format("woff2"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format("woff"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format("truetype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format("opentype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format("svg")}' +
         '.sharepanelchecksymbol,.bdp_check_onlinkhover_symbol,.bdp_check_onchecked_symbol,.volumeSymbol,.downloaddisk,.downloadlink,#user-nav .settingssymbol,.listened-symbol,.mark-listened-symbol,.minimizebutton{font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif}' +
-        '.downloaddisk,.downloadlink{font-weight: bolder}'
+        '.downloaddisk,.downloadlink{font-weight: bolder}')
     }
 
     if (allFeatures.releaseReminder.enabled) {
@@ -5917,7 +6150,7 @@ function onLoaded () {
       // Index pages are almost like discography page. To make them compatible, let's add the class names from the discography page
       document.querySelector('#indexpage').classList.add('music-grid')
       document.querySelectorAll('#indexpage .indexpage_list_cell').forEach(cell => cell.classList.add('music-grid-item'))
-      document.head.appendChild(document.createElement('style')).innerHTML = '#indexpage .ipCellImage { position:relative }'
+      addStyle('#indexpage .ipCellImage { position:relative }')
     }
 
     if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href^="/album/"] img')) {
