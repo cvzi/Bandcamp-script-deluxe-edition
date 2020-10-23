@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.14](../../tree/v1.14) *(2020-10-24)*
+*   Fix discography player `a[href^="/album/"] => a[href*="/album/"]`
+*   Song changed notifications on album page and carousel player
+*   Dark mode improved
 ## [1.13](../../tree/v1.13) *(2020-10-16)*
 *   Discography player sidebar. Thanks to [Senne](https://greasyfork.org/en/scripts/390404-bandcamp-script-deluxe-edition/discussions/64441)
 *   Dark mode improved
