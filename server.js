@@ -1,23 +1,42 @@
-import { red, green, cyan, bold } from 'colorette'
-import rollupConfig from './rollup.config.js'
 const path = require('path')
 const fs = require('fs')
-
-// Create the userscript for development 'dist/dev.user.js'
-console.log(cyan(`generate [dev] userscript ${bold('package.json')}, ${bold('meta.json')}, ${bold('dev.user.js')} → ${bold('dist/dev.user.js')}...`))
+const http = require('http')
+const handler = require('serve-handler')
+import { red, green, cyan, bold } from 'colorette'
+const rollup = require('rollup')
 const metablock = require('rollup-plugin-userscript-metablock')
+
 const pkg = require('./package.json')
 const meta = require('./meta.json')
-const devScriptOutFile = 'dist/dev.user.js'
+import rollupConfig from './rollup.config.js'
+
+console.log('👀 watch & serve 🤲\n###################\n')
+
+const port = 8124
+const destDir =  'dist/'
 const devScriptInFile = 'dev.user.js'
+
+const hyperlink = (url, title) => `\u001B]8;;${url}\u0007${title || url}\u001B]8;;\u0007`
+
+fs.mkdir('dist/', { recursive: true }, () => null)
+
+// Start web server
+const server = http.createServer((request, response) => {
+  return handler(request, response, {
+    public: destDir
+  })
+})
+server.listen(port, () => {
+  console.log(`Running webserver at ${hyperlink(`http://localhost:${port}`)}`)
+})
+
+// Create the userscript for development 'dist/dev.user.js'
+const devScriptOutFile = path.join(destDir, devScriptInFile)
+console.log(cyan(`generate development userscript ${bold('package.json')}, ${bold('meta.json')}, ${bold(devScriptInFile)} → ${bold(devScriptOutFile)}...`))
 const devScriptContent = fs.readFileSync(devScriptInFile, 'utf8')
 const grants = 'grant' in meta ? meta.grant : []
 if (grants.indexOf('GM.xmlHttpRequest') === -1) {
   grants.push('GM.xmlHttpRequest')
-}
-const connects = 'connect' in meta ? meta.connect : []
-if (connects.indexOf('localhost') === -1) {
-  connects.push('localhost')
 }
 const devMetablock = metablock({
   file: './meta.json',
@@ -28,31 +47,16 @@ const devMetablock = metablock({
     homepage: pkg.homepage,
     author: pkg.author,
     license: pkg.license,
-    grant: grants,
-    connect: connects
+    grant: grants
   }
 })
-const outContent = devMetablock.renderChunk(devScriptContent)
+
+const result = devMetablock.renderChunk(devScriptContent, null, {sourcemap:false})
+const outContent = typeof result === 'string' ? result : result.code
 fs.writeFileSync(devScriptOutFile, outContent)
-console.log(green(`created ${bold(devScriptOutFile)}. Please install in Tampermonkey http://localhost:8124/dev.user.js`))
-
-// Start web server
-const handler = require('serve-handler')
-const http = require('http')
-
-const server = http.createServer((request, response) => {
-  return handler(request, response, {
-    public: 'dist/'
-  })
-})
-
-server.listen(8124, () => {
-  console.log('Running webserver at http://localhost:8124')
-})
+console.log(green(`created ${bold(devScriptOutFile)}. Please install in Tampermonkey: `) + hyperlink(`http://localhost:${port}/${devScriptInFile}`))
 
 // Start rollup watch
-const rollup = require('rollup')
-
 const watcher = rollup.watch(rollupConfig)
 
 watcher.on('event', event => {

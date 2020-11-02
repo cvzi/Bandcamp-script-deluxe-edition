@@ -21,12 +21,13 @@ ${fs.readFileSync('./LICENSE', 'utf8')}*/
 /* globals React, ReactDOM */`
 
 export default {
-  input: 'src/main.js',
+  input: 'src/index.js',
   output: {
     file: 'dist/bundle.user.js',
     format: 'iife',
     name: 'rollupUserScript',
     banner: banner,
+    sourcemap: true,
     globals: {
       react: 'React',
       'react-dom': 'ReactDOM'
@@ -53,7 +54,6 @@ export default {
     metablock({
       file: './meta.json',
       override: {
-        name: pkg.name,
         version: pkg.version,
         description: pkg.description,
         homepage: pkg.homepage,
@@ -62,5 +62,5 @@ export default {
       }
     })
   ],
-  external: id => /^react(-dom)?/.test(id)
+  external: id => /^react(-dom)?$/.test(id)
 }

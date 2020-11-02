@@ -1,23 +1,23 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
+import Explorer from './explorer.jsx'
+
+/* globals GM, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics */
 
 // TODO Mark as played automatically when played
 // TODO custom CSS
 
-
 const BACKUP_REMINDER_DAYS = 35
 const TRALBUM_CACHE_HOURS = 2
-var NOTIFICATION_TIMEOUT = 3000
+let NOTIFICATION_TIMEOUT = 3000
 const CHROME = navigator.userAgent.indexOf('Chrome') !== -1
 const CAMPEXPLORER = document.location.hostname === 'campexplorer.io'
 const BANDCAMPDOMAIN = document.location.hostname === 'bandcamp.com' || document.location.hostname.endsWith('.bandcamp.com')
-var BANDCAMP = BANDCAMPDOMAIN
+let BANDCAMP = BANDCAMPDOMAIN
 const NOEMOJI = CHROME && navigator.userAgent.match(/Windows (NT)? [4-9]/i)
 const DEFAULTSKIPTIME = 10 /* Seek time to skip in seconds by default */
 const SCRIPT_NAME = 'Bandcamp script (Deluxe Edition)'
 const LYRICS_EMPTY_PATH = '/robots.txt'
 const PLAYER_URL = 'https://bandcamp.com/robots.txt?player'
-var darkModeInjected = false
+let darkModeInjected = false
 
 const allFeatures = {
   discographyplayer: {
@@ -232,7 +232,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`
         let seconds = -1
         try {
           seconds = parseFloat(document.getElementById('bcsde_notification_timeout').value.trim())
-        } catch(e) {
+        } catch (e) {
           seconds = -1
         }
 
@@ -265,8 +265,8 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`
 
 }
 
-var player, audio, currentDuration, timeline, playhead, bufferbar
-var onPlayHead = false
+let player, audio, currentDuration, timeline, playhead, bufferbar
+let onPlayHead = false
 
 const spriteRepeatShuffle = 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAABgCAMAAACt1UvuAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAA2UExURQAAAP////39/Tw8PP///////w4ODv////7+/v7+/k5OTktLS35+fiAgIJSUlAAAABAQECoqKpxAnVsAAAAPdFJOUwAxQ05UJGkKBRchgWiOOufd5UcAAAKrSURBVEjH7ZfrkqQgDIUbFLmphPd/2T2EgNqNzlTt7o+p3dR0d5V+JOGEYzkvZ63nsNY6517XCPIrjIDvXF7qL24ao5QynesIllDKE1MpJdom1UDBQIQlE+HmEipVIk+6cqVqQYivlq/loBJFDa6WnaitbbnMtFHnOF1niDJJX14pPa+cOm0l3Vohyuus8xpkj9ih1nPke6iaO6KV323XqwhRON4tQ3GedakNYYQqslaO+yv9xs64Lh2rX8sWeSISzVWTk8ROJmmU9MTl1PvEnHBmzXRSzvhhuqJAzjlJY9eJCVWljKwcESbL+fbTYK0NWx0IGodyvKCACqp6VqMNlguhktbxMqHdI5k7ps1SsiTxPO0YDgojkZPIysl+617cy8rUkIfPflMY4IaKLZfHhSoPn782iQJC5tIX2nfNQseGG4eoe3T1+kXh7j1j/H6W9TbC65ZxR2S0frKePUWYlhbY/hTkvL6aiKPApCRTeoxNTvUTI16r1DqPAqrGVR0UT/ojwGByJ6qO8S32HQ6wJ8r4TwFdyGnx7kzVM8l/nZpwRwkm1GAKC+5oKflMzY3aUm4rBpSsd17pVv2Bsn739ivqFWK2bhD2TE0wwTKM3Knu2puo1PJ8blqu7TEXVY1wgvGQwYN6HKJR0WGjYqxheN/lCpOzd/GlHX+gHyEe/SE/qpyV+sKPfqdEhzVv/OjwwC3zlefnnR+9YW+5Zz86fzjw3o+f1NCP9oMa+fGeOvnR2brH/378B/xI9A0/UjUjSfyOH2GzCDOuKavyUUM/eryMFjNOIMrHD/1o4di0GlCkp8IP/RjwglRSCKX9yI845VGXqwc18KOtWq3mSr35EQVnHbnzC3X144I3d7Wj6xuq+hH7gwz4PvY48GP9p8i2Vzus/dt+pB/nx18MUmsLM2EHrwAAAABJRU5ErkJggg==")'
 
@@ -309,7 +309,7 @@ function randomIndex (max) {
 
 function padd (n, width, filler) {
   let s
-  for (s = n.toString(); s.length < width; s = filler + s) {}
+  for (s = n.toString(); s.length < width; s = filler + s);
   return s
 }
 
@@ -464,10 +464,10 @@ function nowInBetween (from, to) {
 
 function loadCrossSiteImage (url) {
   return new Promise(function downloadCrossSiteImage (resolve, reject) {
-    var canvas = document.createElement('canvas')
-    var ctx = canvas.getContext('2d')
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
 
-    var img0 = document.createElement('img') // Load the image in a <img> to get the dimensions
+    const img0 = document.createElement('img') // Load the image in a <img> to get the dimensions
     img0.addEventListener('load', function onImgLoad () {
       if (img0.height === 0 || img0.width === 0) {
         reject(new Error('loadCrossSiteImage("$url") Error: Could not load image in <img>'))
@@ -482,8 +482,8 @@ function loadCrossSiteImage (url) {
         url: url,
         onload: function (resp) {
           // Create a data url image
-          var dataurl = 'data:image/jpeg;base64,' + base64encode(resp.responseText)
-          var img1 = document.createElement('img')
+          const dataurl = 'data:image/jpeg;base64,' + base64encode(resp.responseText)
+          const img1 = document.createElement('img')
           img1.addEventListener('load', function () {
             // Load data url image into canvas
             ctx.drawImage(img1, 0, 0)
@@ -656,7 +656,7 @@ function findUserProfileUrl () {
   return 'https://bandcamp.com/login'
 }
 
-var ivRestoreVolume
+let ivRestoreVolume
 function getStoredVolume (callbackIfVolumeExists) {
   GM.getValue('volume', '0.7').then(str => {
     return parseFloat(str)
@@ -769,7 +769,7 @@ function musicPlayerNextSong (next) {
     }
   }
 }
-var ivSlideInNextSong
+let ivSlideInNextSong
 function musicPlayerPlaySong (next, startTime) {
   currentDuration = next.dataset.duration
   player.querySelector('.durationDisplay .current').innerHTML = '-'
@@ -1306,7 +1306,7 @@ function musicPlayerCookieChannel (onStopEventCb) {
       onStopEventCb(event.data.discographyplayerCookiechannelPlaylist)
     }
   })
-  var script = document.createElement('script')
+  const script = document.createElement('script')
   script.innerHTML = `
   if(typeof Cookie !== 'undefined') {
     var channel = new Cookie.CommChannel('playlist')
@@ -4971,25 +4971,23 @@ function addDownloadLinksToAlbumPage () {
 
   const TralbumData = unsafeWindow.TralbumData
   if (TralbumData && TralbumData.hasAudio && !TralbumData.freeDownloadPage && TralbumData.trackinfo) {
-    var hoverdiv = document.querySelectorAll('.download-col div')
+    const hoverdiv = document.querySelectorAll('.download-col div')
     if (hoverdiv.length > 0) {
       // Album page
       for (let i = 0; i < TralbumData.trackinfo.length; i++) {
         const t = TralbumData.trackinfo[i]
-        for (var prop in t.file) {
-          const mp3 = t.file[prop].replace(/^\/\//, 'http://')
-          const a = document.createElement('a')
-          a.className = 'downloaddisk'
-          a.href = mp3
-          a.download = (t.track_num == null ? '' : ((t.track_num > 9 ? '' : '0') + t.track_num + '. ')) + fixFilename(TralbumData.artist + ' - ' + t.title) + '.mp3'
-          a.title = 'Download ' + prop
-          a.appendChild(document.createTextNode(NOEMOJI ? '\u2193' : '\uD83D\uDCBE'))
-          a.addEventListener('click', function onDownloadLinkClick (ev) {
-            downloadMp3FromLink(ev, this, addSpiner, removeSpinner)
-          })
-          hoverdiv[i].appendChild(a)
-          break
-        }
+        const prop = Object.keys(t.file)[0] // Just use the first file entry
+        const mp3 = t.file[prop].replace(/^\/\//, 'http://')
+        const a = document.createElement('a')
+        a.className = 'downloaddisk'
+        a.href = mp3
+        a.download = (t.track_num == null ? '' : ((t.track_num > 9 ? '' : '0') + t.track_num + '. ')) + fixFilename(TralbumData.artist + ' - ' + t.title) + '.mp3'
+        a.title = 'Download ' + prop
+        a.appendChild(document.createTextNode(NOEMOJI ? '\u2193' : '\uD83D\uDCBE'))
+        a.addEventListener('click', function onDownloadLinkClick (ev) {
+          downloadMp3FromLink(ev, this, addSpiner, removeSpinner)
+        })
+        hoverdiv[i].appendChild(a)
       }
     } else if (document.querySelector('#trackInfo .download-link')) {
       // Single track page
@@ -5045,11 +5043,11 @@ function addLyricsToAlbumPage () {
   })
 }
 
-var genius = null
-var geniusContainerTr = null
-var geniusTrackNum = -1
-var geniusArtistsArr = []
-var geniusTitle = ''
+let genius = null
+let geniusContainerTr = null
+let geniusTrackNum = -1
+let geniusArtistsArr = []
+let geniusTitle = ''
 function geniusGetCleanLyricsContainer () {
   geniusContainerTr.innerHTML = `
                     <td colspan="5">
@@ -5390,7 +5388,7 @@ function loadGeniusLyrics (trackNum) {
 
 function openExplorer () {
   let iframe = document.getElementById('explorer-iframe')
-  if (iframe && iframe.style.display == 'block') {
+  if (iframe && iframe.style.display === 'block') {
     closeExplorer()
     return
   }
@@ -5409,7 +5407,7 @@ function closeExplorer () {
   }
 }
 
-var explorer = null
+let explorer = null
 async function showExplorer () {
   if (explorer) {
     explorer.style.display = 'block'
@@ -5424,85 +5422,25 @@ async function showExplorer () {
   background:white;
   color:black
 }
-#expRoot ul .albumListItem{
+#expRoot .albumListItem{
   cursor:pointer;
-  background:#ddd
+  background:#ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-#expRoot ul .albumListItem:nth-child(odd){
+#expRoot .albumListItemOdd{
   background:#eee
 }
-#expRoot ul .albumListItem:hover{
+#expRoot .albumListItem:hover{
   background:greenyellow
 }
 
   `)
-  initExplorer ()
-}
 
-class AlbumListItem extends React.Component {
-  constructor(props) {
-    super(props)
-  }
-  albumClick = (ev) => {
-    const targetStyle = ev.target.style
-    targetStyle.cursor = document.body.style.cursor = 'wait'
-    const url = this.props.url
-    window.setTimeout(function () {
-      playAlbumFromUrl(url).then(function() {
-        targetStyle.cursor = document.body.style.cursor =  ''
-      })
-    }, 1)
-  }
-  render() {
-    return (
-      <li className="albumListItem" onClick={this.albumClick} title="Click to play">
-        {this.props.artist} - {this.props.albumTitle}
-      </li>
-      )
-  }
-}
-
-class AlbumList extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      library : {},
-      isLoading: false,
-      error: null}
-  }
-  componentDidMount() {
-    this.setState({ isLoading: true })
-    GM.getValue(this.props.getKey, '{}')
-      .then(s => JSON.parse(s))
-      .then(data => this.setState({ library: data, isLoading: false }))
-      .catch(error => this.setState({ error , isLoading: false }))
-  }
-  render() {
-    const { library, isLoading, error } = this.state
- 
-    if (error) {
-      return <p>{error.message}</p>
-    }
- 
-    if (isLoading) {
-      return <p>Loading ...</p>
-    }
-    return (
-      <ul>
-        <li style={{fontWeight:'bold'}}>All albums you recently visited:</li>
-        {Object.keys(library).map(key =>
-          <AlbumListItem key={key} url={key} artist={library[key].artist} albumTitle={library[key].current.title} />
-        )}
-      </ul>
-    )
-  }
-}
-
-function initExplorer () {
-  ReactDOM.render(
-    <AlbumList getKey="tralbumlibrary" />,
-    document.getElementById('expRoot')
-  )
+  new Explorer(document.getElementById('expRoot'), {
+    playAlbumFromUrl: playAlbumFromUrl
+  }).render()
 }
 
 function appendMainMenuButtonTo (ul) {
@@ -5524,7 +5462,6 @@ function appendMainMenuButtonTo (ul) {
   li.addEventListener('click', () => mainMenu())
 
   if (allFeatures.keepLibrary.enabled) {
-    /*
     const liExplorer = ul.insertBefore(document.createElement('li'), ul.firstChild)
     liExplorer.className = 'menubar-item hoverable'
     liExplorer.title = 'library'
@@ -5537,7 +5474,6 @@ function appendMainMenuButtonTo (ul) {
       aExplorer.appendChild(document.createTextNode('\uD83D\uDDC3\uFE0F'))
     }
     liExplorer.addEventListener('click', () => openExplorer())
-    */
   }
 }
 
@@ -6271,7 +6207,7 @@ async function setDomain (enabled) {
   await GM.setValue('domains', JSON.stringify(domains))
 }
 
-var darkModeModeCurrent = null
+let darkModeModeCurrent = null
 async function darkModeMode () {
   if (darkModeModeCurrent != null) {
     return darkModeModeCurrent
@@ -6342,7 +6278,7 @@ function onLoaded () {
         '.sharepanelchecksymbol,.bdp_check_onlinkhover_symbol,.bdp_check_onchecked_symbol,.volumeSymbol,.downloaddisk,.downloadlink,#user-nav .settingssymbol,.listened-symbol,.mark-listened-symbol,.minimizebutton{font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif}' +
         '.downloaddisk,.downloadlink{font-weight: bolder}')
     }
-    
+
     GM.getValue('notification_timeout', NOTIFICATION_TIMEOUT).then(function (ms) {
       NOTIFICATION_TIMEOUT = parseInt(ms)
     })
