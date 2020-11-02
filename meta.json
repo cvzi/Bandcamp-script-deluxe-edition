@@ -1,0 +1,36 @@
+{
+    "name" : "Bandcamp script (Deluxe Edition)",
+    "namespace": "https://openuserjs.org/users/cuzi",
+    "copyright": "2020, cuzi (https://openuserjs.org/users/cuzi)",
+    "supportURL": "https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues",
+    "icon": "https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png",
+    "contributionURL": "https://github.com/cvzi/Bandcamp-script-deluxe-edition#donate",
+    "require": [
+        "https://unpkg.com/json5@2.1.0/dist/index.min.js",
+        "https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js",
+        "https://unpkg.com/react@17/umd/react.development.js",
+        "https://unpkg.com/react-dom@17/umd/react-dom.development.js"
+    ],
+    "run-at": "document-start",
+    "include": [
+        "https://*"
+    ],
+    "grant": [
+        "GM.xmlHttpRequest",
+        "GM.setValue",
+        "GM.getValue",
+        "GM.notification",
+        "GM.download",
+        "GM.registerMenuCommand",
+        "GM.addStyle",
+        "unsafeWindow"
+    ],
+    "connect" : [
+        "bandcamp.com",
+        "*.bandcamp.com",
+        "bcbits.com",
+        "*.bcbits.com",
+        "genius.com",
+        "*"
+    ]
+}

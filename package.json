@@ -1,0 +1,48 @@
+{
+    "name": "bandcamp-script-deluxe-edition",
+    "version": "1.15.0",
+    "description": "A discography player for bandcamp.com and manager for your played albums",
+    "keywords": [
+        "userscript",
+        "greasemonkey",
+        "tampermonkey",
+        "bandcamp"
+    ],
+    "homepage": "https://github.com/cvzi/Bandcamp-script-deluxe-edition",
+    "repository": {
+        "type": "git",
+        "url": "github:cvzi/Bandcamp-script-deluxe-edition"
+    },
+    "bugs": {
+        "url": "https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues",
+        "email": "cuzi@openmail.cc"
+    },
+    "author": "cuzi",
+    "license": "MIT",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "bundle": "npx rollup --config",
+        "serve": "node -r esm server.js"
+    },
+    "devDependencies": {
+        "@babel/cli": "^7.12.1",
+        "@babel/core": "^7.12.3",
+        "@babel/plugin-proposal-class-properties": "^7.12.1",
+        "@babel/preset-react": "^7.12.1",
+        "@rollup/plugin-babel": "^5.2.1",
+        "@rollup/plugin-commonjs": "^15.1.0",
+        "@rollup/plugin-node-resolve": "^9.0.0",
+        "@rollup/plugin-replace": "^2.3.3",
+        "@rollup/plugin-typescript": "^6.0.0",
+        "@types/react": "^16.9.53",
+        "colorette": "^1.2.1",
+        "esm": "^3.2.25",
+        "react": "^17.0.1",
+        "react-dom": "^17.0.1",
+        "rollup": "^2.32.1",
+        "rollup-plugin-userscript-metablock": "^0.2.5",
+        "serve": "^11.3.2",
+        "tslib": "^2.0.3",
+        "typescript": "^4.0.3"
+    }
+}
