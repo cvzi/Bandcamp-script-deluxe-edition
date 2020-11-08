@@ -1,0 +1,31 @@
+name: bundleRelease
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+    - 'dist/bundle.user.js'
+  pull_request:
+    branches: [ master ]
+    paths:
+    - 'dist/bundle.user.js'
+jobs:
+  singleDomain:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: git config
+      run: |
+        git config --global user.name github-actions
+        git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
+        git pull
+    - name: create release version in dist/
+      run: |
+        npm install
+        npm run build:release
+        npm run build:singledomain
+    - name: commit & push
+      run: |
+        git add dist/
+        git commit -m "Release" || true
+        git push

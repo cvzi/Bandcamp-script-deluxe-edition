@@ -1,19 +1,19 @@
+import { red, green, cyan, bold } from 'colorette'
+import rollupConfig from './rollup.config.js'
 const path = require('path')
 const fs = require('fs')
 const http = require('http')
 const handler = require('serve-handler')
-import { red, green, cyan, bold } from 'colorette'
 const rollup = require('rollup')
 const metablock = require('rollup-plugin-userscript-metablock')
 
 const pkg = require('./package.json')
 const meta = require('./meta.json')
-import rollupConfig from './rollup.config.js'
 
 console.log('👀 watch & serve 🤲\n###################\n')
 
 const port = 8124
-const destDir =  'dist/'
+const destDir = 'dist/'
 const devScriptInFile = 'dev.user.js'
 
 const hyperlink = (url, title) => `\u001B]8;;${url}\u0007${title || url}\u001B]8;;\u0007`
@@ -41,7 +41,7 @@ if (grants.indexOf('GM.xmlHttpRequest') === -1) {
 const devMetablock = metablock({
   file: './meta.json',
   override: {
-    name: pkg.name + ' [dev]',
+    name: meta.name + ' [dev]',
     version: pkg.version,
     description: pkg.description,
     homepage: pkg.homepage,
@@ -51,7 +51,7 @@ const devMetablock = metablock({
   }
 })
 
-const result = devMetablock.renderChunk(devScriptContent, null, {sourcemap:false})
+const result = devMetablock.renderChunk(devScriptContent, null, { sourcemap: false })
 const outContent = typeof result === 'string' ? result : result.code
 fs.writeFileSync(devScriptOutFile, outContent)
 console.log(green(`created ${bold(devScriptOutFile)}. Please install in Tampermonkey: `) + hyperlink(`http://localhost:${port}/${devScriptInFile}`))

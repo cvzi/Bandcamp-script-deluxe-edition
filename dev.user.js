@@ -1,3 +1,5 @@
+/*  globals GM */
+
 'use strict';
 
 (function () {

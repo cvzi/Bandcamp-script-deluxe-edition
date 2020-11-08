@@ -11,6 +11,7 @@ const pkg = require('./package.json')
 
 fs.mkdir('dist/', { recursive: true }, () => null)
 const banner = `\
+
 // ==OpenUserJS==
 // @author      cuzi
 // ==/OpenUserJS==
