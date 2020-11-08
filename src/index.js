@@ -2128,7 +2128,11 @@ function addToPlaylist (startPlayback, data) {
   musicPlayerCreate()
 
   const li = document.createElement('li')
-  li.appendChild(document.createTextNode((data.trackNumber > 9 ? '' : '0') + data.trackNumber + '. ' + data.artist + ' - ' + data.title))
+  if (data.trackNumber != null && data.trackNumber !== 'null') {
+    li.appendChild(document.createTextNode((data.trackNumber > 9 ? '' : '0') + data.trackNumber + '. ' + data.artist + ' - ' + data.title))
+  } else {
+    li.appendChild(document.createTextNode(data.artist + ' - ' + data.title))
+  }
   const span = document.createElement('span')
   span.className = 'duration'
   span.appendChild(document.createTextNode(humanDuration(data.duration)))
@@ -5940,6 +5944,19 @@ input[type=text],input[type=password],textarea {
   color:rgb(64, 179, 51) !important
 }
 
+.carousel-player-inner {
+  background-color:#26423b
+}
+.carousel-player-inner .progress-bar {
+  background-color:#26423b
+}
+#carousel-player .queue.show {
+  background-color:#26423b
+}
+#carousel-player .queue.show li.active {
+  background-color:#528679
+}
+
 #autocomplete-results .see-all {
   background-color: #f3f3f345 !important;
 }
@@ -6294,7 +6311,7 @@ function onLoaded () {
       addStyle('#indexpage .ipCellImage { position:relative }')
     }
 
-    if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href*="/album/"] img')) {
+    if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href*="/album/"] img,.music-grid .music-grid-item a[href*="/track/"] img')) {
       // Discography page
       makeAlbumCoversGreat()
     }
