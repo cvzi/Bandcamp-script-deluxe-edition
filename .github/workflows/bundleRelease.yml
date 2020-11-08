@@ -4,11 +4,11 @@ on:
   push:
     branches: [ master ]
     paths:
-    - 'dist/bundle.user.js'
+    - 'dist/**'
   pull_request:
     branches: [ master ]
     paths:
-    - 'dist/bundle.user.js'
+    - 'dist/**'
 jobs:
   singleDomain:
     runs-on: ubuntu-latest
