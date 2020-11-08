@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.15.0](../../tree/v1.15.0) *(2020-11-08)*
+*   Rollup build
+*   Fix discography player for single tracks
+*   Dark mode improved: carousel player
 ## [1.14](../../tree/v1.14) *(2020-10-24)*
 *   Fix discography player `a[href^="/album/"] => a[href*="/album/"]`
 *   Song changed notifications on album page and carousel player

@@ -3,7 +3,7 @@ import config from './rollupRelease.config.js'
 const pkg = require('./package.json')
 const meta = require('./meta.json')
 
-config.output.file = `dist/release-${pkg.version}-bandcamp.com-only.user.js`
+config.output.file = 'dist/release-bandcamp.com-only.user.js'
 
 for (let i = 0; i < config.plugins.length; i++) {
   if ('renderChunk' in config.plugins[i] && !('name' in config.plugins[i])) {
