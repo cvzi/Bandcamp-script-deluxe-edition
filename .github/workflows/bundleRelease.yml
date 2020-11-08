@@ -4,11 +4,11 @@ on:
   push:
     branches: [ master ]
     paths:
-    - 'dist/**'
+    - 'src/**'
   pull_request:
     branches: [ master ]
     paths:
-    - 'dist/**'
+    - 'src/**'
 jobs:
   singleDomain:
     runs-on: ubuntu-latest
