@@ -911,7 +911,16 @@ function musicPlayerPlaySong (next, startTime) {
   }
 
   // Show "playing" indication on album covers
-  const coverLinkPattern = albumPath(next.dataset.albumUrl)
+  let coverLinkPattern = albumPath(next.dataset.albumUrl)
+  if (document.location.href.split('.')[0] !== next.dataset.albumUrl.split('.')[0]) {
+    /*
+    Subdomain is different from album subdomain -> multiple artists on this page, use full url to detect albums.
+    Otherwise albums with the same name but a different artist name will be highlighted.
+    This would happen quite often on search results.
+    */
+    coverLinkPattern = albumKey(next.dataset.albumUrl)
+  }
+
   document.querySelectorAll('img.albumIsCurrentlyPlaying').forEach(img => img.classList.remove('albumIsCurrentlyPlaying'))
   document.querySelectorAll('.albumIsCurrentlyPlayingIndicator').forEach(div => div.remove())
   document.querySelectorAll('a[href*="' + coverLinkPattern + '"] img').forEach(function (img) {
@@ -5929,6 +5938,10 @@ img.imageviewer_image {
   filter:drop-shadow(#a3f204 1px 1px 2px) !important
 }
 
+.hidden .nextsongcontrolbutton {
+  display:none
+}
+
 .inline_player .progbar .thumb {
   background-color:#000;
   border-color:#ccc
@@ -6311,6 +6324,12 @@ function onLoaded () {
       document.querySelector('#indexpage').classList.add('music-grid')
       document.querySelectorAll('#indexpage .indexpage_list_cell').forEach(cell => cell.classList.add('music-grid-item'))
       addStyle('#indexpage .ipCellImage { position:relative }')
+    }
+
+    if (document.querySelector('.search .result-items .searchresult.album img,.search .result-items .searchresult.track img')) {
+      // Search result pages. To make them compatible, let's add the class names from the discography page
+      document.querySelector('.search .result-items').classList.add('music-grid')
+      document.querySelectorAll('.search .result-items .searchresult.album,.search .result-items .searchresult.track').forEach(cell => cell.classList.add('music-grid-item'))
     }
 
     if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href*="/album/"] img,.music-grid .music-grid-item a[href*="/track/"] img')) {
