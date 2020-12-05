@@ -3721,10 +3721,6 @@ function clickAddToWishlist () {
 }
 
 function addReleaseDateButton () {
-  const meta = document.querySelector('*[itemprop="datePublished"]')
-  if (!meta || !meta.content) {
-    return // no release date found
-  }
   const TralbumData = unsafeWindow.TralbumData
   const now = new Date()
   const releaseDate = new Date(TralbumData.current.release_date)
@@ -4980,6 +4976,9 @@ function addDownloadLinksToAlbumPage () {
       // Album page
       for (let i = 0; i < TralbumData.trackinfo.length; i++) {
         const t = TralbumData.trackinfo[i]
+        if (!t.file) {
+          continue
+        }
         const prop = Object.keys(t.file)[0] // Just use the first file entry
         const mp3 = t.file[prop].replace(/^\/\//, 'http://')
         const a = document.createElement('a')
@@ -4996,6 +4995,9 @@ function addDownloadLinksToAlbumPage () {
     } else if (document.querySelector('#trackInfo .download-link')) {
       // Single track page
       const t = TralbumData.trackinfo[0]
+      if (!t.file) {
+        return
+      }
       const prop = Object.keys(t.file)[0]
       const mp3 = t.file[prop].replace(/^\/\//, 'http://')
       const a = document.createElement('a')
@@ -6347,7 +6349,7 @@ function onLoaded () {
         clickAddToWishlist()
       }
 
-      if (document.querySelector('*[itemprop="datePublished"]')) {
+      if (unsafeWindow.TralbumData && unsafeWindow.TralbumData.current && unsafeWindow.TralbumData.current.release_date) {
         addReleaseDateButton()
       }
     }
