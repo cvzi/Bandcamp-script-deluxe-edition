@@ -32,7 +32,7 @@
     "standard": {
         "parser": "babel-eslint",
         "ignore": [
-          "dist/"
+            "dist/"
         ]
     },
     "devDependencies": {
