@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.16.0](../../tree/v1.16.0) *(2020-12-06)*
+*   Fix release reminders
+*   Play albums from search
 ## [1.15.0](../../tree/v1.15.0) *(2020-11-08)*
 *   Rollup build
 *   Fix discography player for single tracks
