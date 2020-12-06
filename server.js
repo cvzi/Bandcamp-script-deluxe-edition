@@ -38,6 +38,12 @@ const grants = 'grant' in meta ? meta.grant : []
 if (grants.indexOf('GM.xmlHttpRequest') === -1) {
   grants.push('GM.xmlHttpRequest')
 }
+if (grants.indexOf('GM.setValue') === -1) {
+  grants.push('GM.setValue')
+}
+if (grants.indexOf('GM.getValue') === -1) {
+  grants.push('GM.getValue')
+}
 const devMetablock = metablock({
   file: './meta.json',
   override: {
