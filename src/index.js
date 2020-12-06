@@ -631,7 +631,7 @@ function dateFormaterRelease (date) {
 function dateFormaterNumeric (date) {
   return date.toLocaleDateString(undefined, _dateOptionsNumericWithoutYear)
 }
-
+let enabledFeaturesLoaded = false
 function getEnabledFeatures (enabledFeaturesValue) {
   for (const feature in allFeatures) {
     allFeatures[feature].enabled = allFeatures[feature].default
@@ -646,6 +646,7 @@ function getEnabledFeatures (enabledFeaturesValue) {
       }
     }
   }
+  enabledFeaturesLoaded = true
   return allFeatures
 }
 
@@ -2085,7 +2086,7 @@ function musicPlayerCreate () {
   player.querySelector('.nextalbum').addEventListener('click', musicPlayerNextAlbum)
 
   player.querySelector('.vol-slider').addEventListener('click', musicPlayerOnVolumeClick)
-  player.querySelector('.vol').addEventListener('wheel', musicPlayerOnVolumeWheel, false)
+  player.querySelector('.vol').addEventListener('wheel', musicPlayerOnVolumeWheel, { passive: false })
   player.querySelector('.vol-icon-wrapper').addEventListener('click', musicPlayerOnMuteClick)
 
   player.querySelector('.collect-wishlist').addEventListener('click', musicPlayerCollectWishlistClick)
@@ -2472,7 +2473,7 @@ function playAlbumFromUrl (url) {
     storeTralbumData(TralbumData)
     return addAlbumToPlaylist(TralbumData, 0)
   }).catch(function onGetTralbumDataError (e) {
-    window.alert('Could not load album data from url:\n' + url + '\n' + ('error' in e ? e.error : ''))
+    window.alert('Could not load album data from url:\n' + url + '\n' + ('error' in e ? e.error : e))
     console.log(e)
   })
 }
@@ -3480,8 +3481,8 @@ function addVolumeBarToAlbumPage () {
     displayVolume()
     GM.setValue('volume', audioAlbumPage.logVolume)
   }
-  volumeButton.addEventListener('wheel', onWheel, false)
-  volumeBar.addEventListener('wheel', onWheel, false)
+  volumeButton.addEventListener('wheel', onWheel, { passive: false })
+  volumeBar.addEventListener('wheel', onWheel, { passive: false })
   volumeButton.addEventListener('click', function onVolumeButtonClick (ev) {
     if (audioAlbumPage.logVolume < 0.01) {
       if ('lastvolume' in audioAlbumPage.dataset && audioAlbumPage.dataset.lastvolume) {
@@ -6260,7 +6261,7 @@ async function darkModeMode () {
 
 function start () {
   // Load settings and enable darkmode
-  GM.getValue('enabledFeatures', false).then((value) => getEnabledFeatures(value)).then(function () {
+  return GM.getValue('enabledFeatures', false).then((value) => getEnabledFeatures(value)).then(function () {
     if (BANDCAMP && allFeatures.darkMode.enabled) {
       darkModeMode().then(function (yes) {
         if (yes) {
@@ -6272,6 +6273,12 @@ function start () {
 }
 
 function onLoaded () {
+  if (!enabledFeaturesLoaded) {
+    GM.getValue('enabledFeatures', false).then((value) => getEnabledFeatures(value)).then(function () {
+      onLoaded()
+    })
+    return
+  }
   if (!BANDCAMP && document.querySelector('#legal.horizNav li.view-switcher.desktop a')) {
     // Page is a bandcamp page but does not have a bandcamp domain
     confirmDomain().then(function (isBandcamp) {
@@ -6439,9 +6446,10 @@ function onLoaded () {
   }
 }
 
-start()
-if (document.readyState !== 'complete' || document.readyState !== 'loaded') {
-  document.addEventListener('DOMContentLoaded', onLoaded)
-} else {
-  onLoaded()
-}
+start().then(function () {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onLoaded)
+  } else {
+    onLoaded()
+  }
+})
