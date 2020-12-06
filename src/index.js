@@ -2281,8 +2281,8 @@ function getTralbumData (url, cb) {
         }
       },
       onerror: function getTralbumDataOnError (response) {
-        console.log('getTralbumData(' + url + ') Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
-        reject(new Error('error' in response ? response.error : 'getTralbumData failed'))
+        console.log('getTralbumData(' + url + ') in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
+        reject(new Error('error' in response ? response.error : 'getTralbumData failed with GM.xmlHttpRequest.onerror'))
       }
     })
   })
