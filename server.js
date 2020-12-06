@@ -12,7 +12,7 @@ const meta = require('./meta.json')
 
 console.log('👀 watch & serve 🤲\n###################\n')
 
-const port = 8124
+const port = 8125
 const destDir = 'dist/'
 const devScriptInFile = 'dev.user.js'
 
