@@ -27,5 +27,5 @@ jobs:
     - name: commit & push
       run: |
         git add dist/
-        git commit -m "Release" || true
+        git commit -m "Created release bundle" || true
         git push
