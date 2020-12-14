@@ -4985,6 +4985,12 @@ function addDownloadLinksToAlbumPage () {
     if (hoverdiv.length > 0) {
       // Album page
       for (let i = 0; i < TralbumData.trackinfo.length; i++) {
+        if (!NOEMOJI && hoverdiv[i].querySelector('a[href*="?action=download"]')) {
+          // Replace buy link with shopping cart emoji
+          hoverdiv[i].querySelector('a[href*="?action=download"]').innerHTML = '&#x1f6d2;'
+          hoverdiv[i].querySelector('a[href*="?action=download"]').title = 'buy track'
+        }
+        // Add download link
         const t = TralbumData.trackinfo[i]
         if (!t.file) {
           continue
@@ -5042,16 +5048,26 @@ function addLyricsToAlbumPage () {
     const trackNum = tr.getAttribute('rel').split('tracknum=')[1]
     const lyricsRow = document.querySelector('#track_table tr#lyrics_row_' + trackNum)
     const lyricsLink = tr.querySelector('.geniuslink')
+    if (tr.querySelector('.info_link').innerHTML.indexOf('lyrics') === -1) {
+      // Hide info link if there are no lyrics
+      tr.querySelector('.info_link a[href*="/track/"]').innerHTML = ''
+    }
     if (lyricsRow) {
-      const i = parseInt(lyricsRow.id.split('lyrics_row_')[1]) - 1
-      tracks[i].lyrics = lyricsRow.querySelector('div').textContent
+      const trackNum = parseInt(lyricsRow.id.split('lyrics_row_')[1])
+      for (let i = 0; i < tracks.length; i++) {
+        if (trackNum === tracks[i].track_num) {
+          tracks[i].lyrics = lyricsRow.querySelector('div').textContent
+        }
+      }
     } else if (!lyricsLink) {
       // Add genius link
-      const lyricsLink = tr.querySelector('.info_link a')
+      const lyricsLink = tr.querySelector('.info_link').appendChild(document.createElement('a'))
       lyricsLink.dataset.trackNum = trackNum
+      lyricsLink.title = 'load lyrics from genius.com'
       lyricsLink.href = '#geniuslyrics-' + trackNum
       lyricsLink.classList.add('geniuslink')
-      lyricsLink.appendChild(document.createTextNode('genius'))
+      lyricsLink.appendChild(document.createTextNode('G'))
+      lyricsLink.style = 'color: black;background: rgb(255, 255, 100);border-radius: 50%;padding: 0px 3px;border: 1px solid black'
       lyricsLink.addEventListener('click', function () {
         loadGeniusLyrics(parseInt(this.dataset.trackNum))
       })
@@ -5184,7 +5200,6 @@ function geniusCreateSpinner (spinnerHolder) {
 
 function geniusShowSearchField (query) {
   const b = geniusGetCleanLyricsContainer()
-  console.log(b)
 
   b.style.border = '1px solid black'
   b.style.borderRadius = '3px'
