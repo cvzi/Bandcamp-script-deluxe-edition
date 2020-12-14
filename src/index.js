@@ -6276,14 +6276,19 @@ async function darkModeMode () {
 
 function start () {
   // Load settings and enable darkmode
-  return GM.getValue('enabledFeatures', false).then((value) => getEnabledFeatures(value)).then(function () {
-    if (BANDCAMP && allFeatures.darkMode.enabled) {
-      darkModeMode().then(function (yes) {
-        if (yes) {
-          darkMode()
-        }
-      })
-    }
+  return new Promise(function startFct (resolve) {
+    GM.getValue('enabledFeatures', false).then((value) => getEnabledFeatures(value)).then(function () {
+      if (BANDCAMP && allFeatures.darkMode.enabled) {
+        darkModeMode().then(function (yes) {
+          if (yes) {
+            darkMode()
+          }
+          resolve()
+        })
+      } else {
+        resolve()
+      }
+    })
   })
 }
 
