@@ -2427,10 +2427,15 @@ function addAlbumToPlaylist (TralbumData, startPlaybackIndex) {
 function addAllAlbumsAsHeadings () {
   const as = document.querySelectorAll('.music-grid .music-grid-item a[href*="/album/"],.music-grid .music-grid-item a[href*="/track/"]')
   const lis = player.querySelectorAll('.playlist .playlistentry')
-
+  const unloadedAs = player.querySelectorAll('.playlist .playlistheading.notloaded a')
   const isAlreadyInPlaylist = function (url) {
     for (let i = 0; i < lis.length; i++) {
       if (albumKey(lis[i].dataset.albumUrl) === albumKey(url)) {
+        return true
+      }
+    }
+    for (let i = 0; i < unloadedAs.length; i++) {
+      if (albumKey(unloadedAs[i].href) === albumKey(url)) {
         return true
       }
     }
