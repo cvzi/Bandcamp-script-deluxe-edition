@@ -44,9 +44,11 @@
       log(e)
     }
   }).then(function (s) {
-    /* eslint-disable no-eval */
-    eval(`${s}
+    if (s) {
+      /* eslint-disable no-eval */
+      eval(`${s}
 //# sourceURL=${url}`)
-    GM.setValue('scriptlastsource3948218', s)
+      GM.setValue('scriptlastsource3948218', s)
+    }
   })
 })()
