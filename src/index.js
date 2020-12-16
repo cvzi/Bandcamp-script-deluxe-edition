@@ -1212,24 +1212,202 @@ function musicPlayerOnEnded (ev) {
   musicPlayerNextSong()
   window.setTimeout(() => player.querySelector('.playlist .playing').scrollIntoView({ block: 'nearest' }), 200)
 }
-function musicPlayerOnPlaylistClick (ev) {
-  musicPlayerNextSong(this)
+function musicPlayerOnPlaylistClick (ev, contextMenuRoot) {
+  const li = this
+  if (ev.ctrlKey && player.querySelector('.playlist .isselected')) {
+    // Select multiple with ctrlKey
+    ev.preventDefault()
+    musicPlayerContextMenuCtrl.call(li, ev)
+    return
+  }
+  if (ev.shiftKey && musicPlayerContextMenuLastSelectedLi && musicPlayerContextMenuLastSelectedLi.classList.contains('isselected')) {
+    // Select multiple with shift key
+    ev.preventDefault()
+    if (musicPlayerContextMenuShift.call(li, ev)) {
+      return
+    }
+  }
+  musicPlayerNextSong(li)
+  if (contextMenuRoot) {
+    contextMenuRoot.remove()
+  }
 }
-function musicPlayerOnPlaylistHeadingClick (ev) {
-  const a = this.querySelector('a[href]')
+function removeSelectedFromPlaylist (ev, contextMenuRoot) {
+  player.querySelectorAll('.playlist .isselected').forEach(function (li) {
+    if (li.classList.contains('playlistentry')) {
+      let walk = li.previousElementSibling
+      let remainingTrackN = 0
+      while (walk.classList.contains('playlistentry')) {
+        remainingTrackN++
+        walk = walk.previousElementSibling
+      }
+      walk = li.nextElementSibling
+      while (walk.classList.contains('playlistentry')) {
+        remainingTrackN++
+        walk = walk.nextElementSibling
+      }
+      if (remainingTrackN === 0) {
+        // If this is last song of album, then remove also album
+        walk = li.previousElementSibling
+        while (walk) {
+          if (walk.classList.contains('playlistheading')) {
+            walk.remove()
+            break
+          }
+          walk = walk.previousElementSibling
+        }
+      }
+      // Remove track
+      li.remove()
+    } else {
+      // Remove album
+      let next = li.nextElementSibling
+      while (next && next.classList.contains('playlistentry')) {
+        next.remove()
+        next = li.nextElementSibling
+      }
+      li.remove()
+    }
+  })
+  if (contextMenuRoot) {
+    contextMenuRoot.remove()
+  }
+}
+function musicPlayerOnPlaylistHeadingClick (ev, contextMenuRoot) {
+  const li = this
+  const a = li.querySelector('a[href]')
   if (a && a.classList.contains('notloaded')) {
     const url = a.href
-    this.remove()
     cachedTralbumData(url).then(function onCachedTralbumDataLoaded (TralbumData) {
+      li.remove()
       if (TralbumData) {
         addAlbumToPlaylist(TralbumData, 0)
       } else {
         playAlbumFromUrl(url)
       }
     })
-  } else if (a && this.nextElementSibling) {
-    this.nextElementSibling.click()
+  } else if (a && li.nextElementSibling) {
+    li.nextElementSibling.click()
   }
+  if (contextMenuRoot) {
+    contextMenuRoot.remove()
+  }
+}
+let musicPlayerContextMenuLastSelectedLi = null
+function musicPlayerContextMenuCtrl (ev) {
+  const li = this
+  li.classList.toggle('isselected')
+  if (li.classList.contains('isselected')) {
+    musicPlayerContextMenuLastSelectedLi = li
+  }
+}
+function musicPlayerContextMenuShift (ev) {
+  const li = this
+  // Find the last selected element (i.e. in which direction we need to go)
+  let dir = 0
+  let walk = li.previousElementSibling
+  while (walk && dir === 0) {
+    if (walk === musicPlayerContextMenuLastSelectedLi) {
+      dir = -1
+    }
+    walk = walk.previousElementSibling
+  }
+  walk = li.nextElementSibling
+  while (walk && dir === 0) {
+    if (walk === musicPlayerContextMenuLastSelectedLi) {
+      dir = 1
+      break
+    }
+    walk = walk.nextElementSibling
+  }
+  // Select every track in-between
+  if (dir === -1) {
+    walk = li.previousElementSibling
+    while (walk !== musicPlayerContextMenuLastSelectedLi) {
+      if (walk.classList.contains('playlistentry')) {
+        walk.classList.add('isselected')
+      }
+      walk = walk.previousElementSibling
+    }
+    li.classList.add('isselected')
+    return true
+  } else if (dir === 1) {
+    walk = li.nextElementSibling
+    while (walk !== musicPlayerContextMenuLastSelectedLi) {
+      if (walk.classList.contains('playlistentry')) {
+        walk.classList.add('isselected')
+      }
+      walk = walk.nextElementSibling
+    }
+    li.classList.add('isselected')
+    return true
+  } else {
+    return false
+  }
+}
+
+function musicPlayerContextMenu (ev) {
+  const li = this
+  if (ev.ctrlKey && player.querySelector('.playlist .isselected')) {
+    // Select multiple with ctrl key
+    musicPlayerContextMenuCtrl.call(li, ev)
+    return
+  }
+  if (ev.shiftKey && musicPlayerContextMenuLastSelectedLi && musicPlayerContextMenuLastSelectedLi.classList.contains('isselected')) {
+    // Select multiple with shift key
+    if (musicPlayerContextMenuShift.call(li, ev)) {
+      return
+    }
+  }
+
+  player.querySelectorAll('.playlist .isselected').forEach(e => e.classList.remove('isselected'))
+  const oldMenu = document.getElementById('discographyplayer_contextmenu')
+  if (oldMenu) {
+    removeViaQuerySelector('#discographyplayer_contextmenu')
+    if (li.dataset.id && li.dataset.id === oldMenu.dataset.id) {
+      return
+    }
+  }
+
+  li.classList.add('isselected')
+  musicPlayerContextMenuLastSelectedLi = li
+  const div = document.body.appendChild(document.createElement('div'))
+  li.dataset.id = Math.random()
+  div.dataset.id = li.dataset.id
+  div.setAttribute('id', 'discographyplayer_contextmenu')
+
+  div.style.left = (ev.pageX + 11) + 'px'
+  div.style.top = (ev.pageY) + 'px'
+
+  const menuEntries = []
+  if (li.classList.contains('playlistentry') || li.classList.contains('playlistheading')) {
+    menuEntries.push(['Remove selected', 'Remove selected tracks or albums from playlist\nSelect more with CTRL + Right click', removeSelectedFromPlaylist])
+  }
+  if (li.classList.contains('playlistentry')) {
+    menuEntries.push(['Play track', 'Start playback', musicPlayerOnPlaylistClick])
+  }
+  if (li.classList.contains('playlistheading')) {
+    menuEntries.push(['Play album', 'Start playback', musicPlayerOnPlaylistHeadingClick])
+  }
+
+  menuEntries.forEach(function (menuEntry) {
+    const subMenu = div.appendChild(document.createElement('div'))
+    subMenu.classList.add('contextmenu_submenu')
+    subMenu.appendChild(document.createTextNode(menuEntry[0]))
+    subMenu.setAttribute('title', menuEntry[1])
+    subMenu.addEventListener('click', function (clickEvent) {
+      menuEntry[2].call(li, clickEvent, div)
+    })
+  })
+}
+
+function musicPlayerOnPlaylistContextMenu (ev) {
+  ev.preventDefault()
+  musicPlayerContextMenu.call(this, ev)
+}
+function musicPlayerOnPlaylistHeadingContextMenu (ev) {
+  ev.preventDefault()
+  musicPlayerContextMenu.call(this, ev)
 }
 function musicPlayerFavicon (url) {
   removeViaQuerySelector(document.head, 'link[rel*=icon]')
@@ -1347,6 +1525,11 @@ function musicPlayerCookieChannelSendStop (onStopEventCb) {
 }
 
 function musicPlayerSaveState () {
+  // Add remaining albums as headings
+  addAllAlbumsAsHeadings()
+  // Remove context menu and selection, we don't want to restore those
+  player.querySelectorAll('.playlist .isselected').forEach(e => e.classList.remove('isselected'))
+  removeViaQuerySelector('#discographyplayer_contextmenu')
   let startPlaybackIndex = false
   const playlistEntries = player.querySelectorAll('.playlist .playlistentry')
   for (let i = 0; i < playlistEntries.length; i++) {
@@ -1380,9 +1563,11 @@ function musicPlayerRestoreState (state) {
   const playlistEntries = player.querySelectorAll('.playlist .playlistentry')
   playlistEntries.forEach(function addPlaylistEntryOnClick (li) {
     li.addEventListener('click', musicPlayerOnPlaylistClick)
+    li.addEventListener('contextmenu', musicPlayerOnPlaylistContextMenu)
   })
   player.querySelectorAll('.playlist .playlistheading').forEach(function addPlaylistHeadingEntryOnClick (li) {
     li.addEventListener('click', musicPlayerOnPlaylistHeadingClick)
+    li.addEventListener('contextmenu', musicPlayerOnPlaylistHeadingContextMenu)
   })
   if (state.startPlaybackIndex !== false) {
     player.querySelectorAll('.playlist .playing').forEach(function (el) {
@@ -1752,6 +1937,7 @@ function musicPlayerCreate () {
   background:rgba(0,0,0,0.1);
 }
 #discographyplayer .playlist{
+  position:relative;
   width:100%;
   display:inline-block;
   max-height:80px;
@@ -1760,6 +1946,26 @@ function musicPlayerCreate () {
   margin:0px;
   padding: 0px 5px 0px 5px;
   scrollbar-color: rgba(50,50,50,0.4) white;
+}
+#discographyplayer_contextmenu {
+  position:absolute;
+  box-shadow: #000000b0 2px 2px 2px;
+  background-color:white;
+  border: #619aa9 2px solid;
+  z-index:1011;
+}
+#discographyplayer_contextmenu .contextmenu_submenu {
+  cursor:pointer;
+  padding:2px;
+  border: 1px solid #619aa9;
+}
+#discographyplayer_contextmenu .contextmenu_submenu:hover {
+  background-color:#619aa9;
+  color:white;
+  border: 1px solid white;
+}
+#discographyplayer .playlist .isselected {
+  border:1px solid red;
 }
 #discographyplayer .playlist .playlistentry {
   cursor:pointer;
@@ -2103,7 +2309,6 @@ function musicPlayerCreate () {
 
   window.addEventListener('unload', function onPageUnLoad (ev) {
     if (allFeatures.discographyplayerPersist.enabled && player.style.display !== 'none' && !audio.paused) {
-      addAllAlbumsAsHeadings()
       musicPlayerSaveState()
     }
   })
@@ -2131,6 +2336,7 @@ function addHeadingToPlaylist (title, url, albumLoaded) {
     li.title = 'Load album into playlist'
   }
   li.addEventListener('click', musicPlayerOnPlaylistHeadingClick)
+  li.addEventListener('contextmenu', musicPlayerOnPlaylistHeadingContextMenu)
   player.querySelector('.playlist').appendChild(li)
 }
 
@@ -2160,6 +2366,7 @@ function addToPlaylist (startPlayback, data) {
   li.dataset.isPurchased = data.isPurchased
 
   li.addEventListener('click', musicPlayerOnPlaylistClick)
+  li.addEventListener('contextmenu', musicPlayerOnPlaylistContextMenu)
   li.className = 'playlistentry'
   player.querySelector('.playlist').appendChild(li)
 
@@ -6032,6 +6239,26 @@ input[type=text],input[type=password],textarea {
 #discographyplayer .playlist {
   scrollbar-color: #222 #26423b !important;
 }
+
+#discographyplayer_contextmenu {
+  box-shadow: #ffffff50 2px 2px 2px;
+  background-color:#162d27;
+  border: #619aa9 2px solid;
+  color: #c2aa4a;
+}
+#discographyplayer_contextmenu .contextmenu_submenu {
+  cursor:pointer;
+  padding:2px;
+  background-color:#162d27;
+  color: #c2aa4a;
+  border: 1px solid transparent;
+}
+#discographyplayer_contextmenu .contextmenu_submenu:hover {
+  background-color:#619aa9;
+  color:white;
+  border: 1px solid white;
+}
+
 
 #band-navbar {
     background-color: #333 !important;
