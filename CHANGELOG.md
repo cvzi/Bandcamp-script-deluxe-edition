@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](../../tree/v1.17.0) *(2020-12-16)*
+*   context menu in discography player
+*   smaller icons for buy track, info, lyrics on album page
+*   development script keeps source in cache in case server.js is not running
+*   prevent duplicates when restoring the discography player on a page change
+## [1.16.1](../../tree/v1.16.1) *(2020-12-06)*
+*   make sure settings are loaded before onLoaded()
 ## [1.16.0](../../tree/v1.16.0) *(2020-12-06)*
 *   Fix release reminders
 *   Play albums from search
