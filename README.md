@@ -26,7 +26,7 @@ Features:
  *   Download mp3 from discography player
  *   Download mp3 from album page
  *   Desktop notifications on song change (disabled by default, enable in script settings in the top right corner)
- *   Control playback with hardware multimedia keys or remote control (only Chrome)
+ *   Control playback with hardware multimedia keys or remote control
  *   **Set reminders** for upcoming releases
  *   **Dark theme** by [Simonus](https://userstyles.org/styles/171538/bandcamp-in-dark)
  *   **Lyrics from [genius.com](https://genius.com/)** on album pages if bandcamp does not provide lyrics
