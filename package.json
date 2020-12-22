@@ -47,10 +47,12 @@
         "@rollup/plugin-typescript": "^8.1.0",
         "@types/react": "^17.0.0",
         "babel-eslint": "^10.1.0",
+        "clean-css": "^4.2.3",
         "colorette": "^1.2.1",
-        "eslint": "^7.15.0",
+        "eslint": "^7.16.0",
         "esm": "^3.2.25",
         "rollup": "^2.35.1",
+        "rollup-plugin-string": "^3.0.0",
         "rollup-plugin-userscript-metablock": "^0.2.7",
         "serve": "^11.3.2",
         "standard": "^16.0.3",
@@ -61,5 +63,8 @@
         "react": "^17.0.1",
         "react-dom": "^17.0.1",
         "react-window": "^1.8.6"
+    },
+    "config": {
+        "port": "8125"
     }
 }
