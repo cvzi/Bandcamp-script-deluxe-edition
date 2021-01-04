@@ -5,9 +5,35 @@ import replace from '@rollup/plugin-replace'
 import typescriptPlugin from '@rollup/plugin-typescript'
 import typescript from 'typescript'
 import metablock from 'rollup-plugin-userscript-metablock'
-
+const CleanCSS = require('clean-css')
+const { createFilter } = require('rollup-pluginutils')
 const fs = require('fs')
+const path = require('path')
 const pkg = require('./package.json')
+const port = pkg.config.port
+
+function importText (options = {}) {
+  // https://rollupjs.org/guide/en/#example-transformer
+  const filter = createFilter(options.include, options.exclude)
+  return {
+    name: 'importText',
+    transform: function transform (code, id) {
+      if (filter(id)) {
+        if (options.css && id.endsWith('.css')) {
+          const files = {}
+          files['http://localhost:' + port + '/' + path.relative('.', id).split('\\').join('/')] = { styles: code }
+          const cleanCss = new CleanCSS({ sourceMap: true }).minify(files)
+          const map = Buffer.from(cleanCss.sourceMap.toString(), 'binary').toString('base64')
+          code = cleanCss.styles + '\n/*# sourceMappingURL=data:application/json;base64,' + map + ' */'
+        }
+        return {
+          code: `export default ${JSON.stringify(code)};`,
+          map: { mappings: '' }
+        }
+      }
+    }
+  }
+}
 
 fs.mkdir('dist/', { recursive: true }, () => null)
 const banner = `\
@@ -41,6 +67,7 @@ export default {
     replace({
       ENVIRONMENT: JSON.stringify('production')
     }),
+    importText({ include: ['**/*.html', '**/*.css'], css: true }),
     nodeResolve({ extensions: ['.js', '.ts', '.tsx'] }),
     typescriptPlugin({ typescript }),
     commonjs({
