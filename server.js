@@ -12,7 +12,7 @@ const meta = require('./meta.json')
 
 console.log('👀 watch & serve 🤲\n###################\n')
 
-const port = 8125
+const port = pkg.config.port
 const destDir = 'dist/'
 const devScriptInFile = 'dev.user.js'
 
@@ -23,7 +23,7 @@ fs.mkdir('dist/', { recursive: true }, () => null)
 // Start web server
 const server = http.createServer((request, response) => {
   return handler(request, response, {
-    public: destDir
+    public: '.'
   })
 })
 server.listen(port, () => {
@@ -33,7 +33,7 @@ server.listen(port, () => {
 // Create the userscript for development 'dist/dev.user.js'
 const devScriptOutFile = path.join(destDir, devScriptInFile)
 console.log(cyan(`generate development userscript ${bold('package.json')}, ${bold('meta.json')}, ${bold(devScriptInFile)} → ${bold(devScriptOutFile)}...`))
-const devScriptContent = fs.readFileSync(devScriptInFile, 'utf8')
+const devScriptContent = fs.readFileSync(devScriptInFile, 'utf8').replace(/%PORT%/gm, port.toString())
 const grants = 'grant' in meta ? meta.grant : []
 if (grants.indexOf('GM.xmlHttpRequest') === -1) {
   grants.push('GM.xmlHttpRequest')
@@ -60,7 +60,7 @@ const devMetablock = metablock({
 const result = devMetablock.renderChunk(devScriptContent, null, { sourcemap: false })
 const outContent = typeof result === 'string' ? result : result.code
 fs.writeFileSync(devScriptOutFile, outContent)
-console.log(green(`created ${bold(devScriptOutFile)}. Please install in Tampermonkey: `) + hyperlink(`http://localhost:${port}/${devScriptInFile}`))
+console.log(green(`created ${bold(devScriptOutFile)}. Please install in Tampermonkey: `) + hyperlink(`http://localhost:${port}/${destDir}${devScriptInFile}`))
 
 // Start rollup watch
 const watcher = rollup.watch(rollupConfig)
@@ -69,7 +69,7 @@ watcher.on('event', event => {
   if (event.code === 'BUNDLE_START') {
     console.log(cyan(`bundles ${bold(event.input)} → ${bold(event.output.map(fullPath => path.relative(path.resolve(__dirname), fullPath)).join(', '))}...`))
   } else if (event.code === 'BUNDLE_END') {
-    console.log(green(`created ${bold(event.output.map(fullPath => path.relative(path.resolve(__dirname), fullPath)).join(', '))} in ${event.duration}s`))
+    console.log(green(`created ${bold(event.output.map(fullPath => path.relative(path.resolve(__dirname), fullPath)).join(', '))} in ${event.duration}ms`))
   } else if (event.code === 'ERROR') {
     console.log(bold(red('⚠ Error')))
     console.log(event.error)
