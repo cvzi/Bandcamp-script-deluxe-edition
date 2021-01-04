@@ -1,0 +1,63 @@
+@media (min-width: 1600px) {
+  #menubar-wrapper:hover {
+    z-index:1100;
+  }
+  #discographyplayer {
+    display: block;
+    bottom: 0px;
+    height: 100vh;
+    max-height: 100vh;
+    width: calc((100vw - 915px - 35px) / 2);
+    right: 0px;
+    border-left: 1px solid #0007;
+    padding-left: 1px;
+  }
+  #discographyplayer .playlist {
+    height: calc(100vh - 80px - 80px - 50px - 13px);
+    max-height: calc(100vh - 80px - 80px - 50px - 13px);
+  }
+  #discographyplayer .playlist .playlistentry {
+    overflow-x:hidden;
+  }
+  #discographyplayer .col25 {
+    width: 98%;
+  }
+  #discographyplayer .col.nowPlaying {
+    height: 70px;
+  }
+  #discographyplayer .col.col25.colcontrols {
+    height: 85px;
+  }
+  #discographyplayer .col35 {
+    width: 97%;
+  }
+  #discographyplayer .col15 {
+    width: 96%;
+  }
+  #discographyplayer .colvolumecontrols {
+    height: 50px
+  }
+  #playhead, #bufferbar {
+    height: 25px;
+    border-radius: 0;
+  }
+  #discographyplayer .audioplayer a.downloadlink {
+    position: fixed;
+    bottom: 5px;
+    right: 5px;
+    z-index: 10;
+  }
+  #discographyplayer .minimizebutton {
+    display:none;
+  }
+  #discographyplayer .currentlyPlaying{
+    transition: margin-top 1s ease-in-out;
+    width:99%;
+    height:99%;
+  }
+  #discographyplayer .nextInRow {
+    height:0%;
+    width:99%;
+    transition: height 1s ease-in-out;
+  }
+}

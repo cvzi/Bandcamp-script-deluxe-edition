@@ -1,0 +1,86 @@
+    #pastreleases {
+      position:fixed;
+      bottom:1%;
+      left:10px;
+      background:#d5dce4;
+      color:#033162;
+      font-size:10pt;
+      border:1px solid #033162;
+      z-index:200;
+      opacity:0.0;
+      transition: opacity 700ms;
+      overflow:auto
+    }
+    #pastreleases .tablediv {
+      display: table;
+      position:relative;
+    }
+    #pastreleases .entry,#pastreleases .header {
+      display:table-row
+    }
+    #pastreleases .entry > *,#pastreleases .header > * {
+      display:table-cell;
+      line-height:21pt
+    }
+    #pastreleases .upcoming {
+      cursor:pointer;
+      font-size:x-small
+    }
+    #pastreleases .controls {
+      cursor:pointer;
+      position:absolute;
+      top:0px;
+      right:1px;
+      line-height:11pt
+    }
+    #pastreleases .entry:link {
+      position:relative;
+      border-top:1px solid #033162;
+      color:#033162;
+      text-decoration:none
+    }
+    #pastreleases .entry:nth-child(odd) {
+      background:#c5ccd4
+    }
+    #pastreleases .entry:hover,#pastreleases .entry:visited {
+      color:#033162;
+      text-decoration:none
+    }
+    #pastreleases .entry.future {
+      display:none;
+      background:#9fc2ea;
+    }
+    #pastreleases .entry.future:nth-child(odd) {
+      background:#8fc2e1;
+    }
+    #pastreleases .entry .image {
+      background-size:contain;
+      width:21pt;
+      height:21pt
+    }
+    #pastreleases .entry:hover .image {
+      display:block;
+      position:fixed;
+      bottom:10px;
+      top:50%;
+      left:50%;
+      margin-right:-50%;
+      transform:translate(-50%, -50%);
+      width:350px;
+      height:350px;
+      background:black;
+      border:5px solid white;
+    }
+    #pastreleases .entry time {
+      padding-right: 2px
+    }
+    #pastreleases .entry .title {
+      padding-left: 2px;
+      border-left: 1px solid #47a2bd
+    }
+    #pastreleases .remove {
+      font-family:sans-serif;
+      color:#97174e;
+      font-size: small;
+      padding-right:3px
+    }

@@ -1,0 +1,73 @@
+
+  #myconfigwin39457845 {
+    z-index:2060 !important;
+    position:fixed !important;
+  }
+  #myconfigwin39457845 h1 {
+    margin:5px;
+  }
+  #myconfigwin39457845 .divAutoShow {
+    display:none
+  }
+  #myconfigwin39457845  button {
+    background-color: #cacaca !important;
+    color: black !important;
+    border: 2px outset !important;
+    padding: 1px !important;
+    font-size: 1.2em !important;
+  }
+  #lyricsiframe {
+    opacity:0.1;
+    transition:opacity 2s;
+    margin:0px;
+    padding:0px;
+    position:relative;
+  }
+  .lyricsnavbar {
+    font-size : 0.7em;
+    text-align:right;
+    padding: 0px 10px 0px 0px !important;
+   }
+  .lyricsnavbar span,.lyricsnavbar a:link,.lyricsnavbar a:visited  {
+    color:#606060;
+    text-decoration:none;
+    transition:color 400ms;
+   }
+  .lyricsnavbar a:hover,.lyricsnavbar span:hover {
+    color:#9026e0;
+    text-decoration:none;
+  }
+  .loadingspinner {
+      color:black;
+      font-size:12px;
+      line-height:15px;
+      width:15px !important;
+      height:15px !important;
+      padding: 2px !important;
+    }
+  .loadingspinnerholder {
+    z-index:10;
+    cursor:progress;
+    position:relative;
+    width:20px !important;
+    height:20px !important;
+  }
+  .searchresultlist {
+    margin:0px !important;
+    padding:0px !important;
+    border:1px solid black;
+    border-radius: 3px;
+    width: 450px !important;
+  }
+  .searchresultlist ol {
+    list-style: none;
+    padding: 0px !important;
+    margin:0px; !important
+  }
+  .searchresultlist ol li {
+    width: 430px !important;
+  }
+  .searchresultlist ol li div {
+    width: auto !important;
+  }
+  
