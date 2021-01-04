@@ -12,7 +12,7 @@ const path = require('path')
 const pkg = require('./package.json')
 const port = pkg.config.port
 
-function importText (options = {}) {
+export function importText (options = {}) {
   // https://rollupjs.org/guide/en/#example-transformer
   const filter = createFilter(options.include, options.exclude)
   return {
@@ -20,11 +20,17 @@ function importText (options = {}) {
     transform: function transform (code, id) {
       if (filter(id)) {
         if (options.css && id.endsWith('.css')) {
-          const files = {}
-          files['http://localhost:' + port + '/' + path.relative('.', id).split('\\').join('/')] = { styles: code }
-          const cleanCss = new CleanCSS({ sourceMap: true }).minify(files)
-          const map = Buffer.from(cleanCss.sourceMap.toString(), 'binary').toString('base64')
-          code = cleanCss.styles + '\n/*# sourceMappingURL=data:application/json;base64,' + map + ' */'
+          if (!options.release) {
+            const files = {}
+            // TODO use file:/// instead of localhost? does this work on chrome?
+            files['http://localhost:' + port + '/' + path.relative('.', id).split('\\').join('/')] = { styles: code }
+            const cleanCss = new CleanCSS({ sourceMap: true }).minify(files)
+            const map = Buffer.from(cleanCss.sourceMap.toString(), 'binary').toString('base64')
+            code = cleanCss.styles + '\n/*# sourceMappingURL=data:application/json;base64,' + map + ' */'
+          } else {
+            const cleanCss = new CleanCSS().minify(code)
+            code = cleanCss.styles
+          }
         }
         return {
           code: `export default ${JSON.stringify(code)};`,
@@ -34,6 +40,7 @@ function importText (options = {}) {
     }
   }
 }
+export const importTextOptions = { include: ['**/*.html', '**/*.css'], css: true }
 
 fs.mkdir('dist/', { recursive: true }, () => null)
 const banner = `\
@@ -67,7 +74,7 @@ export default {
     replace({
       ENVIRONMENT: JSON.stringify('production')
     }),
-    importText({ include: ['**/*.html', '**/*.css'], css: true }),
+    importText(importTextOptions),
     nodeResolve({ extensions: ['.js', '.ts', '.tsx'] }),
     typescriptPlugin({ typescript }),
     commonjs({
