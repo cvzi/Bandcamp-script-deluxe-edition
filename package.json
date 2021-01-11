@@ -52,7 +52,7 @@
         "colorette": "^1.2.1",
         "eslint": "^7.17.0",
         "esm": "^3.2.25",
-        "rollup": "^2.35.1",
+        "rollup": "^2.36.1",
         "rollup-plugin-string": "^3.0.0",
         "rollup-plugin-userscript-metablock": "^0.2.7",
         "serve": "^11.3.2",
