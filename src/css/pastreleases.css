@@ -76,7 +76,8 @@
     }
     #pastreleases .entry .title {
       padding-left: 2px;
-      border-left: 1px solid #47a2bd
+      border-left: 1px solid #47a2bd;
+      font-size: 1em;
     }
     #pastreleases .remove {
       font-family:sans-serif;
