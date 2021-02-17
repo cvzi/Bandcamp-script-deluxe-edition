@@ -579,4 +579,7 @@ article .icon {
 #pastreleases .entry.future:nth-child(odd) {
   background-color:#11447d!important;
 }
-  
+
+#queueloadingindicator {
+  background-color:#154a86!important
+}

@@ -141,6 +141,20 @@
   overflow: hidden;
   background-size: contain;
 }
+#discographyplayer .shuffleswitch .shufflebutton {
+  background-size:cover;
+  background-position-y: 0px;
+  /* Set in HTML layout: background-image:${spriteRepeatShuffle}; */
+  filter:drop-shadow(#FFF 1px 1px 2px);
+  transition: filter 500ms;
+  border: 0;
+  height: 13px;
+  width: 20px;
+  margin-top: 4px;
+}
+#discographyplayer .shuffleswitch .shufflebutton.active {
+  filter:drop-shadow(#0060F2 1px 1px 2px);
+}
 #discographyplayer .arrowbutton {
   border: 0;
   height: 13px;

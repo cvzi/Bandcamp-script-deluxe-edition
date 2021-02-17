@@ -26,7 +26,7 @@ const SCRIPT_NAME = 'Bandcamp script (Deluxe Edition)'
 const LYRICS_EMPTY_PATH = '/robots.txt'
 const PLAYER_URL = 'https://bandcamp.com/robots.txt?player'
 let darkModeInjected = false
-
+let storeTralbumDataPermanentlySwitch = true
 const allFeatures = {
   discographyplayer: {
     name: 'Enable player on discography page',
@@ -276,7 +276,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`
 let player, audio, currentDuration, timeline, playhead, bufferbar
 let onPlayHead = false
 
-const spriteRepeatShuffle = 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAABgCAMAAACt1UvuAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAA2UExURQAAAP////39/Tw8PP///////w4ODv////7+/v7+/k5OTktLS35+fiAgIJSUlAAAABAQECoqKpxAnVsAAAAPdFJOUwAxQ05UJGkKBRchgWiOOufd5UcAAAKrSURBVEjH7ZfrkqQgDIUbFLmphPd/2T2EgNqNzlTt7o+p3dR0d5V+JOGEYzkvZ63nsNY6517XCPIrjIDvXF7qL24ao5QynesIllDKE1MpJdom1UDBQIQlE+HmEipVIk+6cqVqQYivlq/loBJFDa6WnaitbbnMtFHnOF1niDJJX14pPa+cOm0l3Vohyuus8xpkj9ih1nPke6iaO6KV323XqwhRON4tQ3GedakNYYQqslaO+yv9xs64Lh2rX8sWeSISzVWTk8ROJmmU9MTl1PvEnHBmzXRSzvhhuqJAzjlJY9eJCVWljKwcESbL+fbTYK0NWx0IGodyvKCACqp6VqMNlguhktbxMqHdI5k7ps1SsiTxPO0YDgojkZPIysl+617cy8rUkIfPflMY4IaKLZfHhSoPn782iQJC5tIX2nfNQseGG4eoe3T1+kXh7j1j/H6W9TbC65ZxR2S0frKePUWYlhbY/hTkvL6aiKPApCRTeoxNTvUTI16r1DqPAqrGVR0UT/ojwGByJ6qO8S32HQ6wJ8r4TwFdyGnx7kzVM8l/nZpwRwkm1GAKC+5oKflMzY3aUm4rBpSsd17pVv2Bsn739ivqFWK2bhD2TE0wwTKM3Knu2puo1PJ8blqu7TEXVY1wgvGQwYN6HKJR0WGjYqxheN/lCpOzd/GlHX+gHyEe/SE/qpyV+sKPfqdEhzVv/OjwwC3zlefnnR+9YW+5Zz86fzjw3o+f1NCP9oMa+fGeOvnR2brH/378B/xI9A0/UjUjSfyOH2GzCDOuKavyUUM/eryMFjNOIMrHD/1o4di0GlCkp8IP/RjwglRSCKX9yI845VGXqwc18KOtWq3mSr35EQVnHbnzC3X144I3d7Wj6xuq+hH7gwz4PvY48GP9p8i2Vzus/dt+pB/nx18MUmsLM2EHrwAAAABJRU5ErkJggg==")'
+const spriteRepeatShuffle = "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAABgCAMAAACt1UvuAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAA2UExURQAAAP////39/Tw8PP///////w4ODv////7+/v7+/k5OTktLS35+fiAgIJSUlAAAABAQECoqKpxAnVsAAAAPdFJOUwAxQ05UJGkKBRchgWiOOufd5UcAAAKrSURBVEjH7ZfrkqQgDIUbFLmphPd/2T2EgNqNzlTt7o+p3dR0d5V+JOGEYzkvZ63nsNY6517XCPIrjIDvXF7qL24ao5QynesIllDKE1MpJdom1UDBQIQlE+HmEipVIk+6cqVqQYivlq/loBJFDa6WnaitbbnMtFHnOF1niDJJX14pPa+cOm0l3Vohyuus8xpkj9ih1nPke6iaO6KV323XqwhRON4tQ3GedakNYYQqslaO+yv9xs64Lh2rX8sWeSISzVWTk8ROJmmU9MTl1PvEnHBmzXRSzvhhuqJAzjlJY9eJCVWljKwcESbL+fbTYK0NWx0IGodyvKCACqp6VqMNlguhktbxMqHdI5k7ps1SsiTxPO0YDgojkZPIysl+617cy8rUkIfPflMY4IaKLZfHhSoPn782iQJC5tIX2nfNQseGG4eoe3T1+kXh7j1j/H6W9TbC65ZxR2S0frKePUWYlhbY/hTkvL6aiKPApCRTeoxNTvUTI16r1DqPAqrGVR0UT/ojwGByJ6qO8S32HQ6wJ8r4TwFdyGnx7kzVM8l/nZpwRwkm1GAKC+5oKflMzY3aUm4rBpSsd17pVv2Bsn739ivqFWK2bhD2TE0wwTKM3Knu2puo1PJ8blqu7TEXVY1wgvGQwYN6HKJR0WGjYqxheN/lCpOzd/GlHX+gHyEe/SE/qpyV+sKPfqdEhzVv/OjwwC3zlefnnR+9YW+5Zz86fzjw3o+f1NCP9oMa+fGeOvnR2brH/378B/xI9A0/UjUjSfyOH2GzCDOuKavyUUM/eryMFjNOIMrHD/1o4di0GlCkp8IP/RjwglRSCKX9yI845VGXqwc18KOtWq3mSr35EQVnHbnzC3X144I3d7Wj6xuq+hH7gwz4PvY48GP9p8i2Vzus/dt+pB/nx18MUmsLM2EHrwAAAABJRU5ErkJggg==')"
 
 function humanDuration (duration) {
   let hours = parseInt(duration / 3600)
@@ -739,15 +739,33 @@ function findNextAlbumCover (currentUrl) {
   }
   return false
 }
+const shufflePlayed = []
 function musicPlayerNextSong (next) {
   const current = player.querySelector('.playlist .playing')
   if (!next) {
-    next = current.nextElementSibling
-    while (next) {
-      if ('file' in next.dataset) {
-        break
+    if (player.querySelector('.shufflebutton').classList.contains('active')) {
+      // Shuffle mode
+      const allLoadedSongs = document.querySelectorAll('.playlist .playlistentry')
+      // Set a random song (that is not the current song and not in shufflePlayed)
+      let index = null
+      for (let i = 0; i < 10; i++) {
+        index = randomIndex(allLoadedSongs.length)
+        const file = allLoadedSongs[index].dataset.file
+        if (file !== current.dataset.file && shufflePlayed.indexOf(file) !== -1) {
+          break
+        }
       }
-      next = next.nextElementSibling
+      next = allLoadedSongs[index]
+      shufflePlayed.push(next.dataset.file)
+    } else {
+      // Normal mode
+      next = current.nextElementSibling
+      while (next) {
+        if ('file' in next.dataset) {
+          break
+        }
+        next = next.nextElementSibling
+      }
     }
   }
   if (next) {
@@ -764,7 +782,7 @@ function musicPlayerNextSong (next) {
         notloaded.remove()
         cachedTralbumData(url).then(function onCachedTralbumDataLoaded (TralbumData) {
           if (TralbumData) {
-            addAlbumToPlaylist(TralbumData, 0)
+            addAlbumToPlaylist(TralbumData)
           } else {
             playAlbumFromUrl(url)
           }
@@ -778,6 +796,7 @@ function musicPlayerNextSong (next) {
     }
   }
 }
+
 let ivSlideInNextSong
 function musicPlayerPlaySong (next, startTime) {
   currentDuration = next.dataset.duration
@@ -1076,6 +1095,54 @@ function musicPlayerNextAlbum () {
   }, 10)
 }
 
+function musicPlayerToggleShuffle () {
+  player.querySelector('.shufflebutton').classList.toggle('active')
+  if (player.querySelector('.shufflebutton').classList.contains('active')) {
+    // Load all albums from page into the player
+    addAllAlbumsAsHeadings()
+
+    // Load unloaded items in playlist
+    let delay = 0
+    // Disable permanent storage for speed
+    storeTralbumDataPermanentlySwitch = false
+
+    let n = player.querySelectorAll('.playlist .playlistheading a.notloaded').length + 1
+
+    if (n > 0) {
+      const queueLoadingIndicator = document.body.appendChild(document.createElement('div'))
+      queueLoadingIndicator.setAttribute('id', 'queueloadingindicator')
+      queueLoadingIndicator.style = 'position:fixed;top:1%;left:10px;background:#d5dce4;color:#033162;font-size:10pt;border:1px solid #033162;z-index:200;'
+    }
+
+    const updateLoadingIndicator = function () {
+      const div = document.getElementById('queueloadingindicator')
+      if (div) {
+        div.innerHTML = `Loading albums into playlist. ${--n} albums remaining...`
+        if (n <= 0) {
+          div.remove()
+          storeTralbumDataPermanentlySwitch = allFeatures.keepLibrary.enabled
+        }
+      }
+    }
+    window.setTimeout(updateLoadingIndicator, 1)
+
+    player.querySelectorAll('.playlist .playlistheading a.notloaded').forEach(async function (notloaded) {
+      const url = notloaded.href
+      notloaded.remove()
+      cachedTralbumData(url).then(function onCachedTralbumDataLoaded (TralbumData) {
+        if (TralbumData) {
+          addAlbumToPlaylist(TralbumData, null)
+          window.setTimeout(updateLoadingIndicator, 10)
+        } else {
+          // Delay to avoid rate limit
+          window.setTimeout(() => playAlbumFromUrl(url, null).then(updateLoadingIndicator), delay * 1000)
+          delay += 4
+        }
+      })
+    })
+  }
+}
+
 function musicPlayerOnTimelineClick (ev) {
   musicPlayerMovePlayHead(ev)
   const timelineWidth = timeline.offsetWidth - playhead.offsetWidth
@@ -1289,7 +1356,7 @@ function musicPlayerOnPlaylistHeadingClick (ev, contextMenuRoot) {
     cachedTralbumData(url).then(function onCachedTralbumDataLoaded (TralbumData) {
       li.remove()
       if (TralbumData) {
-        addAlbumToPlaylist(TralbumData, 0)
+        addAlbumToPlaylist(TralbumData)
       } else {
         playAlbumFromUrl(url)
       }
@@ -1685,7 +1752,13 @@ function musicPlayerCreate () {
       <div class="nextalbum" title="Next album">
         <div class="arrowbutton nextalbum-icon"></div>
       </div>
+
+      <div class="shuffleswitch" title="Shuffle">
+        <div class="shufflebutton" style="background-image:${spriteRepeatShuffle}"></div>
+      </div>
+
     </div>
+    
     <div class="durationDisplay"><span class="current">-</span>/<span class="total">-</span></div>
 
     <a class="downloadlink" title="Download mp3">
@@ -1789,6 +1862,7 @@ function musicPlayerCreate () {
   player.querySelector('.playpause').addEventListener('click', musicPlayerPlay)
   player.querySelector('.next').addEventListener('click', musicPlayerNext)
   player.querySelector('.nextalbum').addEventListener('click', musicPlayerNextAlbum)
+  player.querySelector('.shuffleswitch').addEventListener('click', musicPlayerToggleShuffle)
 
   player.querySelector('.vol-slider').addEventListener('click', musicPlayerOnVolumeClick)
   player.querySelector('.vol').addEventListener('wheel', musicPlayerOnVolumeWheel, { passive: false })
@@ -1879,7 +1953,7 @@ function addToPlaylist (startPlayback, data) {
   }
 }
 
-function addAlbumToPlaylist (TralbumData, startPlaybackIndex) {
+function addAlbumToPlaylist (TralbumData, startPlaybackIndex = 0) {
   let i = 0
   const artist = TralbumData.artist
   const album = TralbumData.current.title
@@ -1951,7 +2025,8 @@ function addAllAlbumsAsHeadings () {
   }
 }
 
-function getTralbumData (url, cb) {
+let getTralbumDataDelay = 0
+function getTralbumData (url, cb, retry = true) {
   return new Promise(function getTralbumDataPromise (resolve, reject) {
     GM.xmlHttpRequest({
       method: 'GET',
@@ -1966,6 +2041,25 @@ function getTralbumData (url, cb) {
           }
           window.alert('An error occured. Please clear your cookies of bandcamp.com and try again.\n\nOriginal error:\n' + msg)
           reject(new Error('Too many cookies'))
+          return
+        }
+        if (!response.responseText || response.responseText.indexOf('429 Too Many Requests') !== -1) {
+          if (retry) {
+            retry = false
+            getTralbumDataDelay += 3
+            const delay = getTralbumDataDelay
+            console.warn(`getTralbumData(): 429 Too Many Requests. Trying again in ${delay} seconds`)
+            window.setTimeout(() => getTralbumDataPromise(resolve, reject), delay * 1000)
+            return
+          }
+          let msg = ''
+          try {
+            msg = response.responseText.split('<center>')[1].split('</center>')[0]
+          } catch (e) {
+            msg = response.responseText
+          }
+          window.alert('An error occured. You\'re probably being rate limited by bandcamp.\n\nOriginal error:\n' + msg)
+          reject(new Error('429 Too Many Requests'))
           return
         }
         let TralbumData = null
@@ -1988,6 +2082,7 @@ function getTralbumData (url, cb) {
         } else {
           const msg = 'Could not parse TralbumData from url=' + url
           window.alert(msg)
+          console.debug(response.responseText)
           reject(new Error(msg))
         }
       },
@@ -2135,6 +2230,9 @@ async function cachedTralbumData (url) {
 }
 
 async function storeTralbumDataPermanently (TralbumData) {
+  if (!storeTralbumDataPermanentlySwitch) {
+    return
+  }
   const library = JSON.parse(await GM.getValue('tralbumlibrary', '{}'))
   const key = albumKey(TralbumData.url)
   if (key in library) {
@@ -2169,22 +2267,22 @@ function playAlbumFromCover (ev) {
   // Load data
   cachedTralbumData(url).then(function onCachedTralbumDataLoaded (TralbumData) {
     if (TralbumData) {
-      addAlbumToPlaylist(TralbumData, 0)
+      addAlbumToPlaylist(TralbumData)
     } else {
       playAlbumFromUrl(url)
     }
   })
 }
 
-function playAlbumFromUrl (url) {
+function playAlbumFromUrl (url, startPlaybackIndex = 0) {
   if (!url.startsWith('http')) {
     url = document.location.protocol + '//' + url
   }
   return getTralbumData(url).then(function onGetTralbumDataLoaded (TralbumData) {
     storeTralbumData(TralbumData)
-    return addAlbumToPlaylist(TralbumData, 0)
+    return addAlbumToPlaylist(TralbumData, startPlaybackIndex)
   }).catch(function onGetTralbumDataError (e) {
-    window.alert('Could not load album data from url:\n' + url + '\n' + ('error' in e ? e.error : e))
+    window.alert('Could not play and load album data from url:\n' + url + '\n' + ('error' in e ? e.error : e))
     console.log(e)
   })
 }
@@ -3561,6 +3659,9 @@ async function showPastReleases (ev, forceShow) {
   div.setAttribute('id', 'pastreleases')
   div.style.maxHeight = (document.documentElement.clientHeight - 50) + 'px'
   div.style.maxWidth = (document.documentElement.clientWidth - 100) + 'px'
+  if (document.getElementById('discographyplayer') && !allFeatures.discographyplayerSidebar.enabled) {
+    div.style.bottom = document.getElementById('discographyplayer').clientHeight + 10 + 'px'
+  }
   window.setTimeout(function () {
     div.style.opacity = 1.0
   }, 200)
@@ -4980,13 +5081,17 @@ function appendMainMenuButtonTo (ul) {
     liExplorer.title = 'library'
     const aExplorer = liExplorer.appendChild(document.createElement('a'))
     aExplorer.className = 'settingssymbol'
+    aExplorer.href = PLAYER_URL
     aExplorer.style.fontSize = '24px'
     if (NOEMOJI) {
       aExplorer.appendChild(document.createTextNode('L'))
     } else {
       aExplorer.appendChild(document.createTextNode('\uD83D\uDDC3\uFE0F'))
     }
-    liExplorer.addEventListener('click', () => openExplorer())
+    liExplorer.addEventListener('click', function (ev) {
+      ev.preventDefault()
+      openExplorer()
+    })
   }
 }
 
@@ -5249,6 +5354,8 @@ function onLoaded () {
     window.setTimeout(darkModeOnLoad, 0)
   }
 
+  storeTralbumDataPermanentlySwitch = allFeatures.keepLibrary.enabled
+
   const maintenanceContent = document.querySelector('.content')
   if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') !== -1) {
     console.log('Maintenance detected')
@@ -5298,10 +5405,6 @@ function onLoaded () {
       }
       if (allFeatures.albumPageLyrics.enabled) {
         window.setTimeout(addLyricsToAlbumPage, 500)
-      }
-      if (unsafeWindow.TralbumData && unsafeWindow.TralbumData.current && unsafeWindow.TralbumData.trackinfo) {
-        const TralbumData = correctTralbumData(JSON.parse(JSON.stringify(unsafeWindow.TralbumData)), document.body.innerHTML)
-        storeTralbumDataPermanently(TralbumData)
       }
     }
 
@@ -5384,6 +5487,11 @@ function onLoaded () {
         musicPlayerRestoreState(JSON.parse(s))
       }
     })
+
+    if (document.querySelector('.inline_player') && unsafeWindow.TralbumData && unsafeWindow.TralbumData.current && unsafeWindow.TralbumData.trackinfo) {
+      const TralbumData = correctTralbumData(JSON.parse(JSON.stringify(unsafeWindow.TralbumData)), document.body.innerHTML)
+      storeTralbumDataPermanently(TralbumData)
+    }
   }
 }
 

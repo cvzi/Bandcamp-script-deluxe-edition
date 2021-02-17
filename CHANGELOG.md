@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.18.0](../../tree/v1.18.0) *(2021-02-17)*
+*   move CSS to separate files and minify CSS
+*   variable port for dev script
+*   design improvements
+*   move release reminder above discography player
+*   shuffle mode in discography player
 ## [1.17.0](../../tree/v1.17.0) *(2020-12-16)*
 *   context menu in discography player
 *   smaller icons for buy track, info, lyrics on album page
