@@ -1098,6 +1098,10 @@ function musicPlayerNextAlbum () {
 function musicPlayerToggleShuffle () {
   player.querySelector('.shufflebutton').classList.toggle('active')
   if (player.querySelector('.shufflebutton').classList.contains('active')) {
+    if (!window.confirm('Would you like to shuffle all albums on this page?\n\n(It may take several minutes to load all albums into the playlist)')) {
+      return
+    }
+
     // Load all albums from page into the player
     addAllAlbumsAsHeadings()
 
@@ -1619,7 +1623,8 @@ function musicPlayerSaveState () {
     htmlPlaylist: player.querySelector('.playlist').innerHTML,
     startPlayback: !audio.paused,
     startPlaybackIndex: startPlaybackIndex,
-    startPlaybackTime: startPlaybackTime
+    startPlaybackTime: startPlaybackTime,
+    shuffleActive: player.querySelector('.shufflebutton').classList.contains('active')
   }))
 }
 
@@ -1654,6 +1659,9 @@ function musicPlayerRestoreState (state) {
   // Start playback
   if (state.startPlayback && state.startPlaybackIndex !== false) {
     musicPlayerPlaySong(playlistEntries[state.startPlaybackIndex], state.startPlaybackTime)
+  }
+  if ('shuffleActive' in state && state.shuffleActive) {
+    player.querySelector('.shufflebutton').classList.add('active')
   }
 }
 
