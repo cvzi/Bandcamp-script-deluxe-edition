@@ -17,7 +17,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.17.0
+// @version         1.18.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -664,14 +664,14 @@ SOFTWARE.
 
 
   var validateSharedProps$1 = function validateSharedProps(_ref2, _ref3) {
-    var children = _ref2.children,
-        direction = _ref2.direction,
-        height = _ref2.height,
-        layout = _ref2.layout,
-        innerTagName = _ref2.innerTagName,
-        outerTagName = _ref2.outerTagName,
-        width = _ref2.width;
-    var instance = _ref3.instance;
+    _ref2.children;
+        _ref2.direction;
+        _ref2.height;
+        _ref2.layout;
+        _ref2.innerTagName;
+        _ref2.outerTagName;
+        _ref2.width;
+    _ref3.instance;
   };
   var FixedSizeList = /*#__PURE__*/createListComponent({
     getItemOffset: function getItemOffset(_ref, index) {
@@ -767,7 +767,7 @@ SOFTWARE.
     },
     shouldResetStyleCacheOnItemSizeChange: true,
     validateProps: function validateProps(_ref7) {
-      var itemSize = _ref7.itemSize;
+      _ref7.itemSize;
     }
   }); // Pulled from react-compat
 
@@ -880,13 +880,13 @@ SOFTWARE.
     };
   }
 
-  var discographyplayerCSS = ".cll{clear:left}.clb{clear:both}#discographyplayer{z-index:1010;position:fixed;bottom:0;height:83px;width:100%;padding-top:3px;background:#fff;color:#505958;border-top:1px solid rgba(0,0,0,.15);font:13px/1.231 \"Helvetica Neue\",Helvetica,Arial,sans-serif;transition:bottom .5s}#discographyplayer a:link,#discographyplayer a:visited{color:#0687f5;text-decoration:none;cursor:pointer}#discographyplayer a:hover{color:#0687f5;text-decoration:underline;cursor:pointer}#discographyplayer .nowPlaying .cover,#discographyplayer .nowPlaying .info{display:inline-block;vertical-align:top}#discographyplayer .nowPlaying img{width:60px;height:60px;margin-top:4px;margin-left:4px;margin-bottom:4px}#discographyplayer .nowPlaying .info{line-height:18px;margin-left:8px;margin-top:8px;max-width:calc(100% - 76px);border:0 solid #000;padding:0;width:auto;max-height:auto;overflow-y:hidden}#discographyplayer .nowPlaying .info .album,#discographyplayer .nowPlaying .info .title{font-size:13px;font-weight:400;color:#0687f5;margin:0;padding:0}#discographyplayer .currentlyPlaying{display:inline-block;vertical-align:top;overflow:hidden;transition:margin-left 3s ease-in-out;width:99%}#discographyplayer .nextInRow{display:inline-block;vertical-align:top;width:0%;overflow:hidden;transition:width 6s ease-in-out}#discographyplayer .durationDisplay{margin-top:24px;float:left}#discographyplayer .downloadlink:link{display:block;float:right;margin-top:10px;font-size:15px;padding:0 3px;color:#0687f5;border:1px solid #0687f5;transition:color .3s ease-in-out,border-color .3s ease-in-out}#discographyplayer .downloadlink:hover{text-decoration:none}#discographyplayer .downloadlink.downloading{color:#f0f;border-color:#f0f;animation:downloadrotation 3s infinite linear;cursor:wait}@keyframes downloadrotation{from{transform:rotate(0)}to{transform:rotate(359deg)}}#discographyplayer .controls{margin-top:10px;width:auto;float:left}#discographyplayer .controls>*{display:inline-block;cursor:pointer;border:1px solid #d9d9d9;padding:11px;margin-right:4px;height:18px;width:17px}#discographyplayer .playpause .play{width:0;height:0;border-top:9px inset transparent;border-bottom:9px inset transparent;border-left:15px solid #222;cursor:pointer;margin-left:2px}#discographyplayer .playpause .pause{border:0;border-left:5px solid #2d2d2d;border-right:5px solid #2d2d2d;height:18px;width:4px;margin-right:2px;margin-left:1px}#discographyplayer .playpause .busy{background-image:url(https://bandcamp.com/img/playerbusy-noborder.gif);background-position:50% 50%;background-repeat:no-repeat;border:none;height:30px;margin:0 0 0 -3px;width:25px;overflow:hidden;background-size:contain}#discographyplayer .arrowbutton{border:0;height:13px;width:20px;margin-top:4px;background:url(https://bandcamp.com/img/nextprev.png) 0 0/40px 12px no-repeat transparent;background-position-x:0;cursor:pointer}#discographyplayer .arrowbutton.next-icon{background-position:100% 0}#discographyplayer .arrowbutton.prevalbum-icon{border-right:3px solid #2d2d2d}#discographyplayer .arrowbutton.nextalbum-icon{background-position:100% 0;border-left:3px solid #2d2d2d}#timeline{width:100%;background:rgba(50,50,50,.4);margin-top:5px;border-left:1px solid #000;border-right:1px solid #000}#playhead{width:10px;height:10px;border-radius:50%;background:#323232;cursor:pointer}.bufferbaranimation{transition:width 1s}#bufferbar{position:absolute;width:0;height:10px;background:rgba(0,0,0,.1)}#discographyplayer .playlist{position:relative;width:100%;display:inline-block;max-height:80px;overflow:auto;list-style:none;margin:0;padding:0 5px 0 5px;scrollbar-color:rgba(50,50,50,.4) #fff}#discographyplayer_contextmenu{position:absolute;box-shadow:#000000b0 2px 2px 2px;background-color:#fff;border:#619aa9 2px solid;z-index:1011}#discographyplayer_contextmenu .contextmenu_submenu{cursor:pointer;padding:2px;border:1px solid #619aa9}#discographyplayer_contextmenu .contextmenu_submenu:hover{background-color:#619aa9;color:#fff;border:1px solid #fff}#discographyplayer .playlist .isselected{border:1px solid red}#discographyplayer .playlist .playlistentry{cursor:pointer;margin:1px 0}#discographyplayer .playlist .playlistentry .duration{float:right}#discographyplayer .playlist .playing{background:#619aa950}#discographyplayer .playlist .playlistheading{background:rgba(50,50,50,.4);margin:3px 0}#discographyplayer .playlist .playlistheading a:hover,#discographyplayer .playlist .playlistheading a:link,#discographyplayer .playlist .playlistheading a:visited{color:#eee;cursor:pointer}#discographyplayer .playlist .playlistheading a.notloaded{color:#ccc}#discographyplayer .playlist .playlistheading.notloaded{cursor:copy}#discographyplayer .vol{float:left;position:relative;width:100px;margin-left:1em;margin-top:1em}#discographyplayer .vol-icon-wrapper{font-size:20px;cursor:pointer;width:27px}#discographyplayer .vol-slider{width:60px;height:10px;position:relative;cursor:pointer}#discographyplayer .vol>*{display:inline-block;vertical-align:middle}#discographyplayer .vol-bg{background:rgba(50,50,50,.4);width:100%;margin-top:4px;height:3px;position:absolute}#discographyplayer .vol-amt{margin-top:4px;height:3px;position:absolute;background:#323232}#discographyplayer .vol-control-outer{height:100%;position:relative;margin-left:-3px;margin-right:5px}#discographyplayer .collect{float:left;margin-left:1em}#discographyplayer .collect-wishlist{cursor:default;margin-top:.5em}#discographyplayer .collect-wishlist .wishlist-add{cursor:pointer}#discographyplayer .collect-listened{cursor:pointer;margin-top:.5em;margin-left:2px}#discographyplayer .collect .icon{height:13px;width:14px;display:inline-block;position:relative;top:2px}#discographyplayer .collect .add-item-icon{background-position:0 -73px}#discographyplayer .collect .collected-item-icon{background-position:-28px -73px}#discographyplayer .collect .own-item-icon{background-position:-42px -73px}#discographyplayer .collect .wishlist-add,#discographyplayer .collect .wishlist-collected,#discographyplayer .collect .wishlist-own,#discographyplayer .collect .wishlist-saving{display:none}#discographyplayer .collect .wishlist-add:hover .add-item-icon{background-position:-56px -73px}#discographyplayer .collect .wishlist-add:hover .add-item-label{text-decoration:underline}#discographyplayer .collect .listened,#discographyplayer .collect .listened-saving,#discographyplayer .collect .mark-listened{display:none}#discographyplayer .collect .listened .listened-symbol{color:#00dc32;text-shadow:1px 0 #ddd,-1px 0 #ddd,0 -1px #ddd,0 1px #ddd}#discographyplayer .collect .mark-listened .mark-listened-symbol{color:#fff;text-shadow:1px 0 #959595,-1px 0 #959595,0 -1px #959595,0 1px #959595}#discographyplayer .collect .mark-listened:hover .mark-listened-symbol{text-shadow:1px 0 #0af,-1px 0 #0af,0 -1px #0af,0 1px #0af}#discographyplayer .collect .mark-listened:hover .mark-listened-label{text-decoration:underline}#discographyplayer .closebutton,#discographyplayer .minimizebutton{position:absolute;top:1px;right:1px;border:1px solid #505958;color:#505958;font-size:10px;box-shadow:0 0 2px #505958;cursor:pointer;opacity:0;transition:opacity .3s;min-width:8px;min-height:13px;text-align:center}#discographyplayer .minimizebutton{right:13px}#discographyplayer .minimizebutton .minimized{display:none}#discographyplayer .minimizebutton.minimized .maximized{display:none}#discographyplayer .minimizebutton.minimized .minimized{display:inline}#discographyplayer:hover .closebutton,#discographyplayer:hover .minimizebutton{opacity:1}#discographyplayer .col{float:left;min-height:1px;position:relative}#discographyplayer .col25{width:25%}#discographyplayer .col35{width:35%}#discographyplayer .col30{width:30%}#discographyplayer .col15{width:14%}#discographyplayer .col20{width:20%}#discographyplayer .colcontrols{user-select:none}#discographyplayer .colvolumecontrols{margin-left:10px}.albumIsCurrentlyPlaying{border:2px solid #0f0}.music-grid-item .albumIsCurrentlyPlaying{border:none}.albumIsCurrentlyPlayingIndicator{display:none}.music-grid-item .albumIsCurrentlyPlayingIndicator{position:absolute;display:block;width:74px;height:54px;left:50%;top:50%;margin-left:-36px;margin-top:-27px;opacity:.5;transition:opacity .2s}.albumIsCurrentlyPlayingIndicator:hover{opacity:0}.albumIsCurrentlyPlayingIndicator .currentlyPlayingBg{position:absolute;width:100%;height:100%;left:0;top:0;background:#000;border-radius:4px}.albumIsCurrentlyPlayingIndicator .currentlyPlayingIcon{position:absolute;width:10px;height:20px;left:28px;top:17px;border-width:0 5px;border-color:#fff;border-style:solid}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rpc2NvZ3JhcGh5cGxheWVyLmNzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxLQUNFLE1BQU0sS0FFUixLQUNFLE1BQU0sS0FFUixtQkFDRSxRQUFRLEtBQ1IsU0FBUyxNQUNULE9BQU8sRUFDUCxPQUFPLEtBQ1AsTUFBTSxLQUNOLFlBQVksSUFDWixXQUFXLEtBQ1gsTUFBTSxRQUNOLFdBQVksSUFBSSxNQUFNLGdCQUN0QixLQUFNLElBQUksQ0FBQyxNQUFNLGdCQUFnQixDQUFDLFNBQVMsQ0FBQyxLQUFLLENBQUMsV0FDbEQsV0FBWSxPQUFPLElBRXJCLDBCQUEwQiw2QkFDeEIsTUFBTyxRQUNQLGdCQUFpQixLQUNqQixPQUFRLFFBRVYsMkJBQ0UsTUFBTyxRQUNQLGdCQUFpQixVQUNqQixPQUFRLFFBRTJCLHNDQUFyQyxxQ0FDSSxRQUFTLGFBQ1QsZUFBZ0IsSUFFcEIsbUNBQ0ksTUFBTyxLQUNQLE9BQVEsS0FDUixXQUFZLElBQ1osWUFBYSxJQUNiLGNBQWUsSUFFbkIscUNBQ0ksWUFBYSxLQUNiLFlBQWEsSUFDYixXQUFZLElBQ1osVUFBVyxrQkFFWCxPQUFRLEVBQUksTUFBTSxLQUNsQixRQUFTLEVBQ1QsTUFBTyxLQUNQLFdBQVksS0FDWixXQUFZLE9BRTZCLDRDQUE3Qyw0Q0FDRSxVQUFXLEtBQ1gsWUFBYSxJQUNiLE1BQU8sUUFDUCxPQUFPLEVBQ1AsUUFBUSxFQUVWLHFDQUNFLFFBQVEsYUFDUixlQUFnQixJQUNoQixTQUFVLE9BQ1YsV0FBWSxZQUFZLEdBQUcsWUFDM0IsTUFBTSxJQUVSLDhCQUNFLFFBQVEsYUFDUixlQUFnQixJQUNoQixNQUFNLEdBQ04sU0FBVSxPQUNWLFdBQVksTUFBTSxHQUFHLFlBRXZCLG9DQUNFLFdBQVcsS0FDWCxNQUFNLEtBRVIsc0NBQ0UsUUFBUSxNQUNSLE1BQU0sTUFDTixXQUFZLEtBQ1osVUFBVSxLQUNWLFFBQVMsRUFBSSxJQUNiLE1BQU8s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 */";
+  var discographyplayerCSS = ".cll{clear:left}.clb{clear:both}#discographyplayer{z-index:1010;position:fixed;bottom:0;height:83px;width:100%;padding-top:3px;background:#fff;color:#505958;border-top:1px solid rgba(0,0,0,.15);font:13px/1.231 \"Helvetica Neue\",Helvetica,Arial,sans-serif;transition:bottom .5s}#discographyplayer a:link,#discographyplayer a:visited{color:#0687f5;text-decoration:none;cursor:pointer}#discographyplayer a:hover{color:#0687f5;text-decoration:underline;cursor:pointer}#discographyplayer .nowPlaying .cover,#discographyplayer .nowPlaying .info{display:inline-block;vertical-align:top}#discographyplayer .nowPlaying img{width:60px;height:60px;margin-top:4px;margin-left:4px;margin-bottom:4px}#discographyplayer .nowPlaying .info{line-height:18px;margin-left:8px;margin-top:8px;max-width:calc(100% - 76px);border:0 solid #000;padding:0;width:auto;max-height:auto;overflow-y:hidden}#discographyplayer .nowPlaying .info .album,#discographyplayer .nowPlaying .info .title{font-size:13px;font-weight:400;color:#0687f5;margin:0;padding:0}#discographyplayer .currentlyPlaying{display:inline-block;vertical-align:top;overflow:hidden;transition:margin-left 3s ease-in-out;width:99%}#discographyplayer .nextInRow{display:inline-block;vertical-align:top;width:0%;overflow:hidden;transition:width 6s ease-in-out}#discographyplayer .durationDisplay{margin-top:24px;float:left}#discographyplayer .downloadlink:link{display:block;float:right;margin-top:10px;font-size:15px;padding:0 3px;color:#0687f5;border:1px solid #0687f5;transition:color .3s ease-in-out,border-color .3s ease-in-out}#discographyplayer .downloadlink:hover{text-decoration:none}#discographyplayer .downloadlink.downloading{color:#f0f;border-color:#f0f;animation:downloadrotation 3s infinite linear;cursor:wait}@keyframes downloadrotation{from{transform:rotate(0)}to{transform:rotate(359deg)}}#discographyplayer .controls{margin-top:10px;width:auto;float:left}#discographyplayer .controls>*{display:inline-block;cursor:pointer;border:1px solid #d9d9d9;padding:11px;margin-right:4px;height:18px;width:17px}#discographyplayer .playpause .play{width:0;height:0;border-top:9px inset transparent;border-bottom:9px inset transparent;border-left:15px solid #222;cursor:pointer;margin-left:2px}#discographyplayer .playpause .pause{border:0;border-left:5px solid #2d2d2d;border-right:5px solid #2d2d2d;height:18px;width:4px;margin-right:2px;margin-left:1px}#discographyplayer .playpause .busy{background-image:url(https://bandcamp.com/img/playerbusy-noborder.gif);background-position:50% 50%;background-repeat:no-repeat;border:none;height:30px;margin:0 0 0 -3px;width:25px;overflow:hidden;background-size:contain}#discographyplayer .shuffleswitch .shufflebutton{background-size:cover;background-position-y:0px;filter:drop-shadow(#FFFF 0px 0px 0px);transition:filter .5s;border:0;height:13px;width:20px;margin-top:4px}#discographyplayer .shuffleswitch .shufflebutton.active{filter:drop-shadow(#0060F2 1px 1px 2px)}#discographyplayer .arrowbutton{border:0;height:13px;width:20px;margin-top:4px;background:url(https://bandcamp.com/img/nextprev.png) 0 0/40px 12px no-repeat transparent;background-position-x:0px;cursor:pointer}#discographyplayer .arrowbutton.next-icon{background-position:100% 0}#discographyplayer .arrowbutton.prevalbum-icon{border-right:3px solid #2d2d2d}#discographyplayer .arrowbutton.nextalbum-icon{background-position:100% 0;border-left:3px solid #2d2d2d}#timeline{width:100%;background:rgba(50,50,50,.4);margin-top:5px;border-left:1px solid #000;border-right:1px solid #000}#playhead{width:10px;height:10px;border-radius:50%;background:#323232;cursor:pointer}.bufferbaranimation{transition:width 1s}#bufferbar{position:absolute;width:0;height:10px;background:rgba(0,0,0,.1)}#discographyplayer .playlist{position:relative;width:100%;display:inline-block;max-height:80px;overflow:auto;list-style:none;margin:0;padding:0 5px 0 5px;scrollbar-color:rgba(50,50,50,0.4) white}#discographyplayer_contextmenu{position:absolute;box-shadow:#000000b0 2px 2px 2px;background-color:#fff;border:#619aa9 2px solid;z-index:1011}#discographyplayer_contextmenu .contextmenu_submenu{cursor:pointer;padding:2px;border:1px solid #619aa9}#discographyplayer_contextmenu .contextmenu_submenu:hover{background-color:#619aa9;color:#fff;border:1px solid #fff}#discographyplayer .playlist .isselected{border:1px solid red}#discographyplayer .playlist .playlistentry{cursor:pointer;margin:1px 0}#discographyplayer .playlist .playlistentry .duration{float:right}#discographyplayer .playlist .playing{background:#619aa950}#discographyplayer .playlist .playlistheading{background:rgba(50,50,50,.4);margin:3px 0}#discographyplayer .playlist .playlistheading a:hover,#discographyplayer .playlist .playlistheading a:link,#discographyplayer .playlist .playlistheading a:visited{color:#eee;cursor:pointer}#discographyplayer .playlist .playlistheading a.notloaded{color:#ccc}#discographyplayer .playlist .playlistheading.notloaded{cursor:copy}#discographyplayer .vol{float:left;position:relative;width:100px;margin-left:1em;margin-top:1em}#discographyplayer .vol-icon-wrapper{font-size:20px;cursor:pointer;width:27px}#discographyplayer .vol-slider{width:60px;height:10px;position:relative;cursor:pointer}#discographyplayer .vol>*{display:inline-block;vertical-align:middle}#discographyplayer .vol-bg{background:rgba(50,50,50,.4);width:100%;margin-top:4px;height:3px;position:absolute}#discographyplayer .vol-amt{margin-top:4px;height:3px;position:absolute;background:#323232}#discographyplayer .vol-control-outer{height:100%;position:relative;margin-left:-3px;margin-right:5px}#discographyplayer .collect{float:left;margin-left:1em}#discographyplayer .collect-wishlist{cursor:default;margin-top:.5em}#discographyplayer .collect-wishlist .wishlist-add{cursor:pointer}#discographyplayer .collect-listened{cursor:pointer;margin-top:.5em;margin-left:2px}#discographyplayer .collect .icon{height:13px;width:14px;display:inline-block;position:relative;top:2px}#discographyplayer .collect .add-item-icon{background-position:0 -73px}#discographyplayer .collect .collected-item-icon{background-position:-28px -73px}#discographyplayer .collect .own-item-icon{background-position:-42px -73px}#discographyplayer .collect .wishlist-add,#discographyplayer .collect .wishlist-collected,#discographyplayer .collect .wishlist-own,#discographyplayer .collect .wishlist-saving{display:none}#discographyplayer .collect .wishlist-add:hover .add-item-icon{background-position:-56px -73px}#discographyplayer .collect .wishlist-add:hover .add-item-label{text-decoration:underline}#discographyplayer .collect .listened,#discographyplayer .collect .listened-saving,#discographyplayer .collect .mark-listened{display:none}#discographyplayer .collect .listened .listened-symbol{color:#00dc32;text-shadow:1px 0 #ddd,-1px 0 #ddd,0 -1px #ddd,0 1px #ddd}#discographyplayer .collect .mark-listened .mark-listened-symbol{color:#fff;text-shadow:1px 0 #959595,-1px 0 #959595,0 -1px #959595,0 1px #959595}#discographyplayer .collect .mark-listened:hover .mark-listened-symbol{text-shadow:1px 0 #0af,-1px 0 #0af,0 -1px #0af,0 1px #0af}#discographyplayer .collect .mark-listened:hover .mark-listened-label{text-decoration:underline}#discographyplayer .closebutton,#discographyplayer .minimizebutton{position:absolute;top:1px;right:1px;border:1px solid #505958;color:#505958;font-size:10px;box-shadow:0 0 2px #505958;cursor:pointer;opacity:0;transition:opacity .3s;min-width:8px;min-height:13px;text-align:center}#discographyplayer .minimizebutton{right:13px}#discographyplayer .minimizebutton .minimized{display:none}#discographyplayer .minimizebutton.minimized .maximized{display:none}#discographyplayer .minimizebutton.minimized .minimized{display:inline}#discographyplayer:hover .closebutton,#discographyplayer:hover .minimizebutton{opacity:1}#discographyplayer .col{float:left;min-height:1px;position:relative}#discographyplayer .col25{width:25%}#discographyplayer .col35{width:35%}#discographyplayer .col30{width:30%}#discographyplayer .col15{width:14%}#discographyplayer .col20{width:20%}#discographyplayer .colcontrols{user-select:none}#discographyplayer .colvolumecontrols{margin-left:10px}.albumIsCurrentlyPlaying{border:2px solid #0f0}.music-grid-item .albumIsCurrentlyPlaying{border:none}.albumIsCurrentlyPlayingIndicator{display:none}.music-grid-item .albumIsCurrentlyPlayingIndicator{position:absolute;display:block;width:74px;height:54px;left:50%;top:50%;margin-left:-36px;margin-top:-27px;opacity:.5;transition:opacity .2s}.albumIsCurrentlyPlayingIndicator:hover{opacity:0}.albumIsCurrentlyPlayingIndicator .currentlyPlayingBg{position:absolute;width:100%;height:100%;left:0;top:0;background:#000;border-radius:4px}.albumIsCurrentlyPlayingIndicator .currentlyPlayingIcon{position:absolute;width:10px;height:20px;left:28px;top:17px;border-width:0 5px;border-color:#fff;border-style:solid}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rpc2NvZ3JhcGh5cGxheWVyLmNzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxLQUNFLE1BQU0sS0FFUixLQUNFLE1BQU0sS0FFUixtQkFDRSxRQUFRLEtBQ1IsU0FBUyxNQUNULE9BQU8sRUFDUCxPQUFPLEtBQ1AsTUFBTSxLQUNOLFlBQVksSUFDWixXQUFXLEtBQ1gsTUFBTSxRQUNOLFdBQVksSUFBSSxNQUFNLGdCQUN0QixLQUFNLElBQUksQ0FBQyxNQUFNLGdCQUFnQixDQUFDLFNBQVMsQ0FBQyxLQUFLLENBQUMsV0FDbEQsV0FBWSxPQUFPLElBRXJCLDBCQUEwQiw2QkFDeEIsTUFBTyxRQUNQLGdCQUFpQixLQUNqQixPQUFRLFFBRVYsMkJBQ0UsTUFBTyxRQUNQLGdCQUFpQixVQUNqQixPQUFRLFFBRTJCLHNDQUFyQyxxQ0FDSSxRQUFTLGFBQ1QsZUFBZ0IsSUFFcEIsbUNBQ0ksTUFBTyxLQUNQLE9BQVEsS0FDUixXQUFZLElBQ1osWUFBYSxJQUNiLGNBQWUsSUFFbkIscUNBQ0ksWUFBYSxLQUNiLFlBQWEsSUFDYixXQUFZLElBQ1osVUFBVyxrQkFFWCxPQUFRLEVBQUksTUFBTSxLQUNsQixRQUFTLEVBQ1QsTUFBTyxLQUNQLFdBQVksS0FDWixXQUFZLE9BRTZCLDRDQUE3Qyw0Q0FDRSxVQUFXLEtBQ1gsWUFBYSxJQUNiLE1BQU8sUUFDUCxPQUFPLEVBQ1AsUUFBUSxFQUVWLHFDQUNFLFFBQVEsYUFDUixlQUFnQixJQUNoQixTQUFVLE9BQ1YsV0FBWSxZQUFZLEdBQUcsWUFDM0IsTUFBTSxJQUVSLDhCQUNFLFFBQVEsYUFDUixlQUFnQixJQUNoQixNQUFNLEdBQ04sU0FBVSxPQUNWLFdBQVksTUFBTSxHQUFHLFlBRXZCLG9DQUNFLFdBQVcsS0FDWCxNQUFNLEtBRVIsc0NBQ0UsUUFBUSxNQUNSLE1BQU0sTUFDTixXQUFZLEtBQ1osVUFBVSxLQUNWLFFBQVMsRUFBSSxJQUNiLE1BQU8s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 */";
 
   var discographyplayerSidebarCSS = "@media (min-width:1600px){#menubar-wrapper:hover{z-index:1100}#discographyplayer{display:block;bottom:0;height:100vh;max-height:100vh;width:calc((100vw - 915px - 35px)/ 2);right:0;border-left:1px solid #0007;padding-left:1px}#discographyplayer .playlist{height:calc(100vh - 80px - 80px - 50px - 13px);max-height:calc(100vh - 80px - 80px - 50px - 13px)}#discographyplayer .playlist .playlistentry{overflow-x:hidden}#discographyplayer .col25{width:98%}#discographyplayer .col.nowPlaying{height:70px}#discographyplayer .col.col25.colcontrols{height:85px}#discographyplayer .col35{width:97%}#discographyplayer .col15{width:96%}#discographyplayer .colvolumecontrols{height:50px}#bufferbar,#playhead{height:25px;border-radius:0}#discographyplayer .audioplayer a.downloadlink{position:fixed;bottom:5px;right:5px;z-index:10}#discographyplayer .minimizebutton{display:none}#discographyplayer .currentlyPlaying{transition:margin-top 1s ease-in-out;width:99%;height:99%}#discographyplayer .nextInRow{height:0%;width:99%;transition:height 1s ease-in-out}}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rpc2NvZ3JhcGh5cGxheWVyU2lkZWJhci5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsMEJBQ0UsdUJBQ0UsUUFBUSxLQUVWLG1CQUNFLFFBQVMsTUFDVCxPQUFRLEVBQ1IsT0FBUSxNQUNSLFdBQVksTUFDWixNQUFPLGdDQUNQLE1BQU8sRUFDUCxZQUFhLElBQUksTUFBTSxNQUN2QixhQUFjLElBRWhCLDZCQUNFLE9BQVEsd0NBQ1IsV0FBWSx3Q0FFZCw0Q0FDRSxXQUFXLE9BRWIsMEJBQ0UsTUFBTyxJQUVULG1DQUNFLE9BQVEsS0FFViwwQ0FDRSxPQUFRLEtBRVYsMEJBQ0UsTUFBTyxJQUVULDBCQUNFLE1BQU8sSUFFVCxzQ0FDRSxPQUFRLEtBRUMsV0FBWCxVQUNFLE9BQVEsS0FDUixjQUFlLEVBRWpCLCtDQUNFLFNBQVUsTUFDVixPQUFRLElBQ1IsTUFBTyxJQUNQLFFBQVMsR0FFWCxtQ0FDRSxRQUFRLEtBRVYscUNBQ0UsV0FBWSxXQUFXLEdBQUcsWUFDMUIsTUFBTSxJQUNOLE9BQU8sSUFFVCw4QkFDRSxPQUFPLEdBQ1AsTUFBTSxJQUNOLFdBQVksT0FBTyxHQUFHIn0= */";
 
-  var pastreleasesCSS = "#pastreleases{position:fixed;bottom:1%;left:10px;background:#d5dce4;color:#033162;font-size:10pt;border:1px solid #033162;z-index:200;opacity:0;transition:opacity .7s;overflow:auto}#pastreleases .tablediv{display:table;position:relative}#pastreleases .entry,#pastreleases .header{display:table-row}#pastreleases .entry>*,#pastreleases .header>*{display:table-cell;line-height:21pt}#pastreleases .upcoming{cursor:pointer;font-size:x-small}#pastreleases .controls{cursor:pointer;position:absolute;top:0;right:1px;line-height:11pt}#pastreleases .entry:link{position:relative;border-top:1px solid #033162;color:#033162;text-decoration:none}#pastreleases .entry:nth-child(odd){background:#c5ccd4}#pastreleases .entry:hover,#pastreleases .entry:visited{color:#033162;text-decoration:none}#pastreleases .entry.future{display:none;background:#9fc2ea}#pastreleases .entry.future:nth-child(odd){background:#8fc2e1}#pastreleases .entry .image{background-size:contain;width:21pt;height:21pt}#pastreleases .entry:hover .image{display:block;position:fixed;bottom:10px;top:50%;left:50%;margin-right:-50%;transform:translate(-50%,-50%);width:350px;height:350px;background:#000;border:5px solid #fff}#pastreleases .entry time{padding-right:2px}#pastreleases .entry .title{padding-left:2px;border-left:1px solid #47a2bd}#pastreleases .remove{font-family:sans-serif;color:#97174e;font-size:small;padding-right:3px}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL3Bhc3RyZWxlYXNlcy5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUksY0FDRSxTQUFTLE1BQ1QsT0FBTyxHQUNQLEtBQUssS0FDTCxXQUFXLFFBQ1gsTUFBTSxRQUNOLFVBQVUsS0FDVixPQUFPLElBQUksTUFBTSxRQUNqQixRQUFRLElBQ1IsUUFBUSxFQUNSLFdBQVksUUFBUSxJQUNwQixTQUFTLEtBRVgsd0JBQ0UsUUFBUyxNQUNULFNBQVMsU0FFWCxxQkFBcUIsc0JBQ25CLFFBQVEsVUFFVix1QkFBeUIsd0JBQ3ZCLFFBQVEsV0FDUixZQUFZLEtBRWQsd0JBQ0UsT0FBTyxRQUNQLFVBQVUsUUFFWix3QkFDRSxPQUFPLFFBQ1AsU0FBUyxTQUNULElBQUksRUFDSixNQUFNLElBQ04sWUFBWSxLQUVkLDBCQUNFLFNBQVMsU0FDVCxXQUFXLElBQUksTUFBTSxRQUNyQixNQUFNLFFBQ04sZ0JBQWdCLEtBRWxCLG9DQUNFLFdBQVcsUUFFYiwyQkFBMkIsNkJBQ3pCLE1BQU0sUUFDTixnQkFBZ0IsS0FFbEIsNEJBQ0UsUUFBUSxLQUNSLFdBQVcsUUFFYiwyQ0FDRSxXQUFXLFFBRWIsNEJBQ0UsZ0JBQWdCLFFBQ2hCLE1BQU0sS0FDTixPQUFPLEtBRVQsa0NBQ0UsUUFBUSxNQUNSLFNBQVMsTUFDVCxPQUFPLEtBQ1AsSUFBSSxJQUNKLEtBQUssSUFDTCxhQUFhLEtBQ2IsVUFBVSxxQkFDVixNQUFNLE1BQ04sT0FBTyxNQUNQLFdBQVcsS0FDWCxPQUFPLElBQUksTUFBTSxLQUVuQiwwQkFDRSxjQUFlLElBRWpCLDRCQUNFLGFBQWMsSUFDZCxZQUFhLElBQUksTUFBTSxRQUV6QixzQkFDRSxZQUFZLFdBQ1osTUFBTSxRQUNOLFVBQVcsTUFDWCxjQUFjIn0= */";
+  var pastreleasesCSS = "#pastreleases{position:fixed;bottom:1%;left:10px;background:#d5dce4;color:#033162;font-size:10pt;border:1px solid #033162;z-index:200;opacity:0;transition:opacity .7s;overflow:auto}#pastreleases .tablediv{display:table;position:relative}#pastreleases .entry,#pastreleases .header{display:table-row}#pastreleases .entry>*,#pastreleases .header>*{display:table-cell;line-height:21pt}#pastreleases .upcoming{cursor:pointer;font-size:x-small}#pastreleases .controls{cursor:pointer;position:absolute;top:0;right:1px;line-height:11pt}#pastreleases .entry:link{position:relative;border-top:1px solid #033162;color:#033162;text-decoration:none}#pastreleases .entry:nth-child(odd){background:#c5ccd4}#pastreleases .entry:hover,#pastreleases .entry:visited{color:#033162;text-decoration:none}#pastreleases .entry.future{display:none;background:#9fc2ea}#pastreleases .entry.future:nth-child(odd){background:#8fc2e1}#pastreleases .entry .image{background-size:contain;width:21pt;height:21pt}#pastreleases .entry:hover .image{display:block;position:fixed;bottom:10px;top:50%;left:50%;margin-right:-50%;transform:translate(-50%,-50%);width:350px;height:350px;background:#000;border:5px solid #fff}#pastreleases .entry time{padding-right:2px}#pastreleases .entry .title{padding-left:2px;border-left:1px solid #47a2bd;font-size:1em}#pastreleases .remove{font-family:sans-serif;color:#97174e;font-size:small;padding-right:3px}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL3Bhc3RyZWxlYXNlcy5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUksY0FDRSxTQUFTLE1BQ1QsT0FBTyxHQUNQLEtBQUssS0FDTCxXQUFXLFFBQ1gsTUFBTSxRQUNOLFVBQVUsS0FDVixPQUFPLElBQUksTUFBTSxRQUNqQixRQUFRLElBQ1IsUUFBUSxFQUNSLFdBQVksUUFBUSxJQUNwQixTQUFTLEtBRVgsd0JBQ0UsUUFBUyxNQUNULFNBQVMsU0FFWCxxQkFBcUIsc0JBQ25CLFFBQVEsVUFFVix1QkFBeUIsd0JBQ3ZCLFFBQVEsV0FDUixZQUFZLEtBRWQsd0JBQ0UsT0FBTyxRQUNQLFVBQVUsUUFFWix3QkFDRSxPQUFPLFFBQ1AsU0FBUyxTQUNULElBQUksRUFDSixNQUFNLElBQ04sWUFBWSxLQUVkLDBCQUNFLFNBQVMsU0FDVCxXQUFXLElBQUksTUFBTSxRQUNyQixNQUFNLFFBQ04sZ0JBQWdCLEtBRWxCLG9DQUNFLFdBQVcsUUFFYiwyQkFBMkIsNkJBQ3pCLE1BQU0sUUFDTixnQkFBZ0IsS0FFbEIsNEJBQ0UsUUFBUSxLQUNSLFdBQVcsUUFFYiwyQ0FDRSxXQUFXLFFBRWIsNEJBQ0UsZ0JBQWdCLFFBQ2hCLE1BQU0sS0FDTixPQUFPLEtBRVQsa0NBQ0UsUUFBUSxNQUNSLFNBQVMsTUFDVCxPQUFPLEtBQ1AsSUFBSSxJQUNKLEtBQUssSUFDTCxhQUFhLEtBQ2IsVUFBVSxxQkFDVixNQUFNLE1BQ04sT0FBTyxNQUNQLFdBQVcsS0FDWCxPQUFPLElBQUksTUFBTSxLQUVuQiwwQkFDRSxjQUFlLElBRWpCLDRCQUNFLGFBQWMsSUFDZCxZQUFhLElBQUksTUFBTSxRQUN2QixVQUFXLElBRWIsc0JBQ0UsWUFBWSxXQUNaLE1BQU0sUUFDTixVQUFXLE1BQ1gsY0FBYyJ9 */";
 
-  var darkmodeCSS = "#centerWrapper #pgBd #trackInfoInner{display:flex;flex-direction:column}#centerWrapper #pgBd #trackInfoInner>.tralbumCommands{order:1}#centerWrapper #pgBd #rightColumn{display:flex;flex-direction:column}#centerWrapper #pgBd #rightColumn>#showography{order:1}.ui-widget-overlay{display:none}.ui-dialog.ui-widget.ui-widget-content.ui-corner-all.nu-dialog.no-title{position:fixed!important;top:0!important;right:0!important;bottom:auto!important;left:auto!important}.inline_player .nextbutton,.inline_player .prevbutton,svg{filter:invert(100%)}a{color:#da5!important}.trackYear,button{color:#ac6!important}div#collection-container.collection-container,div.home{background:#000!important}div.area_text,div.sort_controls,div.text,span{color:#ccc!important}div#dlg0_h.hd,div#pgBd.yui-skin-sam,div.blogunit-details-section,div.collection-item-details-container{background:var(--pgBdColor)!important}div.collection-item-artist,h1{color:#ccc!important}DIV.track_number.secondaryText,div.collection-item-title,div.message,h2{color:#fff!important}h3{color:#ffed80!important}DIV.tralbumData.tralbum-credits{color:#ccc!important}DIV#license.info,DIV.tralbumData.tralbum-about,DIV.tralbumData.tralbum-feed,li{color:#806300!important}button.sc-button.sc-button-small.sc-button-responsive.sc-button-addtoset{color:#000!important}div#fan-suggestions.dotted-section.mine,div.bcweekly-bd,div.collection-item-gallery-container,div.collection-stats.dotted-section.mine{background:#222!important}p{color:#aaa!important}div.sound__soundActions{background:0 0!important}button.sc-button.sc-button-small.sc-button-responsive.sc-button-addtoset{color:#111!important}div.ft.fakeFt{background:#555!important}div.bd.footerless{background:#999!important}.walkthrough ol{background-color:#373737}.walkthrough .button{background:#262626;border:#262626}.fan-banner.empty.owner{background-color:#373737}#menubar,#pgFt,.menubar-outer{background-color:#26423b!important;border-bottom:dotted #000 1px!important}#menubar-wrapper{background-color:#000;border-bottom:dotted #000 1px!important}#menubar input#search-field{margin:0;height:21px;line-height:21px;width:222px;font-family:\"Helvetica Neue\",Arial,sans-serif;color:#fff;font-size:13px;padding:0 21px 0 3px;-webkit-user-select:text;text-align:center;background-color:#282828;border:1px solid #282828;outline:0;border-radius:3px}#menubar input#search-field.focused{background-color:#282828;border:1px solid #282828}.fan-bio .edit-profile a{border:1px solid #373737;border-radius:5px;outline:0;background:#373737;color:#aaa;font-weight:500;padding:5px 9px;font-size:11px;line-height:15px;text-transform:uppercase;display:inline-block}.grids{color:#fff;margin:0 0 100px}.recommendations-container{background-color:#373737;border-top:dotted #373737 1px}.fan-container .top.editing{border-bottom:1px solid #2a2a2a;background-color:#191919}.ui-dialog.nu-dialog .ui-dialog-titlebar{padding:15px 20px 12px;background-color:#282828;border-bottom:1px solid #282828}.ui-widget-content{border:1px solid #373;background:#373737}.app-promo-desktop,.bcdaily,.discover,.email-intake,.notable{background-color:#262626}.bcdaily .bcdaily-story{min-height:280px;background:#373737}.notable-item{background-color:#373737}.item-page{background:#373737;border:1px solid #373737}.follow-fan-btn{background-color:#373737;border:1px solid #373737}.spotlight-bio,.spotlight-button,.spotlight-link,.spotlight-location,.spotlight-name{color:#fff}.aotd-large{background:#373737}.factoid-title{color:#46c5d5}#autocomplete-results.autocompleted{background:#262626;border:1px solid #262626;color:#fff}.searchwidget.keyboard-focus input[type=text]:focus{background:#262626;box-shadow:0 0}.discover-detail-inner{background-color:#373737}body.wordpress{background:#262626}.wordpress .sidebar .textwidget{color:#fff}.wordpress h1 a{display:block;height:60px;background-size:242px 28px;background-position:24.6% 50%}p{color:#fff!important}.wordpress #content{color:#fff}#dash-container .follow-band,#dash-container .follow-discover,#dash-container .follow-fan{border:1px solid #373737;background:linear-gradient(to bottom,#373737 0,#373737 100%)}html{background:#1e1e1e!important}#stories-vm .story-innards{background-color:#373737}.pane{color:#c7c7c7}#settings-menubar{border-right:1px solid #383838}#settings-menubar li{border-left:1px solid #383838;border-bottom:1px solid #383838;border-top:1px solid #383838}.share_dialog.ui-dialog .ui-dialog-content{background-color:#262626}.share_dialog .section_head{color:#fff}.buy-dlg{color:#fff}#menubar>ul>li .logo{background:url(https://www.dropbox.com/s/8s7km8r329l7qy7/bandcamp-logo-gray.png?dl=1) 0 0 no-repeat;background-size:contain;height:20px;margin-top:15px;width:85px}.hd-logo{background:transparent url(https://www.dropbox.com/s/8s7km8r329l7qy7/bandcamp-logo-gray.png?dl=1) no-repeat;background-size:100%;margin-top:24px;height:25px;width:156px}.wordpress h1 a{display:block;text-indent:-999em;background:url(https://www.dropbox.com/s/mx80o2eenp43l0o/bandcamp-daily-retina-dark-theme.png?dl=1) no-repeat;height:60px;background-size:242px 28px;background-position:24.6% 50%}#pgBd{color:#fff}.download-bottom-area{border-top:none;background:0 0}.download .formats-container{border:1px solid #373737;background-color:#373737}.download .formats{list-style:none;color:#888;padding:0;background-color:#373737;width:170px;z-index:2;cursor:default}.download .formats li:hover{background-color:#262626}html{scrollbar-color:#222 #26423b}::-webkit-scrollbar{height:13px}::-webkit-scrollbar-thumb{background:#26423b;border:1px solid #4a4a4a}::-webkit-scrollbar-thumb:hover{background:#316d4b}::-webkit-scrollbar-thumb:active{background:#316d4b}::-webkit-scrollbar-track{background:#4a4a4a}::-webkit-scrollbar-track:hover{background:#4a4a4a}::-webkit-scrollbar-track:active{background:#4a4a4a}::-webkit-scrollbar-corner{background:#4a4a4a}body{background-color:#000!important;color:#fff!important}#propOpenWrapper{background-color:var(--propOpenWrapperBackgroundColor)!important;transition:background-color .5s}.bcdaily-thumb-img,img{filter:brightness(70%)}.bcdaily-thumb-img:hover,img:hover{filter:none}img.imageviewer_image{filter:none}.bclogo svg{filter:brightness(60%)}.inline_player .playbutton.busy::after{opacity:.3;background-image:url(https://bandcamp.com/img/loading-dark.gif)}.inline_player .nextsongcontrolbutton,.inline_player .playbutton,.inline_player .volumeButton,.track_list .play_status{background-color:#686868;border-color:#595959}.nextsongcontrolbutton .nextsongcontrolicon{filter:drop-shadow(#090909b3 1px 1px 2px)}.nextsongcontrolbutton.active .nextsongcontrolicon{filter:drop-shadow(#a3f204 1px 1px 2px)!important}.hidden .nextsongcontrolbutton{display:none}.inline_player .progbar .thumb{background-color:#000;border-color:#ccc}.inline_player .nextbutton,.inline_player .prevbutton{opacity:.7}.track_list tr.lyricsRow td[colspan] div{color:#f8f8f8}input[type=password],input[type=text],textarea{background-color:#121f12!important;color:#40b333!important}.carousel-player-inner{background-color:#26423b}.carousel-player-inner .progress-bar{background-color:#26423b}#carousel-player .queue.show{background-color:#26423b}#carousel-player .queue.show li.active{background-color:#528679}#autocomplete-results .see-all{background-color:#f3f3f345!important}.deluxemenu{color:#c9ebfb!important;background:#00042f!important}.deluxemenu button{background:#1c1494}.deluxeexportmenu table tr>td{color:#00a1c6!important}.deluxeexportmenu table tr>td:nth-child(3){color:#006bc6!important}.deluxemenu fieldset{border:1px solid #fffa!important;box-shadow:1px 1px 3px #fff5!important}.deluxemenu fieldset legend{color:#fffa!important}#discographyplayer{background-color:#26423b!important;color:#869593!important}#discographyplayer .playlist .playing{background:#619aa9db!important}#timeline{background:rgba(34,57,42,.69)!important}#bufferbar{background:rgba(77,79,76,.59)!important}#playhead{background:#2a6c21!important}#discographyplayer .playlist{scrollbar-color:#222 #26423b!important}#discographyplayer_contextmenu{box-shadow:#ffffff50 2px 2px 2px;background-color:#162d27;border:#619aa9 2px solid;color:#c2aa4a}#discographyplayer_contextmenu .contextmenu_submenu{cursor:pointer;padding:2px;background-color:#162d27;color:#c2aa4a;border:1px solid transparent}#discographyplayer_contextmenu .contextmenu_submenu:hover{background-color:#619aa9;color:#fff;border:1px solid #fff}#band-navbar{background-color:#333!important}.hd.corp-home{background-color:#26423b}#hub .bd-section.top-section{opacity:.8}#s-daily{background:#262626!important}.franchise-description{color:#d7d072}.footer-gradient{background-image:linear-gradient(to bottom,#262626,#5e5e5e)}#s-daily dailyfooter{background-color:#5e5e5e}#s-daily dailyfooter h2{-webkit-text-stroke:2px #257110!important}#s-daily a.pagination-link{-webkit-text-stroke:2px #257110!important}#s-daily a.pagination-link .back-text{-webkit-text-stroke:2px #1c6c3f!important}article-title{color:#e3e3e3}.mpmerchformats{color:#909090}article-footer{color:#909090}article>article-end{filter:invert(75%)}article .icon{filter:invert(50%)}.salesfeed .item-inner:hover{background-color:#0e738c!important}.hd.header-rework-2018 .hd-sub-head .blue-gradient{background:-webkit-linear-gradient(left,#da5,#daf)!important}.factoid .dots{filter:brightness(300%)}.bdp_check_onlinkhover_container_shown{background-color:#26423ba8!important}.bdp_check_onlinkhover_container:hover{background-color:#2d7d39a8!important;box-shadow:#2db91f7a 0 0 5px}#pastreleases{background-color:#154a86!important}#pastreleases .entry:nth-child(odd){background-color:#3e6c9f!important}#pastreleases .entry.future{background-color:#4783c8!important}#pastreleases .entry.future:nth-child(odd){background-color:#11447d!important}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rhcmttb2RlLmNzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFNQSxxQ0FDSSxRQUFTLEtBQ1QsZUFBZ0IsT0FFcEIsc0RBQ0ksTUFBTyxFQUdYLGtDQUNJLFFBQVMsS0FDVCxlQUFnQixPQUVwQiwrQ0FDSSxNQUFPLEVBSVgsbUJBQ0ksUUFBUyxLQUViLHdFQUNJLFNBQVUsZ0JBQ1YsSUFBSyxZQUNMLE1BQU8sWUFDUCxPQUFRLGVBQ1IsS0FBTSxlQUVWLDJCQUNBLDJCQUNBLElBQ0ksT0FBUSxhQUVaLEVBQ0ksTUFBTyxlQUVYLFdBQ0EsT0FDSSxNQUFPLGVBRVgsOENBQ0EsU0FDSSxXQUFZLGVBRWhCLGNBQ0Esa0JBQ0EsU0FDQSxLQUNJLE1BQU8sZUFFWCxjQUNBLHNCQUNBLDZCQUNBLHNDQUNJLFdBQVksMkJBRWhCLDJCQUNBLEdBQ0ksTUFBTyxlQUVYLCtCQUNBLDBCQUNBLFlBQ0EsR0FDSSxNQUFPLGVBRVgsR0FDSSxNQUFPLGtCQUVYLGdDQUNJLE1BQU8sZUFFWCxpQkFDQSw4QkFDQSw2QkFDQSxHQUNJLE1BQU8sa0JBRVgseUVBQ0ksTUFBTyxlQUVYLHdDQUNBLGdCQUNBLHNDQUNBLHlDQUNJLFdBQVksZUFFaEIsRUFDSSxNQUFPLGVBRVgsd0JBQ0ksV0FBWSxjQUVoQix5RUFDSSxNQUFPLGVBRVgsY0FDSSxXQUFZLGVBRWhCLGtCQUNJLFdBQVksZUFFaEIsZ0JBQ0ksaUJBQWtCLFFBRXRCLHFCQUNJLFdBQVksUUFDWixPQUFRLFFBRVosd0JBQ0ksaUJBQWtCLFFBRXRCLFNBQ0EsTUFDQSxlQUNJLGlCQUFrQixrQkFDbEIsY0FBZSxPQUFPLEtBQUssY0FFL0IsaUJBQ0ksaUJBQWtCLEtBQ2xCLGNBQWUsT0FBTyxLQUFLLGNBRS9CLDRCQUNJLE9BQVEsRUFDUixPQUFRLEtBQ1IsWUFBYSxLQUNiLE1BQU8sTUFDUCxZQUFhLGdCQUFnQixDQUFFLEtBQUssQ0FBRSxXQUN0QyxNQUFPLEtB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 */";
+  var darkmodeCSS = "#centerWrapper #pgBd #trackInfoInner{display:flex;flex-direction:column}#centerWrapper #pgBd #trackInfoInner>.tralbumCommands{order:1}#centerWrapper #pgBd #rightColumn{display:flex;flex-direction:column}#centerWrapper #pgBd #rightColumn>#showography{order:1}.ui-widget-overlay{display:none}.ui-dialog.ui-widget.ui-widget-content.ui-corner-all.nu-dialog.no-title{position:fixed!important;top:0!important;right:0!important;bottom:auto!important;left:auto!important}.inline_player .nextbutton,.inline_player .prevbutton,svg{filter:invert(100%)}a{color:#da5!important}.trackYear,button{color:#ac6!important}div#collection-container.collection-container,div.home{background:#000!important}div.area_text,div.sort_controls,div.text,span{color:#ccc!important}div#dlg0_h.hd,div#pgBd.yui-skin-sam,div.blogunit-details-section,div.collection-item-details-container{background:var(--pgBdColor)!important}div.collection-item-artist,h1{color:#ccc!important}DIV.track_number.secondaryText,div.collection-item-title,div.message,h2{color:#fff!important}h3{color:#ffed80!important}DIV.tralbumData.tralbum-credits{color:#ccc!important}DIV#license.info,DIV.tralbumData.tralbum-about,DIV.tralbumData.tralbum-feed,li{color:#806300!important}button.sc-button.sc-button-small.sc-button-responsive.sc-button-addtoset{color:#000!important}div#fan-suggestions.dotted-section.mine,div.bcweekly-bd,div.collection-item-gallery-container,div.collection-stats.dotted-section.mine{background:#222!important}p{color:#aaa!important}div.sound__soundActions{background:0 0!important}button.sc-button.sc-button-small.sc-button-responsive.sc-button-addtoset{color:#111!important}div.ft.fakeFt{background:#555!important}div.bd.footerless{background:#999!important}.walkthrough ol{background-color:#373737}.walkthrough .button{background:#262626;border:#262626}.fan-banner.empty.owner{background-color:#373737}#menubar,#pgFt,.menubar-outer{background-color:#26423b!important;border-bottom:dotted #000 1px!important}#menubar-wrapper{background-color:#000;border-bottom:dotted #000 1px!important}#menubar input#search-field{margin:0;height:21px;line-height:21px;width:222px;font-family:\"Helvetica Neue\",Arial,sans-serif;color:#fff;font-size:13px;padding:0 21px 0 3px;-webkit-user-select:text;text-align:center;background-color:#282828;border:1px solid #282828;outline:0;border-radius:3px}#menubar input#search-field.focused{background-color:#282828;border:1px solid #282828}.fan-bio .edit-profile a{border:1px solid #373737;border-radius:5px;outline:0;background:#373737;color:#aaa;font-weight:500;padding:5px 9px;font-size:11px;line-height:15px;text-transform:uppercase;display:inline-block}.grids{color:#fff;margin:0 0 100px}.recommendations-container{background-color:#373737;border-top:dotted #373737 1px}.fan-container .top.editing{border-bottom:1px solid #2a2a2a;background-color:#191919}.ui-dialog.nu-dialog .ui-dialog-titlebar{padding:15px 20px 12px;background-color:#282828;border-bottom:1px solid #282828}.ui-widget-content{border:1px solid #373;background:#373737}.app-promo-desktop,.bcdaily,.discover,.email-intake,.notable{background-color:#262626}.bcdaily .bcdaily-story{min-height:280px;background:#373737}.notable-item{background-color:#373737}.item-page{background:#373737;border:1px solid #373737}.follow-fan-btn{background-color:#373737;border:1px solid #373737}.spotlight-bio,.spotlight-button,.spotlight-link,.spotlight-location,.spotlight-name{color:#fff}.aotd-large{background:#373737}.factoid-title{color:#46c5d5}#autocomplete-results.autocompleted{background:#262626;border:1px solid #262626;color:#fff}.searchwidget.keyboard-focus input[type=text]:focus{background:#262626;box-shadow:0 0}.discover-detail-inner{background-color:#373737}body.wordpress{background:#262626}.wordpress .sidebar .textwidget{color:#fff}.wordpress h1 a{display:block;height:60px;background-size:242px 28px;background-position:24.6% 50%}p{color:#fff!important}.wordpress #content{color:#fff}#dash-container .follow-band,#dash-container .follow-discover,#dash-container .follow-fan{border:1px solid #373737;background:linear-gradient(to bottom,#373737 0,#373737 100%)}html{background:#1e1e1e!important}#stories-vm .story-innards{background-color:#373737}.pane{color:#c7c7c7}#settings-menubar{border-right:1px solid #383838}#settings-menubar li{border-left:1px solid #383838;border-bottom:1px solid #383838;border-top:1px solid #383838}.share_dialog.ui-dialog .ui-dialog-content{background-color:#262626}.share_dialog .section_head{color:#fff}.buy-dlg{color:#fff}#menubar>ul>li .logo{background:url('https://www.dropbox.com/s/8s7km8r329l7qy7/bandcamp-logo-gray.png?dl=1') 0 0 no-repeat;background-size:contain;height:20px;margin-top:15px;width:85px}.hd-logo{background:transparent url('https://www.dropbox.com/s/8s7km8r329l7qy7/bandcamp-logo-gray.png?dl=1') no-repeat;background-size:100%;margin-top:24px;height:25px;width:156px}.wordpress h1 a{display:block;text-indent:-999em;background:url('https://www.dropbox.com/s/mx80o2eenp43l0o/bandcamp-daily-retina-dark-theme.png?dl=1') no-repeat;height:60px;background-size:242px 28px;background-position:24.6% 50%}#pgBd{color:#fff}.download-bottom-area{border-top:none;background:0 0}.download .formats-container{border:1px solid #373737;background-color:#373737}.download .formats{list-style:none;color:#888;padding:0;background-color:#373737;width:170px;z-index:2;cursor:default}.download .formats li:hover{background-color:#262626}html{scrollbar-color:#222 #26423b}::-webkit-scrollbar{height:13px}::-webkit-scrollbar-thumb{background:#26423b;border:1px solid #4a4a4a}::-webkit-scrollbar-thumb:hover{background:#316d4b}::-webkit-scrollbar-thumb:active{background:#316d4b}::-webkit-scrollbar-track{background:#4a4a4a}::-webkit-scrollbar-track:hover{background:#4a4a4a}::-webkit-scrollbar-track:active{background:#4a4a4a}::-webkit-scrollbar-corner{background:#4a4a4a}body{background-color:#000!important;color:#fff!important}#propOpenWrapper{background-color:var(--propOpenWrapperBackgroundColor)!important;transition:background-color .5s}.bcdaily-thumb-img,img{filter:brightness(70%)}.bcdaily-thumb-img:hover,img:hover{filter:none}img.imageviewer_image{filter:none}.bclogo svg{filter:brightness(60%)}.inline_player .playbutton.busy::after{opacity:.3;background-image:url('https://bandcamp.com/img/loading-dark.gif')}.inline_player .nextsongcontrolbutton,.inline_player .playbutton,.inline_player .volumeButton,.track_list .play_status{background-color:#686868;border-color:#595959}.nextsongcontrolbutton .nextsongcontrolicon{filter:drop-shadow(#090909b3 1px 1px 2px)}.nextsongcontrolbutton.active .nextsongcontrolicon{filter:drop-shadow(#a3f204 1px 1px 2px)!important}.hidden .nextsongcontrolbutton{display:none}.inline_player .progbar .thumb{background-color:#000;border-color:#ccc}.inline_player .nextbutton,.inline_player .prevbutton{opacity:.7}.track_list tr.lyricsRow td[colspan] div{color:#f8f8f8}input[type=password],input[type=text],textarea{background-color:#121f12!important;color:#40b333!important}.carousel-player-inner{background-color:#26423b}.carousel-player-inner .progress-bar{background-color:#26423b}#carousel-player .queue.show{background-color:#26423b}#carousel-player .queue.show li.active{background-color:#528679}#autocomplete-results .see-all{background-color:#f3f3f345!important}.deluxemenu{color:#c9ebfb!important;background:#00042f!important}.deluxemenu button{background:#1c1494}.deluxeexportmenu table tr>td{color:#00a1c6!important}.deluxeexportmenu table tr>td:nth-child(3){color:#006bc6!important}.deluxemenu fieldset{border:1px solid #fffa!important;box-shadow:1px 1px 3px #fff5!important}.deluxemenu fieldset legend{color:#fffa!important}#discographyplayer{background-color:#26423b!important;color:#869593!important}#discographyplayer .playlist .playing{background:#619aa9db!important}#timeline{background:rgba(34,57,42,.69)!important}#bufferbar{background:rgba(77,79,76,.59)!important}#playhead{background:#2a6c21!important}#discographyplayer .playlist{scrollbar-color:#222 #26423b!important}#discographyplayer_contextmenu{box-shadow:#ffffff50 2px 2px 2px;background-color:#162d27;border:#619aa9 2px solid;color:#c2aa4a}#discographyplayer_contextmenu .contextmenu_submenu{cursor:pointer;padding:2px;background-color:#162d27;color:#c2aa4a;border:1px solid transparent}#discographyplayer_contextmenu .contextmenu_submenu:hover{background-color:#619aa9;color:#fff;border:1px solid #fff}#band-navbar{background-color:#333!important}.hd.corp-home{background-color:#26423b}#hub .bd-section.top-section{opacity:.8}#s-daily{background:#262626!important}.franchise-description{color:#d7d072}.footer-gradient{background-image:linear-gradient(to bottom,#262626,#5e5e5e)}#s-daily dailyfooter{background-color:#5e5e5e}#s-daily dailyfooter h2{-webkit-text-stroke:2px #257110!important}#s-daily a.pagination-link{-webkit-text-stroke:2px #257110!important}#s-daily a.pagination-link .back-text{-webkit-text-stroke:2px #1c6c3f!important}article-title{color:#e3e3e3}.mpmerchformats{color:#909090}article-footer{color:#909090}article>article-end{filter:invert(75%)}article .icon{filter:invert(50%)}.salesfeed .item-inner:hover{background-color:#0e738c!important}.hd.header-rework-2018 .hd-sub-head .blue-gradient{background:-webkit-linear-gradient(left,#da5,#daf)!important}.factoid .dots{filter:brightness(300%)}.bdp_check_onlinkhover_container_shown{background-color:#26423ba8!important}.bdp_check_onlinkhover_container:hover{background-color:#2d7d39a8!important;box-shadow:#2db91f7a 0 0 5px}#pastreleases{background-color:#154a86!important}#pastreleases .entry:nth-child(odd){background-color:#3e6c9f!important}#pastreleases .entry.future{background-color:#4783c8!important}#pastreleases .entry.future:nth-child(odd){background-color:#11447d!important}#queueloadingindicator{background-color:#154a86!important}.sidebar .shortcuts{background:#0000;border-color:#0000}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rhcmttb2RlLmNzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFNQSxxQ0FDSSxRQUFTLEtBQ1QsZUFBZ0IsT0FFcEIsc0RBQ0ksTUFBTyxFQUdYLGtDQUNJLFFBQVMsS0FDVCxlQUFnQixPQUVwQiwrQ0FDSSxNQUFPLEVBSVgsbUJBQ0ksUUFBUyxLQUViLHdFQUNJLFNBQVUsZ0JBQ1YsSUFBSyxZQUNMLE1BQU8sWUFDUCxPQUFRLGVBQ1IsS0FBTSxlQUVWLDJCQUNBLDJCQUNBLElBQ0ksT0FBUSxhQUVaLEVBQ0ksTUFBTyxlQUVYLFdBQ0EsT0FDSSxNQUFPLGVBRVgsOENBQ0EsU0FDSSxXQUFZLGVBRWhCLGNBQ0Esa0JBQ0EsU0FDQSxLQUNJLE1BQU8sZUFFWCxjQUNBLHNCQUNBLDZCQUNBLHNDQUNJLFdBQVksMkJBRWhCLDJCQUNBLEdBQ0ksTUFBTyxlQUVYLCtCQUNBLDBCQUNBLFlBQ0EsR0FDSSxNQUFPLGVBRVgsR0FDSSxNQUFPLGtCQUVYLGdDQUNJLE1BQU8sZUFFWCxpQkFDQSw4QkFDQSw2QkFDQSxHQUNJLE1BQU8sa0JBRVgseUVBQ0ksTUFBTyxlQUVYLHdDQUNBLGdCQUNBLHNDQUNBLHlDQUNJLFdBQVksZUFFaEIsRUFDSSxNQUFPLGVBRVgsd0JBQ0ksV0FBWSxjQUVoQix5RUFDSSxNQUFPLGVBRVgsY0FDSSxXQUFZLGVBRWhCLGtCQUNJLFdBQVksZUFFaEIsZ0JBQ0ksaUJBQWtCLFFBRXRCLHFCQUNJLFdBQVksUUFDWixPQUFRLFFBRVosd0JBQ0ksaUJBQWtCLFFBRXRCLFNBQ0EsTUFDQSxlQUNJLGlCQUFrQixrQkFDbEIsY0FBZSxPQUFPLEtBQUssY0FFL0IsaUJBQ0ksaUJBQWtCLEtBQ2xCLGNBQWUsT0FBTyxLQUFLLGNBRS9CLDRCQUNJLE9BQVEsRUFDUixPQUFRLEtBQ1IsWUFBYSxLQUNiLE1BQU8sTUFDUCxZQUFhLGdCQUFnQixDQUFFLEtBQUssQ0FBRSxXQUN0QyxNQUFPLEtB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 */";
 
   var geniusCSS = "#myconfigwin39457845{z-index:2060!important;position:fixed!important}#myconfigwin39457845 h1{margin:5px}#myconfigwin39457845 .divAutoShow{display:none}#myconfigwin39457845 button{background-color:#cacaca!important;color:#000!important;border:2px outset!important;padding:1px!important;font-size:1.2em!important}#lyricsiframe{opacity:.1;transition:opacity 2s;margin:0;padding:0;position:relative}.lyricsnavbar{font-size:.7em;text-align:right;padding:0 10px 0 0!important}.lyricsnavbar a:link,.lyricsnavbar a:visited,.lyricsnavbar span{color:#606060;text-decoration:none;transition:color .4s}.lyricsnavbar a:hover,.lyricsnavbar span:hover{color:#9026e0;text-decoration:none}.loadingspinner{color:#000;font-size:12px;line-height:15px;width:15px!important;height:15px!important;padding:2px!important}.loadingspinnerholder{z-index:10;cursor:progress;position:relative;width:20px!important;height:20px!important}.searchresultlist{margin:0!important;padding:0!important;border:1px solid #000;border-radius:3px;width:450px!important}.searchresultlist ol{list-style:none;padding:0!important;margin:0}.searchresultlist ol li div{width:auto!important}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2dlbml1cy5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQ0UscUJBQ0UsUUFBUSxlQUNSLFNBQVMsZ0JBRVgsd0JBQ0UsT0FBTyxJQUVULGtDQUNFLFFBQVEsS0FFViw0QkFDRSxpQkFBa0Isa0JBQ2xCLE1BQU8sZUFDUCxPQUFRLElBQUksaUJBQ1osUUFBUyxjQUNULFVBQVcsZ0JBRWIsY0FDRSxRQUFRLEdBQ1IsV0FBVyxRQUFRLEdBQ25CLE9BQU8sRUFDUCxRQUFRLEVBQ1IsU0FBUyxTQUVYLGNBQ0UsVUFBWSxLQUNaLFdBQVcsTUFDWCxRQUFTLEVBQUksS0FBSyxFQUFJLFlBRUwscUJBQXFCLHdCQUF4QyxtQkFDRSxNQUFNLFFBQ04sZ0JBQWdCLEtBQ2hCLFdBQVcsTUFBTSxJQUVuQixzQkFBc0IseUJBQ3BCLE1BQU0sUUFDTixnQkFBZ0IsS0FFbEIsZ0JBQ0ksTUFBTSxLQUNOLFVBQVUsS0FDVixZQUFZLEtBQ1osTUFBTSxlQUNOLE9BQU8sZUFDUCxRQUFTLGNBRWIsc0JBQ0UsUUFBUSxHQUNSLE9BQU8sU0FDUCxTQUFTLFNBQ1QsTUFBTSxlQUNOLE9BQU8sZUFFVCxrQkFDRSxPQUFPLFlBQ1AsUUFBUSxZQUNSLE9BQU8sSUFBSSxNQUFNLEtBQ2pCLGNBQWUsSUFDZixNQUFPLGdCQUVULHFCQUNFLFdBQVksS0FDWixRQUFTLFlBQ1QsT0FBTyxFQUtULDRCQUNFLE1BQU8ifQ== */";
 
@@ -911,6 +911,7 @@ SOFTWARE.
   const LYRICS_EMPTY_PATH = '/robots.txt';
   const PLAYER_URL = 'https://bandcamp.com/robots.txt?player';
   let darkModeInjected = false;
+  let storeTralbumDataPermanentlySwitch = true;
   const allFeatures = {
     discographyplayer: {
       name: 'Enable player on discography page',
@@ -1161,7 +1162,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
   };
   let player, audio, currentDuration, timeline, playhead, bufferbar;
   let onPlayHead = false;
-  const spriteRepeatShuffle = 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAABgCAMAAACt1UvuAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAA2UExURQAAAP////39/Tw8PP///////w4ODv////7+/v7+/k5OTktLS35+fiAgIJSUlAAAABAQECoqKpxAnVsAAAAPdFJOUwAxQ05UJGkKBRchgWiOOufd5UcAAAKrSURBVEjH7ZfrkqQgDIUbFLmphPd/2T2EgNqNzlTt7o+p3dR0d5V+JOGEYzkvZ63nsNY6517XCPIrjIDvXF7qL24ao5QynesIllDKE1MpJdom1UDBQIQlE+HmEipVIk+6cqVqQYivlq/loBJFDa6WnaitbbnMtFHnOF1niDJJX14pPa+cOm0l3Vohyuus8xpkj9ih1nPke6iaO6KV323XqwhRON4tQ3GedakNYYQqslaO+yv9xs64Lh2rX8sWeSISzVWTk8ROJmmU9MTl1PvEnHBmzXRSzvhhuqJAzjlJY9eJCVWljKwcESbL+fbTYK0NWx0IGodyvKCACqp6VqMNlguhktbxMqHdI5k7ps1SsiTxPO0YDgojkZPIysl+617cy8rUkIfPflMY4IaKLZfHhSoPn782iQJC5tIX2nfNQseGG4eoe3T1+kXh7j1j/H6W9TbC65ZxR2S0frKePUWYlhbY/hTkvL6aiKPApCRTeoxNTvUTI16r1DqPAqrGVR0UT/ojwGByJ6qO8S32HQ6wJ8r4TwFdyGnx7kzVM8l/nZpwRwkm1GAKC+5oKflMzY3aUm4rBpSsd17pVv2Bsn739ivqFWK2bhD2TE0wwTKM3Knu2puo1PJ8blqu7TEXVY1wgvGQwYN6HKJR0WGjYqxheN/lCpOzd/GlHX+gHyEe/SE/qpyV+sKPfqdEhzVv/OjwwC3zlefnnR+9YW+5Zz86fzjw3o+f1NCP9oMa+fGeOvnR2brH/378B/xI9A0/UjUjSfyOH2GzCDOuKavyUUM/eryMFjNOIMrHD/1o4di0GlCkp8IP/RjwglRSCKX9yI845VGXqwc18KOtWq3mSr35EQVnHbnzC3X144I3d7Wj6xuq+hH7gwz4PvY48GP9p8i2Vzus/dt+pB/nx18MUmsLM2EHrwAAAABJRU5ErkJggg==")';
+  const spriteRepeatShuffle = "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAABgCAMAAACt1UvuAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAA2UExURQAAAP////39/Tw8PP///////w4ODv////7+/v7+/k5OTktLS35+fiAgIJSUlAAAABAQECoqKpxAnVsAAAAPdFJOUwAxQ05UJGkKBRchgWiOOufd5UcAAAKrSURBVEjH7ZfrkqQgDIUbFLmphPd/2T2EgNqNzlTt7o+p3dR0d5V+JOGEYzkvZ63nsNY6517XCPIrjIDvXF7qL24ao5QynesIllDKE1MpJdom1UDBQIQlE+HmEipVIk+6cqVqQYivlq/loBJFDa6WnaitbbnMtFHnOF1niDJJX14pPa+cOm0l3Vohyuus8xpkj9ih1nPke6iaO6KV323XqwhRON4tQ3GedakNYYQqslaO+yv9xs64Lh2rX8sWeSISzVWTk8ROJmmU9MTl1PvEnHBmzXRSzvhhuqJAzjlJY9eJCVWljKwcESbL+fbTYK0NWx0IGodyvKCACqp6VqMNlguhktbxMqHdI5k7ps1SsiTxPO0YDgojkZPIysl+617cy8rUkIfPflMY4IaKLZfHhSoPn782iQJC5tIX2nfNQseGG4eoe3T1+kXh7j1j/H6W9TbC65ZxR2S0frKePUWYlhbY/hTkvL6aiKPApCRTeoxNTvUTI16r1DqPAqrGVR0UT/ojwGByJ6qO8S32HQ6wJ8r4TwFdyGnx7kzVM8l/nZpwRwkm1GAKC+5oKflMzY3aUm4rBpSsd17pVv2Bsn739ivqFWK2bhD2TE0wwTKM3Knu2puo1PJ8blqu7TEXVY1wgvGQwYN6HKJR0WGjYqxheN/lCpOzd/GlHX+gHyEe/SE/qpyV+sKPfqdEhzVv/OjwwC3zlefnnR+9YW+5Zz86fzjw3o+f1NCP9oMa+fGeOvnR2brH/378B/xI9A0/UjUjSfyOH2GzCDOuKavyUUM/eryMFjNOIMrHD/1o4di0GlCkp8IP/RjwglRSCKX9yI845VGXqwc18KOtWq3mSr35EQVnHbnzC3X144I3d7Wj6xuq+hH7gwz4PvY48GP9p8i2Vzus/dt+pB/nx18MUmsLM2EHrwAAAABJRU5ErkJggg==')";
 
   function humanDuration(duration) {
     let hours = parseInt(duration / 3600);
@@ -1711,18 +1712,40 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     return false;
   }
 
+  const shufflePlayed = [];
+
   function musicPlayerNextSong(next) {
     const current = player.querySelector('.playlist .playing');
 
     if (!next) {
-      next = current.nextElementSibling;
+      if (player.querySelector('.shufflebutton').classList.contains('active')) {
+        // Shuffle mode
+        const allLoadedSongs = document.querySelectorAll('.playlist .playlistentry'); // Set a random song (that is not the current song and not in shufflePlayed)
 
-      while (next) {
-        if ('file' in next.dataset) {
-          break;
+        let index = null;
+
+        for (let i = 0; i < 10; i++) {
+          index = randomIndex(allLoadedSongs.length);
+          const file = allLoadedSongs[index].dataset.file;
+
+          if (file !== current.dataset.file && shufflePlayed.indexOf(file) !== -1) {
+            break;
+          }
         }
 
-        next = next.nextElementSibling;
+        next = allLoadedSongs[index];
+        shufflePlayed.push(next.dataset.file);
+      } else {
+        // Normal mode
+        next = current.nextElementSibling;
+
+        while (next) {
+          if ('file' in next.dataset) {
+            break;
+          }
+
+          next = next.nextElementSibling;
+        }
       }
     }
 
@@ -1741,7 +1764,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
           notloaded.remove();
           cachedTralbumData(url).then(function onCachedTralbumDataLoaded(TralbumData) {
             if (TralbumData) {
-              addAlbumToPlaylist(TralbumData, 0);
+              addAlbumToPlaylist(TralbumData);
             } else {
               playAlbumFromUrl(url);
             }
@@ -1951,7 +1974,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       currentlyPlaying.style.marginTop = -parseInt(currentlyPlaying.clientHeight + 1) + 'px';
       nextInRow.style.height = '99%';
       nextInRow.style.width = '99%';
-      clearTimeout(ivSlideInNextSong);
+      window.clearTimeout(ivSlideInNextSong);
       ivSlideInNextSong = window.setTimeout(function slideInSongInterval() {
         currentlyPlaying.remove();
         const clone = nextInRow.cloneNode(true);
@@ -1965,7 +1988,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       currentlyPlaying.style.marginLeft = -parseInt(currentlyPlaying.clientWidth + 1) + 'px';
       nextInRow.style.height = '99%';
       nextInRow.style.width = '99%';
-      clearTimeout(ivSlideInNextSong);
+      window.clearTimeout(ivSlideInNextSong);
       ivSlideInNextSong = window.setTimeout(function slideInSongInterval() {
         currentlyPlaying.remove();
         const clone = nextInRow.cloneNode(true);
@@ -2078,6 +2101,59 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
         }
       }
     }, 10);
+  }
+
+  function musicPlayerToggleShuffle() {
+    player.querySelector('.shufflebutton').classList.toggle('active');
+
+    if (player.querySelector('.shufflebutton').classList.contains('active')) {
+      if (!window.confirm('Would you like to shuffle all albums on this page?\n\n(It may take several minutes to load all albums into the playlist)')) {
+        return;
+      } // Load all albums from page into the player
+
+
+      addAllAlbumsAsHeadings(); // Load unloaded items in playlist
+
+      let delay = 0; // Disable permanent storage for speed
+
+      storeTralbumDataPermanentlySwitch = false;
+      let n = player.querySelectorAll('.playlist .playlistheading a.notloaded').length + 1;
+
+      if (n > 0) {
+        const queueLoadingIndicator = document.body.appendChild(document.createElement('div'));
+        queueLoadingIndicator.setAttribute('id', 'queueloadingindicator');
+        queueLoadingIndicator.style = 'position:fixed;top:1%;left:10px;background:#d5dce4;color:#033162;font-size:10pt;border:1px solid #033162;z-index:200;';
+      }
+
+      const updateLoadingIndicator = function () {
+        const div = document.getElementById('queueloadingindicator');
+
+        if (div) {
+          div.innerHTML = `Loading albums into playlist. ${--n} albums remaining...`;
+
+          if (n <= 0) {
+            div.remove();
+            storeTralbumDataPermanentlySwitch = allFeatures.keepLibrary.enabled;
+          }
+        }
+      };
+
+      window.setTimeout(updateLoadingIndicator, 1);
+      player.querySelectorAll('.playlist .playlistheading a.notloaded').forEach(async function (notloaded) {
+        const url = notloaded.href;
+        notloaded.remove();
+        cachedTralbumData(url).then(function onCachedTralbumDataLoaded(TralbumData) {
+          if (TralbumData) {
+            addAlbumToPlaylist(TralbumData, null);
+            window.setTimeout(updateLoadingIndicator, 10);
+          } else {
+            // Delay to avoid rate limit
+            window.setTimeout(() => playAlbumFromUrl(url, null).then(updateLoadingIndicator), delay * 1000);
+            delay += 4;
+          }
+        });
+      });
+    }
   }
 
   function musicPlayerOnTimelineClick(ev) {
@@ -2329,7 +2405,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
         li.remove();
 
         if (TralbumData) {
-          addAlbumToPlaylist(TralbumData, 0);
+          addAlbumToPlaylist(TralbumData);
         } else {
           playAlbumFromUrl(url);
         }
@@ -2508,7 +2584,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     ev.preventDefault();
     const collectListened = player.querySelector('.collect-listened');
     const url = collectListened.dataset.albumUrl;
-    setTimeout(function musicPlayerCollectListenedResetTimeout() {
+    window.setTimeout(function musicPlayerCollectListenedResetTimeout() {
       player.querySelectorAll('.collect-listened>*').forEach(function (e) {
         e.style.display = 'none';
       });
@@ -2540,7 +2616,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     }
 
     player.querySelector('.collect-listened').style.cursor = '';
-    setTimeout(makeAlbumLinksGreat, 100);
+    window.setTimeout(makeAlbumLinksGreat, 100);
   }
 
   function musicPlayerUpdatePositionState() {
@@ -2620,7 +2696,8 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       htmlPlaylist: player.querySelector('.playlist').innerHTML,
       startPlayback: !audio.paused,
       startPlaybackIndex: startPlaybackIndex,
-      startPlaybackTime: startPlaybackTime
+      startPlaybackTime: startPlaybackTime,
+      shuffleActive: player.querySelector('.shufflebutton').classList.contains('active')
     }));
   }
 
@@ -2660,6 +2737,10 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
 
     if (state.startPlayback && state.startPlaybackIndex !== false) {
       musicPlayerPlaySong(playlistEntries[state.startPlaybackIndex], state.startPlaybackTime);
+    }
+
+    if ('shuffleActive' in state && state.shuffleActive) {
+      player.querySelector('.shufflebutton').classList.add('active');
     }
   }
 
@@ -2756,7 +2837,13 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       <div class="nextalbum" title="Next album">
         <div class="arrowbutton nextalbum-icon"></div>
       </div>
+
+      <div class="shuffleswitch" title="Shuffle">
+        <div class="shufflebutton" style="background-image:${spriteRepeatShuffle}"></div>
+      </div>
+
     </div>
+    
     <div class="durationDisplay"><span class="current">-</span>/<span class="total">-</span></div>
 
     <a class="downloadlink" title="Download mp3">
@@ -2857,6 +2944,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     player.querySelector('.playpause').addEventListener('click', musicPlayerPlay);
     player.querySelector('.next').addEventListener('click', musicPlayerNext);
     player.querySelector('.nextalbum').addEventListener('click', musicPlayerNextAlbum);
+    player.querySelector('.shuffleswitch').addEventListener('click', musicPlayerToggleShuffle);
     player.querySelector('.vol-slider').addEventListener('click', musicPlayerOnVolumeClick);
     player.querySelector('.vol').addEventListener('wheel', musicPlayerOnVolumeWheel, {
       passive: false
@@ -2954,7 +3042,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     }
   }
 
-  function addAlbumToPlaylist(TralbumData, startPlaybackIndex) {
+  function addAlbumToPlaylist(TralbumData, startPlaybackIndex = 0) {
     let i = 0;
     const artist = TralbumData.artist;
     const album = TralbumData.current.title;
@@ -3034,7 +3122,9 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     }
   }
 
-  function getTralbumData(url, cb) {
+  let getTralbumDataDelay = 0;
+
+  function getTralbumData(url, cb, retry = true) {
     return new Promise(function getTralbumDataPromise(resolve, reject) {
       GM.xmlHttpRequest({
         method: 'GET',
@@ -3051,6 +3141,29 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
 
             window.alert('An error occured. Please clear your cookies of bandcamp.com and try again.\n\nOriginal error:\n' + msg);
             reject(new Error('Too many cookies'));
+            return;
+          }
+
+          if (!response.responseText || response.responseText.indexOf('429 Too Many Requests') !== -1) {
+            if (retry) {
+              retry = false;
+              getTralbumDataDelay += 3;
+              const delay = getTralbumDataDelay;
+              console.warn(`getTralbumData(): 429 Too Many Requests. Trying again in ${delay} seconds`);
+              window.setTimeout(() => getTralbumDataPromise(resolve, reject), delay * 1000);
+              return;
+            }
+
+            let msg = '';
+
+            try {
+              msg = response.responseText.split('<center>')[1].split('</center>')[0];
+            } catch (e) {
+              msg = response.responseText;
+            }
+
+            window.alert('An error occured. You\'re probably being rate limited by bandcamp.\n\nOriginal error:\n' + msg);
+            reject(new Error('429 Too Many Requests'));
             return;
           }
 
@@ -3076,6 +3189,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
           } else {
             const msg = 'Could not parse TralbumData from url=' + url;
             window.alert(msg);
+            console.debug(response.responseText);
             reject(new Error(msg));
           }
         },
@@ -3242,6 +3356,10 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
   }
 
   async function storeTralbumDataPermanently(TralbumData) {
+    if (!storeTralbumDataPermanentlySwitch) {
+      return;
+    }
+
     const library = JSON.parse(await GM.getValue('tralbumlibrary', '{}'));
     const key = albumKey(TralbumData.url);
 
@@ -3280,23 +3398,23 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
 
     cachedTralbumData(url).then(function onCachedTralbumDataLoaded(TralbumData) {
       if (TralbumData) {
-        addAlbumToPlaylist(TralbumData, 0);
+        addAlbumToPlaylist(TralbumData);
       } else {
         playAlbumFromUrl(url);
       }
     });
   }
 
-  function playAlbumFromUrl(url) {
+  function playAlbumFromUrl(url, startPlaybackIndex = 0) {
     if (!url.startsWith('http')) {
       url = document.location.protocol + '//' + url;
     }
 
     return getTralbumData(url).then(function onGetTralbumDataLoaded(TralbumData) {
       storeTralbumData(TralbumData);
-      return addAlbumToPlaylist(TralbumData, 0);
+      return addAlbumToPlaylist(TralbumData, startPlaybackIndex);
     }).catch(function onGetTralbumDataError(e) {
-      window.alert('Could not load album data from url:\n' + url + '\n' + ('error' in e ? e.error : e));
+      window.alert('Could not play and load album data from url:\n' + url + '\n' + ('error' in e ? e.error : e));
       console.log(e);
     });
   }
@@ -3478,7 +3596,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         parentA = parentA.parentNode;
       }
 
-      setTimeout(function showSavingLabel() {
+      window.setTimeout(function showSavingLabel() {
         parentA.style.cursor = 'wait';
         parentA.querySelector('.bdp_check_container').innerHTML = 'Saving...';
       }, 0);
@@ -3493,7 +3611,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
 
       albumData.listened = new Date().toJSON();
       await myAlbumsUpdateAlbum(albumData);
-      setTimeout(function hideSavingLabel() {
+      window.setTimeout(function hideSavingLabel() {
         parentA.style.cursor = '';
         makeAlbumLinksGreat();
       }, 100);
@@ -3507,7 +3625,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         parentA = parentA.parentNode;
       }
 
-      setTimeout(function showSavingLabel() {
+      window.setTimeout(function showSavingLabel() {
         parentA.style.cursor = 'wait';
         parentA.querySelector('.bdp_check_container').innerHTML = 'Saving...';
       }, 0);
@@ -3519,7 +3637,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         await myAlbumsUpdateAlbum(albumData);
       }
 
-      setTimeout(function hideSavingLabel() {
+      window.setTimeout(function hideSavingLabel() {
         parentA.style.cursor = '';
         makeAlbumLinksGreat();
       }, 100);
@@ -3535,7 +3653,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
 
     const mouseOutLink = function onMouseOutLink(ev) {
       const a = this;
-      a.dataset.iv = setTimeout(function mouseOutLinkTimeout() {
+      a.dataset.iv = window.setTimeout(function mouseOutLinkTimeout() {
         const div = a.querySelector('.bdp_check_onlinkhover_container');
 
         if (div) {
@@ -3965,7 +4083,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         parent = parent.parentNode;
       }
 
-      setTimeout(function showSavingLabel() {
+      window.setTimeout(function showSavingLabel() {
         parent.style.cursor = 'wait';
         parent.innerHTML = 'Saving...';
       }, 0);
@@ -3991,7 +4109,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         parent = parent.parentNode;
       }
 
-      setTimeout(function showSavingLabel() {
+      window.setTimeout(function showSavingLabel() {
         parent.style.cursor = 'wait';
         parent.innerHTML = 'Saving...';
       }, 0);
@@ -4742,6 +4860,11 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     div.setAttribute('id', 'pastreleases');
     div.style.maxHeight = document.documentElement.clientHeight - 50 + 'px';
     div.style.maxWidth = document.documentElement.clientWidth - 100 + 'px';
+
+    if (document.getElementById('discographyplayer') && !allFeatures.discographyplayerSidebar.enabled) {
+      div.style.bottom = document.getElementById('discographyplayer').clientHeight + 10 + 'px';
+    }
+
     window.setTimeout(function () {
       div.style.opacity = 1.0;
     }, 200);
@@ -6174,6 +6297,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       liExplorer.title = 'library';
       const aExplorer = liExplorer.appendChild(document.createElement('a'));
       aExplorer.className = 'settingssymbol';
+      aExplorer.href = PLAYER_URL;
       aExplorer.style.fontSize = '24px';
 
       if (NOEMOJI) {
@@ -6182,7 +6306,10 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         aExplorer.appendChild(document.createTextNode('\uD83D\uDDC3\uFE0F'));
       }
 
-      liExplorer.addEventListener('click', () => openExplorer());
+      liExplorer.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        openExplorer();
+      });
     }
   }
 
@@ -6468,6 +6595,7 @@ If this is a malicious website, running the userscript may leak personal data (e
       window.setTimeout(darkModeOnLoad, 0);
     }
 
+    storeTralbumDataPermanentlySwitch = allFeatures.keepLibrary.enabled;
     const maintenanceContent = document.querySelector('.content');
 
     if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') !== -1) {
@@ -6519,11 +6647,6 @@ If this is a malicious website, running the userscript may leak personal data (e
 
         if (allFeatures.albumPageLyrics.enabled) {
           window.setTimeout(addLyricsToAlbumPage, 500);
-        }
-
-        if (unsafeWindow.TralbumData && unsafeWindow.TralbumData.current && unsafeWindow.TralbumData.trackinfo) {
-          const TralbumData = correctTralbumData(JSON.parse(JSON.stringify(unsafeWindow.TralbumData)), document.body.innerHTML);
-          storeTralbumDataPermanently(TralbumData);
         }
       }
 
@@ -6595,7 +6718,16 @@ If this is a malicious website, running the userscript may leak personal data (e
               makeAlbumLinksGreat();
             }
           }
-        }, 3000);
+        }, 3000); // Add a little space at the bottom of the page to accommodate the discographyplayer at the bottom
+
+        document.body.style.paddingBottom = '200px'; // Move the sidebar to the left
+
+        document.querySelectorAll('.sidebar').forEach(function (div) {
+          div.style.alignSelf = 'flex-start';
+          div.querySelectorAll('.shortcuts').forEach(function (shortcuts) {
+            shortcuts.style.borderRadius = '0 1em 1em 0';
+          });
+        });
       }
 
       if (document.location.href === PLAYER_URL) {
@@ -6610,6 +6742,11 @@ If this is a malicious website, running the userscript may leak personal data (e
           musicPlayerRestoreState(JSON.parse(s));
         }
       });
+
+      if (document.querySelector('.inline_player') && unsafeWindow.TralbumData && unsafeWindow.TralbumData.current && unsafeWindow.TralbumData.trackinfo) {
+        const TralbumData = correctTralbumData(JSON.parse(JSON.stringify(unsafeWindow.TralbumData)), document.body.innerHTML);
+        storeTralbumDataPermanently(TralbumData);
+      }
     }
   }
 
