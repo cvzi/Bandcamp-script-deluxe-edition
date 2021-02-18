@@ -5473,6 +5473,16 @@ function onLoaded () {
           }
         }
       }, 3000)
+
+      // Add a little space at the bottom of the page to accommodate the discographyplayer at the bottom
+      document.body.style.paddingBottom = '200px'
+      // Move the sidebar to the left
+      document.querySelectorAll('.sidebar').forEach(function (div) {
+        div.style.alignSelf = 'flex-start'
+        div.querySelectorAll('.shortcuts').forEach(function (shortcuts) {
+          shortcuts.style.borderRadius = '0 1em 1em 0'
+        })
+      })
     }
 
     if (document.location.href === PLAYER_URL) {

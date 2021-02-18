@@ -583,3 +583,10 @@ article .icon {
 #queueloadingindicator {
   background-color:#154a86!important
 }
+
+/* Campexplorer */
+
+.sidebar .shortcuts {
+  background:#0000;
+  border-color:#0000;
+}
