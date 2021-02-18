@@ -145,7 +145,7 @@
   background-size:cover;
   background-position-y: 0px;
   /* Set in HTML layout: background-image:${spriteRepeatShuffle}; */
-  filter:drop-shadow(#FFF 1px 1px 2px);
+  filter:drop-shadow(#FFFF 0px 0px 0px);
   transition: filter 500ms;
   border: 0;
   height: 13px;
