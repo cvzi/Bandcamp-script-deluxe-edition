@@ -981,7 +981,7 @@ function musicPlayerPlaySong (next, startTime) {
     currentlyPlaying.style.marginTop = -parseInt(currentlyPlaying.clientHeight + 1) + 'px'
     nextInRow.style.height = '99%'
     nextInRow.style.width = '99%'
-    clearTimeout(ivSlideInNextSong)
+    window.clearTimeout(ivSlideInNextSong)
     ivSlideInNextSong = window.setTimeout(function slideInSongInterval () {
       currentlyPlaying.remove()
       const clone = nextInRow.cloneNode(true)
@@ -996,7 +996,7 @@ function musicPlayerPlaySong (next, startTime) {
     nextInRow.style.height = '99%'
     nextInRow.style.width = '99%'
 
-    clearTimeout(ivSlideInNextSong)
+    window.clearTimeout(ivSlideInNextSong)
 
     ivSlideInNextSong = window.setTimeout(function slideInSongInterval () {
       currentlyPlaying.remove()
@@ -1518,7 +1518,7 @@ async function musicPlayerCollectListenedClick (ev) {
 
   const url = collectListened.dataset.albumUrl
 
-  setTimeout(function musicPlayerCollectListenedResetTimeout () {
+  window.setTimeout(function musicPlayerCollectListenedResetTimeout () {
     player.querySelectorAll('.collect-listened>*').forEach(function (e) { e.style.display = 'none' })
     player.querySelector('.collect-listened .listened-saving').style.display = 'inline-block'
     player.querySelector('.collect-listened').style.cursor = 'wait'
@@ -1547,7 +1547,7 @@ async function musicPlayerCollectListenedClick (ev) {
   }
   player.querySelector('.collect-listened').style.cursor = ''
 
-  setTimeout(makeAlbumLinksGreat, 100)
+  window.setTimeout(makeAlbumLinksGreat, 100)
 }
 
 function musicPlayerUpdatePositionState () {
@@ -2465,7 +2465,7 @@ async function makeAlbumLinksGreat (parentElement) {
     for (let j = 0; parentA.tagName !== 'A' && j < 20; j++) {
       parentA = parentA.parentNode
     }
-    setTimeout(function showSavingLabel () {
+    window.setTimeout(function showSavingLabel () {
       parentA.style.cursor = 'wait'
       parentA.querySelector('.bdp_check_container').innerHTML = 'Saving...'
     }, 0)
@@ -2479,7 +2479,7 @@ async function makeAlbumLinksGreat (parentElement) {
 
     await myAlbumsUpdateAlbum(albumData)
 
-    setTimeout(function hideSavingLabel () {
+    window.setTimeout(function hideSavingLabel () {
       parentA.style.cursor = ''
       makeAlbumLinksGreat()
     }, 100)
@@ -2491,7 +2491,7 @@ async function makeAlbumLinksGreat (parentElement) {
     for (let j = 0; parentA.tagName !== 'A' && j < 20; j++) {
       parentA = parentA.parentNode
     }
-    setTimeout(function showSavingLabel () {
+    window.setTimeout(function showSavingLabel () {
       parentA.style.cursor = 'wait'
       parentA.querySelector('.bdp_check_container').innerHTML = 'Saving...'
     }, 0)
@@ -2503,7 +2503,7 @@ async function makeAlbumLinksGreat (parentElement) {
       await myAlbumsUpdateAlbum(albumData)
     }
 
-    setTimeout(function hideSavingLabel () {
+    window.setTimeout(function hideSavingLabel () {
       parentA.style.cursor = ''
       makeAlbumLinksGreat()
     }, 100)
@@ -2516,7 +2516,7 @@ async function makeAlbumLinksGreat (parentElement) {
   }
   const mouseOutLink = function onMouseOutLink (ev) {
     const a = this
-    a.dataset.iv = setTimeout(function mouseOutLinkTimeout () {
+    a.dataset.iv = window.setTimeout(function mouseOutLinkTimeout () {
       const div = a.querySelector('.bdp_check_onlinkhover_container')
       if (div) {
         div.classList.remove('bdp_check_onlinkhover_container_shown')
@@ -2918,7 +2918,7 @@ async function addListenedButtonToCollectControls () {
     for (let j = 0; parent.tagName !== 'LI' && j < 20; j++) {
       parent = parent.parentNode
     }
-    setTimeout(function showSavingLabel () {
+    window.setTimeout(function showSavingLabel () {
       parent.style.cursor = 'wait'
       parent.innerHTML = 'Saving...'
     }, 0)
@@ -2941,7 +2941,7 @@ async function addListenedButtonToCollectControls () {
     for (let j = 0; parent.tagName !== 'LI' && j < 20; j++) {
       parent = parent.parentNode
     }
-    setTimeout(function showSavingLabel () {
+    window.setTimeout(function showSavingLabel () {
       parent.style.cursor = 'wait'
       parent.innerHTML = 'Saving...'
     }, 0)
