@@ -28,6 +28,7 @@
 // @grant           GM.notification
 // @grant           GM.download
 // @grant           GM.registerMenuCommand
+// @grant           GM_registerMenuCommand
 // @grant           GM.addStyle
 // @grant           unsafeWindow
 // ==/UserScript==
@@ -63,6 +64,17 @@ SOFTWARE.
 /* globals React, ReactDOM */
 (function (React, ReactDOM) {
   'use strict';
+
+  /*
+  Compatibility adaptions for Violentmonkey https://github.com/violentmonkey/violentmonkey
+  */
+  if (typeof GM.registerMenuCommand !== 'function') {
+    if (typeof GM_registerMenuCommand === 'function') {
+      GM.registerMenuCommand = GM_registerMenuCommand;
+    } else {
+      console.warn('Neither GM.registerMenuCommand nor GM_registerMenuCommand are available');
+    }
+  }
 
   function _defineProperty(obj, key, value) {
     if (key in obj) {
@@ -6565,7 +6577,7 @@ If this is a malicious website, running the userscript may leak personal data (e
       return;
     }
 
-    if (!BANDCAMP && document.querySelector('#legal.horizNav li.view-switcher.desktop a')) {
+    if (!BANDCAMP && document.querySelector('#legal.horizNav li.view-switcher.desktop a,head>meta[name=generator][content=Bandcamp]')) {
       // Page is a bandcamp page but does not have a bandcamp domain
       confirmDomain().then(function (isBandcamp) {
         BANDCAMP = isBandcamp;
