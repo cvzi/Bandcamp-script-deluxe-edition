@@ -69,10 +69,12 @@ export default {
   },
   plugins: [
     replace({
-      'process.env.NODE_ENV': JSON.stringify('production')
+      'process.env.NODE_ENV': JSON.stringify('production'),
+      preventAssignment: true
     }),
     replace({
-      ENVIRONMENT: JSON.stringify('production')
+      ENVIRONMENT: JSON.stringify('production'),
+      preventAssignment: true
     }),
     importText(importTextOptions),
     nodeResolve({ extensions: ['.js', '.ts', '.tsx'] }),
