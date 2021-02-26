@@ -34,6 +34,10 @@
         "ignore": [
             "dist/",
             "!.babelrc.js"
+        ],
+        "globals": [
+            "GM",
+            "GM_registerMenuCommand"
         ]
     },
     "devDependencies": {
