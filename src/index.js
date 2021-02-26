@@ -5333,7 +5333,7 @@ function onLoaded () {
     })
     return
   }
-  if (!BANDCAMP && document.querySelector('#legal.horizNav li.view-switcher.desktop a')) {
+  if (!BANDCAMP && document.querySelector('#legal.horizNav li.view-switcher.desktop a,head>meta[name=generator][content=Bandcamp]')) {
     // Page is a bandcamp page but does not have a bandcamp domain
     confirmDomain().then(function (isBandcamp) {
       BANDCAMP = isBandcamp
