@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.18.2](../../tree/v1.18.2) *(2021-02-26)*
+*   Support Violentmonkey
+*   Improved detection for bandcamp pages with custom domains
 ## [1.18.1](../../tree/v1.18.1) *(2021-02-18)*
 *   shuffle mode in discography player: ask before loading all albums
 *   discography player blocked albums on campexplorer [#49](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/3)
