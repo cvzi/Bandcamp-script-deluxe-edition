@@ -1,3 +1,4 @@
+import './violentmonkey.js'
 import Explorer from './explorer.jsx'
 
 import discographyplayerCSS from './css/discographyplayer.css'

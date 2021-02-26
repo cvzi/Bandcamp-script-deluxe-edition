@@ -22,6 +22,7 @@
         "GM.notification",
         "GM.download",
         "GM.registerMenuCommand",
+        "GM_registerMenuCommand",
         "GM.addStyle",
         "unsafeWindow"
     ],
