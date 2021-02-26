@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.18.3](../../tree/v1.18.3) *(2021-02-26)*
+*   Fix: Restore volume in Violentmonkey
 ## [1.18.2](../../tree/v1.18.2) *(2021-02-26)*
 *   Support Violentmonkey
 *   Improved detection for bandcamp pages with custom domains

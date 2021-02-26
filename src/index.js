@@ -701,11 +701,11 @@ function restoreVolume () {
       }
     }
     restoreVolumeInterval()
-    ivRestoreVolume = window.setInterval(restoreVolumeInterval, 3000)
+    ivRestoreVolume = window.setInterval(restoreVolumeInterval, 500)
   })
   window.setTimeout(function clearRestoreInterval () {
     window.clearInterval(ivRestoreVolume)
-  }, 10000)
+  }, 7000)
 }
 
 function findPreviousAlbumCover (currentUrl) {
