@@ -78,7 +78,7 @@
 #discographyplayer .downloadlink:link{
   display:block;
   float:right;
-  margin-top: 10px;
+  margin-top: 22px;
   font-size:15px;
   padding: 0px 3px;
   color: rgb(6, 135, 245);
@@ -86,7 +86,10 @@
   transition: color 300ms ease-in-out, border-color 300ms ease-in-out;
 }
 #discographyplayer .downloadlink:hover{
-  text-decoration:none
+  text-decoration:none;
+  background-color:rgb(6, 135, 245);
+  color:white;
+  border:1px solid white;
 }
 #discographyplayer .downloadlink.downloading{
   color:#f0f;
@@ -111,7 +114,12 @@
   margin-right: 4px;
   height: 18px;
   width: 17px;
+  transition: background-color 100ms;
 }
+#discographyplayer .controls > *:hover{
+  background-color:#0687f52b
+}
+
 #discographyplayer .playpause .play {
   width: 0;
   height: 0;
@@ -414,6 +422,10 @@
 .albumIsCurrentlyPlaying {
   border:2px solid lime
 }
+.albumIsCurrentlyPlaying+.art-play {
+  display:none
+}
+
 .music-grid-item .albumIsCurrentlyPlaying {
   border:none
 }
@@ -434,9 +446,6 @@
     opacity: 0.5;
     transition: opacity 0.2s;
 }
-.albumIsCurrentlyPlayingIndicator:hover {
-  opacity: 0.0;
-}
 .albumIsCurrentlyPlayingIndicator .currentlyPlayingBg {
     position: absolute;
     width: 100%;
@@ -455,4 +464,26 @@
     border-width: 0px 5px;
     border-color: #fff;
     border-style: solid;
+}
+
+@media (max-width: 1600px) {
+  #discographyplayer .controls > *{
+    padding: 4px 11px 5px 11px;
+    height: 18px;
+  }
+  #discographyplayer .durationDisplay {
+    margin-top:0px;
+  }
+  #discographyplayer .downloadlink:link {
+    margin-top:0px;
+  }
+}
+
+@media (max-width: 1170px) {
+  #discographyplayer .colcontrols {
+    width:39%;
+  }
+  #discographyplayer .colvolumecontrols {
+    display:none
+  }
 }
