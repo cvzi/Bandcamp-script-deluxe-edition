@@ -5093,7 +5093,7 @@ function appendMainMenuButtonTo (ul) {
   if (allFeatures.keepLibrary.enabled) {
     const liExplorer = ul.insertBefore(document.createElement('li'), ul.firstChild)
     liExplorer.className = 'menubar-item hoverable'
-    liExplorer.title = 'library'
+    liExplorer.title = 'library - ' + SCRIPT_NAME
     const aExplorer = liExplorer.appendChild(document.createElement('a'))
     aExplorer.className = 'settingssymbol'
     aExplorer.href = PLAYER_URL
