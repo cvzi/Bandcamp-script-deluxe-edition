@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.18.4](../../tree/v1.18.4) *(2021-02-27)*
+*   Fix: Smaller screen sizes [#55](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/55)
+*   Fix: Play/Pause icon transition on album cover [#54](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/54)
 ## [1.18.3](../../tree/v1.18.3) *(2021-02-26)*
 *   Fix: Restore volume in Violentmonkey
 ## [1.18.2](../../tree/v1.18.2) *(2021-02-26)*
@@ -7,7 +10,7 @@
 *   Improved detection for bandcamp pages with custom domains
 ## [1.18.1](../../tree/v1.18.1) *(2021-02-18)*
 *   shuffle mode in discography player: ask before loading all albums
-*   discography player blocked albums on campexplorer [#49](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/3)
+*   discography player blocked albums on campexplorer [#49](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/49)
 ## [1.18.0](../../tree/v1.18.0) *(2021-02-17)*
 *   move CSS to separate files and minify CSS
 *   variable port for dev script
