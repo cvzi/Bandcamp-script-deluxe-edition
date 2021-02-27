@@ -969,7 +969,11 @@ function musicPlayerPlaySong (next, startTime) {
       indicator.classList.add('albumIsCurrentlyPlayingIndicator')
       indicator.addEventListener('click', function (ev) {
         ev.preventDefault()
-        musicPlayerPlay()
+        if (!musicPlayerPlay()) {
+          // Album is now paused -> Remove indicators
+          document.querySelectorAll('img.albumIsCurrentlyPlaying').forEach(img => img.classList.remove('albumIsCurrentlyPlaying'))
+          document.querySelectorAll('.albumIsCurrentlyPlayingIndicator').forEach(div => div.remove())
+        }
       })
       indicator.appendChild(document.createElement('div')).classList.add('currentlyPlayingBg')
       indicator.appendChild(document.createElement('div')).classList.add('currentlyPlayingIcon')
@@ -1016,8 +1020,10 @@ function musicPlayerPlay () {
   if (audio.paused) {
     audio.play().then(_ => musicPlayerUpdatePositionState())
     musicPlayerCookieChannelSendStop()
+    return true
   } else {
     audio.pause()
+    return false
   }
 }
 function musicPlayerStop () {
