@@ -1,5 +1,5 @@
 import { red, green, cyan, bold } from 'colorette'
-import rollupConfig from './rollup.config.js'
+const loadConfigFile = require('rollup/dist/loadConfigFile')
 const path = require('path')
 const fs = require('fs')
 const http = require('http')
@@ -62,19 +62,25 @@ const outContent = typeof result === 'string' ? result : result.code
 fs.writeFileSync(devScriptOutFile, outContent)
 console.log(green(`created ${bold(devScriptOutFile)}. Please install in Tampermonkey: `) + hyperlink(`http://localhost:${port}/${destDir}${devScriptInFile}`))
 
-// Start rollup watch
-const watcher = rollup.watch(rollupConfig)
+loadConfigFile(path.resolve(__dirname, 'rollup.config.js')).then(
+  async ({ options, warnings }) => {
+    const watcher = rollup.watch(options)
 
-watcher.on('event', event => {
-  if (event.code === 'BUNDLE_START') {
-    console.log(cyan(`bundles ${bold(event.input)} → ${bold(event.output.map(fullPath => path.relative(path.resolve(__dirname), fullPath)).join(', '))}...`))
-  } else if (event.code === 'BUNDLE_END') {
-    console.log(green(`created ${bold(event.output.map(fullPath => path.relative(path.resolve(__dirname), fullPath)).join(', '))} in ${event.duration}ms`))
-  } else if (event.code === 'ERROR') {
-    console.log(bold(red('⚠ Error')))
-    console.log(event.error)
+    watcher.on('event', event => {
+      if (event.code === 'BUNDLE_START') {
+        console.log(cyan(`bundles ${bold(event.input)} → ${bold(event.output.map(fullPath => path.relative(path.resolve(__dirname), fullPath)).join(', '))}...`))
+      } else if (event.code === 'BUNDLE_END') {
+        console.log(green(`created ${bold(event.output.map(fullPath => path.relative(path.resolve(__dirname), fullPath)).join(', '))} in ${event.duration}ms`))
+      } else if (event.code === 'ERROR') {
+        console.log(bold(red('⚠ Error')))
+        console.log(event.error)
+      }
+      if ('result' in event && event.result) {
+        event.result.close()
+      }
+    })
+
+    // stop watching
+    watcher.close()
   }
-})
-
-// stop watching
-watcher.close()
+)
