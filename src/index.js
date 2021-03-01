@@ -8,6 +8,7 @@ import darkmodeCSS from './css/darkmode.css'
 import geniusCSS from './css/genius.css'
 
 import exportMenuHTML from './exportMenu.html'
+import muteIconSrc from './img/icon_mute_48x44.png'
 
 /* globals GM, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics */
 
@@ -1278,7 +1279,8 @@ function musicPlayerOnMuteClick (ev) {
 }
 
 function musicPlayerOnVolumeChanged (ev) {
-  const icons = ['\uD83D\uDD07', '\uD83D\uDD08', '\uD83D\uDD09', '\uD83D\uDD0A']
+  const muteIcon = `<img style="width:20px" src="${muteIconSrc}" alt="\uD83D\uDD07">`
+  const icons = [NOEMOJI ? muteIcon : '\uD83D\uDD07', '\uD83D\uDD08', '\uD83D\uDD09', '\uD83D\uDD0A']
   const percent = audio.logVolume
   const volSlider = player.querySelector('.vol-slider')
   volSlider.querySelector('.vol-amt').style.width = parseInt(100 * percent) + '%'

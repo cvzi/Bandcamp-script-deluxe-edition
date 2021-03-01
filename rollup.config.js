@@ -17,13 +17,14 @@ export function importText (options = {}) {
   const filter = createFilter(options.include, options.exclude)
   return {
     name: 'importText',
-    transform: function transform (code, id) {
-      if (filter(id)) {
-        if (options.css && id.endsWith('.css')) {
+    transform: function transform (code, filePath) {
+      if (filter(filePath)) {
+        const fileNameLowerCase = filePath.toLowerCase()
+        if (options.css && fileNameLowerCase.endsWith('.css')) {
           if (!options.release) {
             const files = {}
             // TODO use file:/// instead of localhost? does this work on chrome?
-            files['http://localhost:' + port + '/' + path.relative('.', id).split('\\').join('/')] = { styles: code }
+            files['http://localhost:' + port + '/' + path.relative('.', filePath).split('\\').join('/')] = { styles: code }
             const cleanCss = new CleanCSS({ sourceMap: true }).minify(files)
             const map = Buffer.from(cleanCss.sourceMap.toString(), 'binary').toString('base64')
             code = cleanCss.styles + '\n/*# sourceMappingURL=data:application/json;base64,' + map + ' */'
@@ -31,6 +32,10 @@ export function importText (options = {}) {
             const cleanCss = new CleanCSS().minify(code)
             code = cleanCss.styles
           }
+        } else if (fileNameLowerCase.endsWith('.png')) {
+          code = `data:image/png;base64,${fs.readFileSync(filePath).toString('base64')}`
+        } else if (fileNameLowerCase.endsWith('.jpg') || fileNameLowerCase.endsWith('.jpeg')) {
+          code = `data:image/jpeg;base64,${fs.readFileSync(filePath).toString('base64')}`
         }
         return {
           code: `export default ${JSON.stringify(code)};`,
@@ -40,7 +45,7 @@ export function importText (options = {}) {
     }
   }
 }
-export const importTextOptions = { include: ['**/*.html', '**/*.css'], css: true }
+export const importTextOptions = { include: ['**/*.html', '**/*.css', '**/*.png', '**/*.jpg'], css: true }
 
 fs.mkdir('dist/', { recursive: true }, () => null)
 const banner = `\
