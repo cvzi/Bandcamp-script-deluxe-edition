@@ -603,6 +603,7 @@ function getGPSLocation () {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
       console.log('getGPSLocation: Timezone: ' + tz)
       GM.xmlHttpRequest({
+        method: 'GET',
         url: 'https://raw.githubusercontent.com/iospirit/NSTimeZone-ISCLLocation/master/zone.tab',
         onload: function (response) {
           if (response.responseText.indexOf(tz) !== -1) {
