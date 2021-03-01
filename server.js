@@ -64,6 +64,7 @@ console.log(green(`created ${bold(devScriptOutFile)}. Please install in Tampermo
 
 loadConfigFile(path.resolve(__dirname, 'rollup.config.js')).then(
   async ({ options, warnings }) => {
+    // Start rollup watch
     const watcher = rollup.watch(options)
 
     watcher.on('event', event => {
