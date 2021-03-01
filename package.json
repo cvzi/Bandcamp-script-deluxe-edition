@@ -30,7 +30,7 @@
         "version": "npm run build:release && git add dist/release-$npm_package_version.user.js"
     },
     "standard": {
-        "parser": "babel-eslint",
+        "parser": "@babel/eslint-parser",
         "ignore": [
             "dist/",
             "!.babelrc.js"
