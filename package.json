@@ -54,7 +54,7 @@
         "babel-eslint": "^10.1.0",
         "clean-css": "^5.1.0",
         "colorette": "^1.2.2",
-        "eslint": "^7.20.0",
+        "eslint": "^7.21.0",
         "esm": "^3.2.25",
         "rollup": "^2.40.0",
         "rollup-plugin-string": "^3.0.0",
