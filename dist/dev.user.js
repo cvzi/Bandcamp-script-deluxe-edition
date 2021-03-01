@@ -17,7 +17,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.18.4
+// @version         1.18.5
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT

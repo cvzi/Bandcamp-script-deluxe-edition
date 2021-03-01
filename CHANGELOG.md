@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.18.5](../../tree/v1.18.5) *(2021-03-01)*
+*   Fix: Mute icon [#56](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/56)
 ## [1.18.4](../../tree/v1.18.4) *(2021-02-27)*
 *   Fix: Smaller screen sizes [#55](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/55)
 *   Fix: Play/Pause icon transition on album cover [#54](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/54)
