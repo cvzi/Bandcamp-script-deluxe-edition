@@ -145,6 +145,10 @@ div.bd.footerless {
     background-color: #282828;
     border: 1px solid #282828;
 }
+#menubar.menubar-2018 .hoverable:hover {
+  background:#11607582 !important;
+}
+
 .fan-bio .edit-profile a {
     border: 1px solid #373737;
     border-radius: 5px;
@@ -172,13 +176,43 @@ div.bd.footerless {
 }
 .ui-dialog.nu-dialog .ui-dialog-titlebar {
     padding: 15px 20px 12px;
-    background-color: #282828;
-    border-bottom: 1px solid #282828;
+    background-color: #26423b !important;
+    border-bottom: 1px solid #26423b !important;
+}
+.ui-dialog-titlebar * {
+    color: #fff !important;
+}
+.ui-dialog-content {
+    color:#ddd !important;
 }
 .ui-widget-content {
     border: 1px solid #373;
-    background: #373737;
+    background: #373737 !important;
+    color:#ddd !important;
 }
+
+.external-follow-confirm .ui-dialog-buttonset button, .mailing-list-opt-in .ui-dialog-buttonset button {
+    background:#26423b !important;
+}
+.external-follow-confirm .ui-dialog-buttonset button:last-child, .mailing-list-opt-in.band .ui-dialog-buttonset button:last-child {
+    background:#0002 !important;
+    border: 2px solid #26423b !important;
+}
+
+#follow-unfollow {
+  background: transparent !important;
+}
+#follow-unfollow.following {
+  background: #26423b !important;
+  border-color: #26423b !important;
+}
+#follow-unfollow>div {
+  color:#ac6 !important
+}
+#follow-unfollow.following>div {
+  background: #26423b !important;
+}
+
 .app-promo-desktop,
 .bcdaily,
 .discover,
@@ -276,6 +310,15 @@ html {
 .buy-dlg {
     color: #ffffff;
 }
+
+.pg-ft {
+    background-color: #000;
+}
+
+#lang-picker-vm {
+    border-radius:10px;
+}
+
 #menubar > ul > li .logo {
     background: url('https://www.dropbox.com/s/8s7km8r329l7qy7/bandcamp-logo-gray.png?dl=1') 0 0 no-repeat;
     background-size: contain;
