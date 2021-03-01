@@ -3816,7 +3816,15 @@ function mainMenu (startBackup) {
     @keyframes errorblink {
       50% { border-color:#6a0c41 }
     }
-
+    .deluxemenu ul {
+      margin: 0px;
+      padding: 0px 0px 0px 10px;
+      list-style:disc;
+    }
+    .deluxemenu ul li{
+      margin: 0px;
+      padding: 0px;
+    }
   `)
 
   if (startBackup === true) {
@@ -3836,10 +3844,13 @@ function mainMenu (startBackup) {
   main.innerHTML = `<h2>${SCRIPT_NAME}</h2>
   Source code license: <a target="_blank" href="https://github.com/cvzi/Bandcamp-script-deluxe-edition/blob/master/LICENSE">MIT</a><br>
   Support: <a target="_blank" href="https://github.com/cvzi/Bandcamp-script-deluxe-edition">github.com/cvzi/Bandcamp-script-deluxe-edition</a><br>
-  OUJS.org: <a target="_blank" href="https://openuserjs.org/scripts/cuzi/Bandcamp_script_(Deluxe_Edition)">openuserjs.org/scripts/cuzi/Bandcamp_script_(Deluxe_Edition)</a><br>
   Dark theme based on: <a target="_blank" href="https://userstyles.org/styles/171538/bandcamp-in-dark">"Bandcamp In Dark"</a> by <a target="_blank" href="https://userstyles.org/users/563391">Simonus</a><br>
-  Libraries used:<br>
-   * <a target="_blank" href="https://json5.org/">JSON5 - JSON for Humans</a> (MIT license)
+  Dev &amp; build tools used: <a target="_blank" href="https://github.com/cvzi/Bandcamp-script-deluxe-edition/blob/master/package.json#L43-L71">package.json</a><br>
+  Javascript libraries used:<br><ul>
+  <li><a target="_blank" href="https://json5.org/">JSON5 - JSON for Humans</a> (MIT license)</li>
+  <li><a target="_blank" href="https://github.com/facebook/react">React</a> (MIT license)</li>
+  <li><a target="_blank" href="https://github.com/cvzi/genius-lyrics-userscript/">GeniusLyrics.js</a> (GPLv3)</li>
+   </ul>
    <h3>Options</h3>
   `
 
