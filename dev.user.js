@@ -6,6 +6,7 @@
   const url = `http://localhost:%PORT%/dist/bundle.user.js?${Date.now()}`
   new Promise(function loadBundleFromServer (resolve, reject) {
     const req = GM.xmlHttpRequest({
+      method: 'GET',
       url: url,
       onload: function (r) {
         if (r.status !== 200) {
@@ -15,7 +16,7 @@
       },
       onerror: e => reject(e)
     })
-    if ('catch' in req) {
+    if (req && 'catch' in req) {
       req.catch(e => { /* ignore */ })
     }
   }).catch(function (e) {
