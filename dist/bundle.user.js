@@ -17,7 +17,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.18.5
+// @version         1.18.6
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -913,7 +913,13 @@ SOFTWARE.
 
   var exportMenuHTML = "<h2>Export played albums</h2>\n  <h1 class=\"drophint\">Drop to restore from backup</h1>\n  Available fields per album:<br>\n  <table>\n    <tr>\n      <td>%artist%</td>\n      <td>Artist name</td>\n      <td>Jay-X</td>\n    </tr>\n    <tr>\n      <td>%title%</td>\n      <td>Song title</td>\n      <td>Classic song</td>\n    </tr>\n    <tr>\n      <td>%cover%</td>\n      <td>Cover image url</td>\n      <td>https://f4.bcbits.com/img/a2588527047_2.jpg</td>\n    </tr>\n    <tr>\n      <td>%url%</td>\n      <td>Album url</td>\n      <td>petrolgirls.bandcamp.com/album/cut-stitch</td>\n    </tr>\n    <tr>\n      <td>%releaseDate% / %releaseUnix% / %releaseTimestamp%</td>\n      <td>Release date</td>\n      <td>2019-02-07T14:01:59.100Z / 1549548119 / 1549548119100</td>\n    </tr>\n    <tr>\n      <td>%listenedDate% / %listenedUnix% / %listenedTimestamp%</td>\n      <td>Played/Listened date</td>\n      <td>2019-02-07T02:17:21.315Z / 1549505841 / 1549505841315</td>\n    </tr>\n    <tr>\n      <td>%releaseY% / %releaseYYYY%</td>\n      <td>Release: Year</td>\n      <td>19 / 2019</td>\n    </tr>\n    <tr>\n      <td>%releaseM% / %releaseMM% / %releaseMon% / %releaseMonth%</td>\n      <td>Release: Month</td>\n      <td>2 / 02 / Feb / February</td>\n    </tr>\n    <tr>\n      <td>%releaseD% / %releaseDD%</td>\n      <td>Release: Day of month</td>\n      <td>7 / 07</td>\n    </tr>\n    <tr>\n      <td>%releaseDay%</td>\n      <td>Release: Day of week</td>\n      <td>Friday</td>\n    </tr>\n    <tr>\n      <td>%listenedY% / %listenedYYYY%</td>\n      <td>Played: Year</td>\n      <td>19 / 2019</td>\n    </tr>\n    <tr>\n      <td>%listenedM% / %listenedMM% / %listenedMon% / %listenedMonth%</td>\n      <td>Played: Month</td>\n      <td>2 / 02 / Feb / February</td>\n    </tr>\n    <tr>\n      <td>%listenedD% / %listenedDD%</td>\n      <td>Played: Day of month</td>\n      <td>7 / 07</td>\n    </tr>\n    <tr>\n      <td>%listenedDay%</td>\n      <td>Played: Day of week</td>\n      <td>Friday</td>\n    </tr>\n\n  </table>\n";
 
-  var muteIconSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAsCAMAAAAUyMtVAAAAM1BMVEUAAAA1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU4h3VWAAAAEHRSTlMAK+8XwlLWobblgkM5k3Zl3iqjMAAAAYhJREFUSMed1FmCgyAMANAsIOCa+592jKFiVbBOfmjRB0lQYY05MryJQSS9Ekj/Evha+LdCjgL5SaSjwCgyPwlXhFdNX3vwDdlFL1vg12ppqQpOFxD1f0XMut4ZkGj4e+Fs3AEjQ7eBm6NiUoGr2IEnIT/YFvHSqbJSNGBL0ODlNqlJpAgDY56wznU6Fbo9SI4CARH4k4zbt3ByE7QKDuuS+ElmNGigIqImwXNOJm4jK2iKkO/MdS8KKoJNIIrGBEnU14FEEwHcIaeuDrRiFQmsCiuGMmjVgdag0ZtTUBfjKga2xg7bgHUwkwnOYHwCOGTx6w4IvZgIv9WAnOw8THD/1KXRle6Gzzm4Bpj2Xg0A88S0TTaAXQhkAryV3gC9Pc+6ES0ZEDcA9kSBl/3l1F8BWgCY7Y2zPVRobnMocQJrjOXgV+HgFPECOG1t6rQmuInpDGC9t9NDrglPBZQPdyd1gXrx+m1tCAhnYFPkqmKhM+CQ3ABTVYyaVrpMNwQHSh5uRYRX0Uf+A3fOP2hfPIcbAAAAAElFTkSuQmCC";
+  var speakerIconMuteSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAoAQMAAACCSesyAAAABlBMVEUAAAA1NTVzRZghAAAAAXRSTlMAQObYZgAAAK1JREFUGNMtzzEOwjAMBdAgJMKWlYlcpGqvxVC1zgl6A3qRSmXrNYo6dE3FQCRCzXeCl+cvefBXB1Iyx0fiMOukNyTcKpJcVCT5asngzHRkZqX0RKtHWtwL2M19gmIO7ivEIkawl43AtqmFrmqEaUwsfSlsmZAZbOKe6f90jTBOCX5mfC3sITHEQnD7RbWAz/iM3RvvaqZ1RjMm49EFBNCSicCSLgHaWaCxAczpB9BXgdGWyYXIAAAAAElFTkSuQmCC";
+
+  var speakerIconLowSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAoCAMAAACPWYlDAAAAM1BMVEUAAABqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampPcCe2AAAAEHRSTlMAN4Xs4SoS0bxHeJEgpm5gLbFq2AAAALlJREFUOMvF1MsKwzAMRNGxKz+bx/z/1xYl0EJIQLPqXUSLcBAmOLivFCiNRmbEy/QqgtXOo4RYxSiBjZTASgksnRIoRg1MRsB8feMFpIR695UeSp1sS4mD4Y9WhQ1vf74FgEMUAaD7CgUMkk0B1WcVAI5DqBuScgYVrD6XOCg+DHHQfcw4yOeCMNhPFgfHi025D5vZhAJw38i/HsBzWQXYVYDURIC6igCYKsAwXi5O6J9sUMrWEv7VB3zHKzcAIgoLAAAAAElFTkSuQmCC";
+
+  var speakerIconMiddleSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAoCAMAAACPWYlDAAAANlBMVEUAAABqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqamrDZ907AAAAEXRSTlMANoQS7CRH3nPQtpDAnFSpYGW9KtUAAAEQSURBVDjLxZTbloMwCEUhhNy8lf//2elAx+XKNJU8db9EXW6JBxTegwwz7FUkgJ8gTyKBE1pFQfCBWaaEIjIlbNILjARDuEkvFJGYeHR/ll5gDQx5GGcvJD3MdDFCPJFOQCSyixvR4LFXoYlU3l8nfC/obipZzg0cFRZ5soA1nulesKYw6lnxCNC0RLU9OQQNNf8NLzkE+l3J9uQSQNNSTdhdoZiAHiGZ4K9w6Op/BxRNabHFIay6I5u/w9EHy/81TDvdCg+xULMOoWP4gs1eswIOAUuOgYKcBTyNA4s08kVI4WT4TScYEP4JmukGQx6xEwBrXOADWC+CCzomBKPMCpDipAC86u8R/FDIFeFb/AD0fTaBQdge8wAAAABJRU5ErkJggg==";
+
+  var speakerIconHighSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAoCAMAAACPWYlDAAAAOVBMVEUAAABqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampHCtmUAAAAEnRSTlMAhTXgE+5yutBAH0yQKqibV2MOLOh8AAABXElEQVQ4y8WUW5aEIAxEeb/UVrP/xc5Mimk9IGn96vrhiLmkCBB1rWVRTzQlIv0gfqZfeXeeKkK4i8Qyx1S2ZLdRvLHUATw1XccHog4oxB4x0WilFijZIQMl14WXSC0QiPw0YWbuim+pBRaY2etU578DsLYtsPriKP8WNYDJqnhEOiT/O39NA+VIlMpWPzBqCZhQGfiMKrE3CTAzKoPKFYBGAhQTS+avUDCIgIqcIp08rTIwsW0N9y9wIuDYPTw5DkwyoLhaDkcQkOhzhlCB/QaQT0C5kQH7zOb2HhasOWOIn6sUcVQeF9Xi4AUA9a+XaTMYBGDHFcTKqcYVAdDnuxf+L4hkKVir62+rAjgRwJuGMePf3TDrQ6M3HWCs77e6A/gtR6epJmi1+wZQOfmVNzBoliY1AKfxl30Mcq8LoPaBgUIHqIjOOlI+mlaVm9PaxPc92aon0jZl9S39AOlqRk93STxjAAAAAElFTkSuQmCC";
 
   /* globals GM, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics */
   // TODO Mark as played automatically when played
@@ -2323,8 +2329,18 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
   }
 
   function musicPlayerOnVolumeChanged(ev) {
-    const muteIcon = `<img style="width:20px" src="${muteIconSrc}" alt="\uD83D\uDD07">`;
-    const icons = [NOEMOJI ? muteIcon : '\uD83D\uDD07', '\uD83D\uDD08', '\uD83D\uDD09', '\uD83D\uDD0A'];
+    let icons;
+
+    if (NOEMOJI) {
+      const muteIcon = `<img style="width:20px" src="${speakerIconMuteSrc}" alt="\uD83D\uDD07">`;
+      const lowIcon = `<img style="width:20px" src="${speakerIconLowSrc}" alt="\uD83D\uDD07">`;
+      const middleIcon = `<img style="width:20px" src="${speakerIconMiddleSrc}" alt="\uD83D\uDD07">`;
+      const highIcon = `<img style="width:20px" src="${speakerIconHighSrc}" alt="\uD83D\uDD07">`;
+      icons = [muteIcon, lowIcon, middleIcon, highIcon];
+    } else {
+      icons = ['\uD83D\uDD07', '\uD83D\uDD08', '\uD83D\uDD09', '\uD83D\uDD0A'];
+    }
+
     const percent = audio.logVolume;
     const volSlider = player.querySelector('.vol-slider');
     volSlider.querySelector('.vol-amt').style.width = parseInt(100 * percent) + '%';
