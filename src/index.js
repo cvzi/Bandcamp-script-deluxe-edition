@@ -8,7 +8,10 @@ import darkmodeCSS from './css/darkmode.css'
 import geniusCSS from './css/genius.css'
 
 import exportMenuHTML from './exportMenu.html'
-import muteIconSrc from './img/icon_mute_48x44.png'
+import speakerIconMuteSrc from './img/speaker_icon_mute_48x40.png'
+import speakerIconLowSrc from './img/speaker_icon_low_48x40.png'
+import speakerIconMiddleSrc from './img/speaker_icon_middle_48x40.png'
+import speakerIconHighSrc from './img/speaker_icon_high_48x40.png'
 
 /* globals GM, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics */
 
@@ -1279,8 +1282,16 @@ function musicPlayerOnMuteClick (ev) {
 }
 
 function musicPlayerOnVolumeChanged (ev) {
-  const muteIcon = `<img style="width:20px" src="${muteIconSrc}" alt="\uD83D\uDD07">`
-  const icons = [NOEMOJI ? muteIcon : '\uD83D\uDD07', '\uD83D\uDD08', '\uD83D\uDD09', '\uD83D\uDD0A']
+  let icons
+  if (NOEMOJI) {
+    const muteIcon = `<img style="width:20px" src="${speakerIconMuteSrc}" alt="\uD83D\uDD07">`
+    const lowIcon = `<img style="width:20px" src="${speakerIconLowSrc}" alt="\uD83D\uDD07">`
+    const middleIcon = `<img style="width:20px" src="${speakerIconMiddleSrc}" alt="\uD83D\uDD07">`
+    const highIcon = `<img style="width:20px" src="${speakerIconHighSrc}" alt="\uD83D\uDD07">`
+    icons = [muteIcon, lowIcon, middleIcon, highIcon]
+  } else {
+    icons = ['\uD83D\uDD07', '\uD83D\uDD08', '\uD83D\uDD09', '\uD83D\uDD0A']
+  }
   const percent = audio.logVolume
   const volSlider = player.querySelector('.vol-slider')
   volSlider.querySelector('.vol-amt').style.width = parseInt(100 * percent) + '%'
