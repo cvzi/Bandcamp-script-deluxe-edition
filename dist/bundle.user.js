@@ -11,13 +11,14 @@
 // @require         https://unpkg.com/react-dom@17/umd/react-dom.development.js
 // @run-at          document-start
 // @include         https://*
+// @exclude         https://bandcamp.com/videoframe*
 // @connect         bandcamp.com
 // @connect         *.bandcamp.com
 // @connect         bcbits.com
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.18.6
+// @version         1.18.7
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT

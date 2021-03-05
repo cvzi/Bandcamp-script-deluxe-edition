@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.18.7](../../tree/v1.18.7) *(2021-03-06)*
+*   Do no run in video iframe [#59](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/59)
 ## [1.18.6](../../tree/v1.18.6) *(2021-03-03)*
 *   Fix: Volume icons [#56](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/56)
 ## [1.18.5](../../tree/v1.18.5) *(2021-03-01)*

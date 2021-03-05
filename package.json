@@ -1,6 +1,6 @@
 {
     "name": "bandcamp-script-deluxe-edition",
-    "version": "1.18.6",
+    "version": "1.18.7",
     "description": "A discography player for bandcamp.com and manager for your played albums",
     "keywords": [
         "userscript",
@@ -62,7 +62,7 @@
         "serve": "^11.3.2",
         "standard": "^16.0.3",
         "tslib": "^2.1.0",
-        "typescript": "^4.2.2"
+        "typescript": "^4.2.3"
     },
     "dependencies": {
         "react": "^17.0.1",
