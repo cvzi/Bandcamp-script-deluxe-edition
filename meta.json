@@ -15,6 +15,9 @@
     "include": [
         "https://*"
     ],
+    "exclude" : [
+        "https://bandcamp.com/videoframe*"
+    ],
     "grant": [
         "GM.xmlHttpRequest",
         "GM.setValue",
