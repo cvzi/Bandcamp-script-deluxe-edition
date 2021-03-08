@@ -2,8 +2,6 @@ import babel from '@rollup/plugin-babel'
 import commonjs from '@rollup/plugin-commonjs'
 import nodeResolve from '@rollup/plugin-node-resolve'
 import replace from '@rollup/plugin-replace'
-import typescriptPlugin from '@rollup/plugin-typescript'
-import typescript from 'typescript'
 import metablock from 'rollup-plugin-userscript-metablock'
 const CleanCSS = require('clean-css')
 const { createFilter } = require('rollup-pluginutils')
@@ -80,7 +78,6 @@ export default {
     }),
     importText(importTextOptions),
     nodeResolve({ extensions: ['.js', '.ts', '.tsx'] }),
-    typescriptPlugin({ typescript }),
     commonjs({
       include: [
         'node_modules/**'
