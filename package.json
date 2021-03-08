@@ -51,7 +51,7 @@
         "@rollup/plugin-node-resolve": "^11.2.0",
         "@rollup/plugin-replace": "^2.4.1",
         "@rollup/plugin-typescript": "^8.2.0",
-        "@types/react": "^17.0.2",
+        "@types/react": "^17.0.3",
         "clean-css": "^5.1.1",
         "colorette": "^1.2.2",
         "eslint": "^7.21.0",
