@@ -16,7 +16,8 @@
         "https://*"
     ],
     "exclude" : [
-        "https://bandcamp.com/videoframe*"
+        "https://bandcamp.com/videoframe*",
+        "https://bandcamp.com/EmbeddedPlayer*"
     ],
     "grant": [
         "GM.xmlHttpRequest",
