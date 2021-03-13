@@ -12,13 +12,14 @@
 // @run-at          document-start
 // @include         https://*
 // @exclude         https://bandcamp.com/videoframe*
+// @exclude         https://bandcamp.com/EmbeddedPlayer*
 // @connect         bandcamp.com
 // @connect         *.bandcamp.com
 // @connect         bcbits.com
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.18.7
+// @version         1.18.8
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
