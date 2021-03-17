@@ -11,6 +11,7 @@
 // @require         https://unpkg.com/react-dom@17/umd/react-dom.development.js
 // @run-at          document-start
 // @include         https://*
+// @include         https://bandcamp.com/*
 // @exclude         https://bandcamp.com/videoframe*
 // @exclude         https://bandcamp.com/EmbeddedPlayer*
 // @connect         bandcamp.com
@@ -65,6 +66,29 @@ SOFTWARE.
 /* globals React, ReactDOM */
 (function (React, ReactDOM) {
   'use strict';
+
+  function _interopNamespace(e) {
+    if (e && e.__esModule) return e;
+    var n = Object.create(null);
+    if (e) {
+      Object.keys(e).forEach(function (k) {
+        if (k !== 'default') {
+          var d = Object.getOwnPropertyDescriptor(e, k);
+          Object.defineProperty(n, k, d.get ? d : {
+            enumerable: true,
+            get: function () {
+              return e[k];
+            }
+          });
+        }
+      });
+    }
+    n['default'] = e;
+    return Object.freeze(n);
+  }
+
+  var React__namespace = /*#__PURE__*/_interopNamespace(React);
+  var ReactDOM__namespace = /*#__PURE__*/_interopNamespace(ReactDOM);
 
   /*
   Compatibility adaptions for Violentmonkey https://github.com/violentmonkey/violentmonkey
@@ -809,7 +833,7 @@ SOFTWARE.
       return Promise.all(hooks[name].map(f => f(...args)));
     }
 
-    class AlbumListItem extends React.Component {
+    class AlbumListItem extends React__namespace.Component {
       constructor(props) {
         super(props);
 
@@ -830,7 +854,7 @@ SOFTWARE.
       }
 
       render() {
-        return /*#__PURE__*/React.createElement("div", {
+        return /*#__PURE__*/React__namespace.createElement("div", {
           className: `albumListItem ${this.props.index % 2 ? 'albumListItemOdd' : ''}`,
           onClick: this.handleAlbumClick,
           title: "Click to play",
@@ -840,7 +864,7 @@ SOFTWARE.
 
     }
 
-    class AlbumList extends React.Component {
+    class AlbumList extends React__namespace.Component {
       constructor(props) {
         super(props);
         this.state = {
@@ -875,14 +899,14 @@ SOFTWARE.
         } = this.state;
 
         if (error) {
-          return /*#__PURE__*/React.createElement("p", null, error.message);
+          return /*#__PURE__*/React__namespace.createElement("p", null, error.message);
         }
 
         if (isLoading) {
-          return /*#__PURE__*/React.createElement("p", null, "Loading ...");
+          return /*#__PURE__*/React__namespace.createElement("p", null, "Loading ...");
         }
 
-        return /*#__PURE__*/React.createElement(FixedSizeList, {
+        return /*#__PURE__*/React__namespace.createElement(FixedSizeList, {
           className: "List",
           height: 600,
           itemCount: Object.keys(library).length,
@@ -897,7 +921,7 @@ SOFTWARE.
     }
 
     this.render = function () {
-      ReactDOM.render( /*#__PURE__*/React.createElement(AlbumList, {
+      ReactDOM__namespace.render( /*#__PURE__*/React__namespace.createElement(AlbumList, {
         getKey: "tralbumlibrary"
       }), root);
     };
