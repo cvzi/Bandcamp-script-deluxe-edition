@@ -11,6 +11,7 @@
 // @require         https://unpkg.com/react-dom@17/umd/react-dom.development.js
 // @run-at          document-start
 // @include         https://*
+// @include         https://bandcamp.com/*
 // @exclude         https://bandcamp.com/videoframe*
 // @exclude         https://bandcamp.com/EmbeddedPlayer*
 // @connect         bandcamp.com

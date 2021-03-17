@@ -13,7 +13,8 @@
     ],
     "run-at": "document-start",
     "include": [
-        "https://*"
+        "https://*",
+        "https://bandcamp.com/*"
     ],
     "exclude" : [
         "https://bandcamp.com/videoframe*",
