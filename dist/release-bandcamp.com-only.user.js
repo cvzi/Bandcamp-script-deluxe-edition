@@ -10,7 +10,7 @@
 // @require         https://unpkg.com/react@17/umd/react.development.js
 // @require         https://unpkg.com/react-dom@17/umd/react-dom.development.js
 // @run-at          document-start
-// @include         https://bandcamp.com/
+// @include         https://bandcamp.com/*
 // @include         https://*.bandcamp.com/*
 // @include         https://campexplorer.io/
 // @exclude         https://bandcamp.com/videoframe*
