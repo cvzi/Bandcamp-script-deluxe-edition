@@ -18,7 +18,7 @@ for (let i = 0; i < config.plugins.length; i++) {
         license: pkg.license,
         connect: meta.connect.filter(s => s !== '*'),
         include: [
-          'https://bandcamp.com/',
+          'https://bandcamp.com/*',
           'https://*.bandcamp.com/*',
           'https://campexplorer.io/'
         ]
