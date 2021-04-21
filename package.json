@@ -1,6 +1,6 @@
 {
     "name": "bandcamp-script-deluxe-edition",
-    "version": "1.18.8",
+    "version": "1.18.9",
     "description": "A discography player for bandcamp.com and manager for your played albums",
     "keywords": [
         "userscript",
@@ -41,28 +41,28 @@
         ]
     },
     "devDependencies": {
-        "@babel/cli": "^7.13.10",
-        "@babel/core": "^7.13.10",
-        "@babel/eslint-parser": "^7.13.10",
+        "@babel/cli": "^7.13.16",
+        "@babel/core": "^7.13.16",
+        "@babel/eslint-parser": "^7.13.14",
         "@babel/plugin-proposal-class-properties": "^7.13.0",
-        "@babel/preset-react": "^7.12.13",
+        "@babel/preset-react": "^7.13.13",
         "@rollup/plugin-babel": "^5.3.0",
-        "@rollup/plugin-commonjs": "^17.1.0",
-        "@rollup/plugin-node-resolve": "^11.2.0",
-        "@rollup/plugin-replace": "^2.4.1",
-        "clean-css": "^5.1.1",
+        "@rollup/plugin-commonjs": "^18.0.0",
+        "@rollup/plugin-node-resolve": "^11.2.1",
+        "@rollup/plugin-replace": "^2.4.2",
+        "clean-css": "^5.1.2",
         "colorette": "^1.2.2",
-        "eslint": "^7.22.0",
+        "eslint": "^7.24.0",
         "esm": "^3.2.25",
-        "rollup": "^2.41.4",
+        "rollup": "^2.45.2",
         "rollup-plugin-string": "^3.0.0",
-        "rollup-plugin-userscript-metablock": "^0.2.7",
+        "rollup-plugin-userscript-metablock": "^0.3.0",
         "serve": "^11.3.2",
         "standard": "^16.0.3"
     },
     "dependencies": {
-        "react": "^17.0.1",
-        "react-dom": "^17.0.1",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
         "react-window": "^1.8.6"
     },
     "config": {

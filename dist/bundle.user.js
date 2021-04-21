@@ -3872,6 +3872,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     }
 
     // Restore lyrics onClick
+    /*
     function parentByClassName(node, className) {
       while(!node.parentNode.classList.contains(className)) {
         node = node.parentNode
@@ -3893,6 +3894,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     document.querySelectorAll('#track_table .track_row_view .info_link a').forEach(function (a) {
       a.addEventListener('click', onLyricsClick)
     })
+    */
 
     // Hide popup (not really needed, but won't hurt)
     window.setInterval(function() {

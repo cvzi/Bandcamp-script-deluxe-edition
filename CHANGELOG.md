@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.18.9](../../tree/v1.18.9) *(2021-04-21)*
+*   Fix lyrics provided by bandcamp
 ## [1.18.8](../../tree/v1.18.8) *(2021-03-13)*
 *   Do not run in embedded player i.e. on https://bandcamp.com/EmbeddedPlayer
 ## [1.18.7](../../tree/v1.18.7) *(2021-03-06)*
