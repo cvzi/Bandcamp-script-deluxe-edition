@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.18.9
+// @version         1.18.10
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -157,13 +157,29 @@ SOFTWARE.
     return self;
   }
 
+  var safeIsNaN = Number.isNaN || function ponyfill(value) {
+    return typeof value === 'number' && value !== value;
+  };
+
+  function isEqual(first, second) {
+    if (first === second) {
+      return true;
+    }
+
+    if (safeIsNaN(first) && safeIsNaN(second)) {
+      return true;
+    }
+
+    return false;
+  }
+
   function areInputsEqual(newInputs, lastInputs) {
     if (newInputs.length !== lastInputs.length) {
       return false;
     }
 
     for (var i = 0; i < newInputs.length; i++) {
-      if (newInputs[i] !== lastInputs[i]) {
+      if (!isEqual(newInputs[i], lastInputs[i])) {
         return false;
       }
     }
