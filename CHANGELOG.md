@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.18.10](../../tree/v1.18.10) *(2021-09-01)*
+*   Version bump to trigger GeniusLyrics.js library update
 ## [1.18.9](../../tree/v1.18.9) *(2021-04-21)*
 *   Fix lyrics provided by bandcamp
 ## [1.18.8](../../tree/v1.18.8) *(2021-03-13)*
