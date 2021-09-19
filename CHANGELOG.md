@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.18.11](../../tree/v1.18.10) *(2021-09-19)*
+*   Fix play from search results [#19](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/19)
 ## [1.18.10](../../tree/v1.18.10) *(2021-09-01)*
 *   Version bump to trigger GeniusLyrics.js library update
 ## [1.18.9](../../tree/v1.18.9) *(2021-04-21)*

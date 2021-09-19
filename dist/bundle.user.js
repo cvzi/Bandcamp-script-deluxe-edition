@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.18.10
+// @version         1.18.11
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -6723,10 +6723,10 @@ If this is a malicious website, running the userscript may leak personal data (e
         addStyle('#indexpage .ipCellImage { position:relative }');
       }
 
-      if (document.querySelector('.search .result-items .searchresult.album img,.search .result-items .searchresult.track img')) {
+      if (document.querySelector('.search .result-items .searchresult img')) {
         // Search result pages. To make them compatible, let's add the class names from the discography page
         document.querySelector('.search .result-items').classList.add('music-grid');
-        document.querySelectorAll('.search .result-items .searchresult.album,.search .result-items .searchresult.track').forEach(cell => cell.classList.add('music-grid-item'));
+        document.querySelectorAll(".search .result-items .searchresult[data-search*='\"type\":\"a\"'],.search .result-items .searchresult[data-search*='\"type\":\"t\"']").forEach(cell => cell.classList.add('music-grid-item'));
       }
 
       if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href*="/album/"] img,.music-grid .music-grid-item a[href*="/track/"] img')) {
