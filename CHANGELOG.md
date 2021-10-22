@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.19.0](../../tree/v1.19.0) *(2021-10-22)*
+*   Tag search from navigation bar [#126](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/126)
 ## [1.18.11](../../tree/v1.18.10) *(2021-09-19)*
 *   Fix play from search results [#19](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/19)
 ## [1.18.10](../../tree/v1.18.10) *(2021-09-01)*
