@@ -3949,22 +3949,35 @@ function tagSearchInputChange (ev) {
 function showTagSuggestions () {
   const input = document.getElementById('bcsde_tagsearchform_input')
   const suggestions = document.getElementById('bcsde_tagsearchform_suggestions')
-  if (!input.value) {
+  if (!input.value.trim()) {
     suggestions.classList.remove('visible')
     return
   }
   getTagSuggestions(input.value).then(data => {
+    let found = false
     if (data.ok && 'matching_tags' in data) {
       suggestions.innerHTML = ''
       suggestions.classList.add('visible')
       suggestions.style.left = input.offsetLeft + 'px'
       data.matching_tags.forEach(result => {
+        found = true
         const li = suggestions.appendChild(document.createElement('li'))
         li.dataset.tagNormName = result.tag_norm_name
         li.dataset.name = result.tag_name
         li.addEventListener('click', useTagSuggestion)
         li.appendChild(document.createTextNode(result.tag_name))
       })
+    }
+    if (!found) {
+      if (input.value.trim()) {
+        const li = suggestions.appendChild(document.createElement('li'))
+        li.dataset.tagNormName = input.value.replace(/\s+/, '-')
+        li.dataset.name = input.value
+        li.addEventListener('click', useTagSuggestion)
+        li.appendChild(document.createTextNode(input.value))
+      } else {
+        suggestions.classList.remove('visible')
+      }
     }
   })
 }
