@@ -52,7 +52,7 @@
         "@rollup/plugin-replace": "^3.0.0",
         "clean-css": "^5.2.2",
         "colorette": "^2.0.16",
-        "eslint": "^8.0.1",
+        "eslint": "^8.1.0",
         "esm": "^3.2.25",
         "rollup": "^2.58.0",
         "rollup-plugin-string": "^3.0.0",
