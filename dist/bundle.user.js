@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.18.11
+// @version         1.19.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -76,14 +76,12 @@ SOFTWARE.
           var d = Object.getOwnPropertyDescriptor(e, k);
           Object.defineProperty(n, k, d.get ? d : {
             enumerable: true,
-            get: function () {
-              return e[k];
-            }
+            get: function () { return e[k]; }
           });
         }
       });
     }
-    n['default'] = e;
+    n["default"] = e;
     return Object.freeze(n);
   }
 
@@ -5046,6 +5044,279 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     });
   }
 
+  function showTagSearchForm() {
+    const menuA = document.querySelector('#bcsde_tagsearchbutton');
+    menuA.style.display = 'none';
+
+    if (!document.getElementById('bcsde_tagsearchform')) {
+      addStyle(`
+    #bcsde_tagsearchform {
+      margin:0px 7px;
+    }
+    #bcsde_tagsearchform_tags {
+      display: inline-block;
+      list-style: none;
+      padding: 0;
+    }
+    #bcsde_tagsearchform_tags li {
+      display:inline;
+      background:#f2eaea8a;
+      border: 1px solid rgb(225, 45, 5);
+      border-radius: 15px;
+      padding: 2px 10px 2px 2px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    #bcsde_tagsearchform_tags li svg {
+      filter: invert(100%);
+      fill:rgb(225, 45, 5);
+      vertical-align: middle;
+    }
+    #bcsde_tagsearchform_tags li .checkmark-icon {
+      display:inline-block;
+    }
+    #bcsde_tagsearchform_tags li .close-icon {
+      display:none;
+    }
+    #bcsde_tagsearchform_tags li:hover .checkmark-icon {
+      display:none;
+    }
+    #bcsde_tagsearchform_tags li:hover .close-icon {
+      display:inline-block;
+    }
+    #bcsde_tagsearchform button {
+      margin: 3px;
+      color: black !important;
+    }
+    #bcsde_tagsearchform_input {
+      background-color: #DFDFDF;
+      padding: 10px 30px 10px 10px;
+      font-size: 14px;
+      border: none;
+      width: 150px;
+      color: #333;
+      margin: 6px 0;
+      border-radius: 3px;
+      box-sizing: border-box;
+      input-select:auto;
+      -webkit-user-select:auto;
+    }
+    #bcsde_tagsearchform_suggestions {
+      list-style: none;
+      margin: 0;
+      position: absolute;
+      z-index: 10;
+      background: #FFF;
+      visibility: hidden;
+      border: 1px solid #000;
+      font-weight: normal;
+      padding: 8px 0;
+      opacity:0;
+      transition:visibility 200ms linear,opacity 200ms linear;
+      ${darkModeModeCurrent === true ? 'filter: invert(85%);' : ''}
+    }
+    #bcsde_tagsearchform_suggestions.visible {
+      visibility:visible;
+      opacity:1;
+    }
+    #bcsde_tagsearchform_suggestions li {
+      padding: 8px 10px;
+      cursor: pointer;
+      list-style: none;
+      margin: 0;
+    }
+    #bcsde_tagsearchform_suggestions li:hover,#bcsde_tagsearchform_suggestions li:focus {
+      background: #F3F3F3;
+    }
+    `);
+      const div = document.createElement('div');
+      div.setAttribute('id', 'bcsde_tagsearchform');
+      menuA.parentNode.appendChild(div);
+      const tagsHolder = div.appendChild(document.createElement('ul'));
+      tagsHolder.setAttribute('id', 'bcsde_tagsearchform_tags');
+      const m = document.location.href.match(/\/tag\/([A-Za-z0-9-]+)(\?tab=all_releases&t=(.+))?/); // https://bandcamp.com/tag/metal?tab=all_releases&t=post-punk%2Cdark
+
+      const tags = [];
+
+      if (m) {
+        tags.push(m[1]);
+
+        if (m[3]) {
+          tags.push(...m[3].split('&')[0].split('#')[0].split('%2C'));
+        }
+      }
+
+      tags.forEach(tag => {
+        tagsHolder.appendChild(tagSearchLabel(tag, tag.replace('-', ' ')));
+      });
+      const button = div.appendChild(document.createElement('button'));
+      button.appendChild(document.createTextNode('Go'));
+      button.addEventListener('click', openTagSearch);
+      const input = div.appendChild(document.createElement('input'));
+      input.setAttribute('type', 'text');
+      input.setAttribute('id', 'bcsde_tagsearchform_input');
+      input.addEventListener('keyup', tagSearchInputChange);
+      const suggestions = div.appendChild(document.createElement('ol'));
+      suggestions.setAttribute('id', 'bcsde_tagsearchform_suggestions');
+    } else {
+      document.querySelector('#bcsde_tagsearchform').style.display = '';
+    }
+  }
+
+  function tagSearchLabel(tagNormName, tagName) {
+    const li = document.createElement('li');
+    li.dataset.tagNormName = tagNormName;
+    li.dataset.name = tagName;
+    const remove = li.appendChild(document.createElement('span'));
+    remove.addEventListener('click', function () {
+      this.parentNode.remove();
+    });
+    remove.innerHTML = `
+  <svg class="checkmark-icon" width="16" height="16" viewBox="0 0 24 24">
+    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#material-done"></use>
+  </svg>
+  <svg class="close-icon" width="16" height="16" viewBox="0 0 24 24">
+    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#material-close"></use>
+  </svg>
+  `;
+    li.appendChild(document.createTextNode(tagName));
+    return li;
+  }
+
+  let ivTagSearchInput = null;
+
+  function tagSearchInputChange(ev) {
+    clearInterval(ivTagSearchInput);
+
+    if (ev.key === 'Enter') {
+      const input = document.getElementById('bcsde_tagsearchform_input');
+
+      if (input.value) {
+        useTagSuggestion(null, input.value);
+        return;
+      }
+    }
+
+    ivTagSearchInput = window.setTimeout(showTagSuggestions, 300);
+  }
+
+  function showTagSuggestions() {
+    const input = document.getElementById('bcsde_tagsearchform_input');
+    const suggestions = document.getElementById('bcsde_tagsearchform_suggestions');
+
+    if (!input.value.trim()) {
+      suggestions.classList.remove('visible');
+      return;
+    }
+
+    getTagSuggestions(input.value).then(data => {
+      let found = false;
+
+      if (data.ok && 'matching_tags' in data) {
+        suggestions.innerHTML = '';
+        suggestions.classList.add('visible');
+        suggestions.style.left = input.offsetLeft + 'px';
+        data.matching_tags.forEach(result => {
+          found = true;
+          const li = suggestions.appendChild(document.createElement('li'));
+          li.dataset.tagNormName = result.tag_norm_name;
+          li.dataset.name = result.tag_name;
+          li.addEventListener('click', useTagSuggestion);
+          li.appendChild(document.createTextNode(result.tag_name));
+        });
+      }
+
+      if (!found) {
+        if (input.value.trim()) {
+          const li = suggestions.appendChild(document.createElement('li'));
+          li.dataset.tagNormName = input.value.replace(/\s+/, '-');
+          li.dataset.name = input.value;
+          li.addEventListener('click', useTagSuggestion);
+          li.appendChild(document.createTextNode(input.value));
+        } else {
+          suggestions.classList.remove('visible');
+        }
+      }
+    });
+  }
+
+  function useTagSuggestion(ev, str = null) {
+    const suggestions = document.getElementById('bcsde_tagsearchform_suggestions');
+    const tagsHolder = document.getElementById('bcsde_tagsearchform_tags');
+    const input = document.getElementById('bcsde_tagsearchform_input');
+    let tagNormName;
+    let name;
+
+    if (str) {
+      // Use str
+      tagNormName = str.replace(/\s+/, '-');
+      name = str;
+    } else {
+      // Use tag that was clicked
+      tagNormName = this.dataset.tagNormName;
+      name = this.dataset.name;
+    }
+
+    tagsHolder.appendChild(tagSearchLabel(tagNormName, name));
+    suggestions.classList.remove('visible');
+    input.value = '';
+    input.focus();
+  }
+
+  function getTagSuggestions(query) {
+    const url = 'https://bandcamp.com/api/fansignup/1/search_tag';
+    return new Promise(function getTagSuggestionsPromise(resolve, reject) {
+      GM.xmlHttpRequest({
+        method: 'POST',
+        data: JSON.stringify({
+          count: 20,
+          search_term: query
+        }),
+        url: url,
+        onload: function getTagSuggestionsOnLoad(response) {
+          if (!response.responseText || response.responseText.indexOf('400 Bad Request') !== -1) {
+            reject(new Error('Tag suggestions error: Too many cookies'));
+            return;
+          }
+
+          if (!response.responseText || response.responseText.indexOf('429 Too Many Requests') !== -1) {
+            reject(new Error('Tag suggestions error: 429 Too Many Requests'));
+            return;
+          }
+
+          let result = null;
+
+          try {
+            result = JSON.parse(response.responseText);
+          } catch (e) {
+            console.debug(response.responseText);
+            reject(e);
+            return;
+          }
+
+          resolve(result);
+        },
+        onerror: function getTagSuggestionsOnError(response) {
+          reject(new Error('error' in response ? response.error : 'getTagSuggestions failed with GM.xmlHttpRequest.onerror'));
+        }
+      });
+    });
+  }
+
+  function openTagSearch() {
+    // https://bandcamp.com/tag/metal?tab=all_releases&t=post-punk%2Cdark
+    this.innerHTML = 'Loading...';
+    const tagsHolder = document.getElementById('bcsde_tagsearchform_tags');
+    const tags = [...new Set(Array.from(tagsHolder.querySelectorAll('li')).map(li => li.dataset.tagNormName))];
+
+    if (!tags) {
+      return;
+    }
+
+    const url = `https://bandcamp.com/tag/${tags.shift()}?tab=all_releases&t=${tags.join('%2C')}`;
+    document.location.href = url;
+  }
+
   function mainMenu(startBackup) {
     addStyle(`
     .deluxemenu {
@@ -6414,6 +6685,26 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         openExplorer();
       });
     }
+
+    const liSearch = ul.insertBefore(document.createElement('li'), ul.firstChild);
+    liSearch.className = 'menubar-item hoverable';
+    liSearch.title = 'tag search - ' + SCRIPT_NAME;
+    const aExplorer = liSearch.appendChild(document.createElement('a'));
+    aExplorer.className = 'settingssymbol';
+    aExplorer.href = '#';
+    aExplorer.style.fontSize = '24px';
+
+    if (NOEMOJI) {
+      aExplorer.innerHTML = `
+    <svg width="22" height="22" viewBox="0 0 15 16" class="svg-icon" style="border: 2px solid #000000c4;border-radius: 30%;padding: 3px;">
+        <use xlink:href="#menubar-search-input-icon">
+    </svg>`;
+    } else {
+      aExplorer.appendChild(document.createTextNode('\uD83D\uDD0D'));
+    }
+
+    aExplorer.setAttribute('id', 'bcsde_tagsearchbutton');
+    aExplorer.addEventListener('mouseover', showTagSearchForm);
   }
 
   function appendMainMenuButtonLeftTo(leftOf) {
@@ -6861,5 +7152,5 @@ If this is a malicious website, running the userscript may leak personal data (e
     }
   });
 
-}(React, ReactDOM));
+})(React, ReactDOM);
 //# sourceMappingURL=bundle.user.js.map
