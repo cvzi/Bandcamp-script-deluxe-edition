@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.19.2](../../tree/v1.19.2) *(2021-10-30)*
+*   Tag search: Fix homepage and not logged in
 ## [1.19.1](../../tree/v1.19.1) *(2021-10-22)*
 *   Tag search: if no suggestions for tags, show the search query as a suggestion
 ## [1.19.0](../../tree/v1.19.0) *(2021-10-22)*

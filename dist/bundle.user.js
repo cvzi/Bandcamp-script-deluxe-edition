@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.19.1
+// @version         1.19.2
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -5124,6 +5124,8 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       cursor: pointer;
       list-style: none;
       margin: 0;
+      display: list-item;
+      text-align: left;
     }
     #bcsde_tagsearchform_suggestions li:hover,#bcsde_tagsearchform_suggestions li:focus {
       background: #F3F3F3;
@@ -5158,6 +5160,11 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       input.addEventListener('keyup', tagSearchInputChange);
       const suggestions = div.appendChild(document.createElement('ol'));
       suggestions.setAttribute('id', 'bcsde_tagsearchform_suggestions');
+
+      if (document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav .log-in-link')) {
+        // Homepage and not logged in -> make some room by removing the other list items from the nav
+        document.querySelectorAll('#corphome-autocomplete-form ul.hd-nav.corp-nav>li:not([class~="menubar-item-tag-search"])').forEach(listItem => listItem.remove());
+      }
     } else {
       document.querySelector('#bcsde_tagsearchform').style.display = '';
     }
@@ -6687,7 +6694,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     }
 
     const liSearch = ul.insertBefore(document.createElement('li'), ul.firstChild);
-    liSearch.className = 'menubar-item hoverable';
+    liSearch.className = 'menubar-item hoverable menubar-item-tag-search';
     liSearch.title = 'tag search - ' + SCRIPT_NAME;
     const aExplorer = liSearch.appendChild(document.createElement('a'));
     aExplorer.className = 'settingssymbol';
@@ -7065,6 +7072,9 @@ If this is a malicious website, running the userscript may leak personal data (e
         appendMainMenuButtonTo(document.getElementById('user-nav'));
       } else if (document.getElementById('customHeaderWrapper')) {
         appendMainMenuButtonLeftTo(document.getElementById('customHeaderWrapper'));
+      } else if (document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav')) {
+        // Homepage and not logged in
+        appendMainMenuButtonTo(document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav'));
       }
 
       if (document.getElementById('carousel-player') || document.querySelector('.play-carousel')) {
