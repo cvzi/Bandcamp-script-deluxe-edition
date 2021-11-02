@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.19.3](../../tree/v1.19.3) *(2021-11-02)*
+*   Fix settings and library emoji [#126](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/126)
 ## [1.19.2](../../tree/v1.19.2) *(2021-10-30)*
 *   Tag search: Fix homepage and not logged in
 ## [1.19.1](../../tree/v1.19.1) *(2021-10-22)*
