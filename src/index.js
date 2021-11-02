@@ -3902,6 +3902,7 @@ function showTagSearchForm () {
     const input = div.appendChild(document.createElement('input'))
     input.setAttribute('type', 'text')
     input.setAttribute('id', 'bcsde_tagsearchform_input')
+    input.setAttribute('placeholder', 'tag search')
     input.addEventListener('keyup', tagSearchInputChange)
 
     const suggestions = div.appendChild(document.createElement('ol'))
@@ -4138,6 +4139,7 @@ function mainMenu (startBackup) {
   Support: <a target="_blank" href="https://github.com/cvzi/Bandcamp-script-deluxe-edition">github.com/cvzi/Bandcamp-script-deluxe-edition</a><br>
   Dark theme based on: <a target="_blank" href="https://userstyles.org/styles/171538/bandcamp-in-dark">"Bandcamp In Dark"</a> by <a target="_blank" href="https://userstyles.org/users/563391">Simonus</a><br>
   Dev &amp; build tools used: <a target="_blank" href="https://github.com/cvzi/Bandcamp-script-deluxe-edition/blob/master/package.json#L43-L71">package.json</a><br>
+  Emoji: <a target="_blank" href="https://github.com/hfg-gmuend/openmoji">OpenMoji</a><br>
   Javascript libraries used:<br><ul>
   <li><a target="_blank" href="https://json5.org/">JSON5 - JSON for Humans</a> (MIT license)</li>
   <li><a target="_blank" href="https://github.com/facebook/react">React</a> (MIT license)</li>
@@ -5385,7 +5387,9 @@ function appendMainMenuButtonTo (ul) {
   a.style.fontSize = '24px'
   a.style.transition = 'transform 2s ease-out'
   if (NOEMOJI) {
-    a.appendChild(document.createTextNode('\u26ED'))
+    const img = a.appendChild(document.createElement('img'))
+    img.style = 'display:inline; width:34px; vertical-align:middle;'
+    img.src = 'https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/color/72x72/2699.png'
   } else {
     a.appendChild(document.createTextNode('\u2699\uFE0F'))
   }
@@ -5403,7 +5407,9 @@ function appendMainMenuButtonTo (ul) {
     aExplorer.href = PLAYER_URL
     aExplorer.style.fontSize = '24px'
     if (NOEMOJI) {
-      aExplorer.appendChild(document.createTextNode('L'))
+      const img = aExplorer.appendChild(document.createElement('img'))
+      img.style = 'display:inline; width:34px; vertical-align:middle;'
+      img.src = 'https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/color/72x72/1F5C3.png'
     } else {
       aExplorer.appendChild(document.createTextNode('\uD83D\uDDC3\uFE0F'))
     }
