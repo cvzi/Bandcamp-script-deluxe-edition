@@ -79,7 +79,7 @@ export default function Explorer (root, hooks) {
           height={600}
           itemCount={Object.keys(library).length}
           itemSize={35}
-          width={600}
+          //width={600}
           itemData={{ library: library }}
         >
           {AlbumListItem}

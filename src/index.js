@@ -5329,7 +5329,7 @@ function openExplorer () {
   }
   if (!iframe) {
     iframe = document.body.appendChild(document.createElement('iframe'))
-    iframe.src = PLAYER_URL
+    iframe.src = PLAYER_URL + ',iframe'
     iframe.id = 'explorer-iframe'
   }
   iframe.style = 'display:block; position:fixed; top:2%; left:25%; width:50%; height:90%; z-index: 1101; background:#fffD;'
@@ -5413,10 +5413,12 @@ function appendMainMenuButtonTo (ul) {
     } else {
       aExplorer.appendChild(document.createTextNode('\uD83D\uDDC3\uFE0F'))
     }
-    liExplorer.addEventListener('click', function (ev) {
-      ev.preventDefault()
-      openExplorer()
-    })
+    aExplorer.target = '_blank'
+    // TODO open library in frame
+    // liExplorer.addEventListener('click', function (ev) {
+    // ev.preventDefault()
+    //   openExplorer()
+    // })
   }
 
   const liSearch = ul.insertBefore(document.createElement('li'), ul.firstChild)
@@ -5685,6 +5687,9 @@ function onLoaded () {
     return
   }
 
+  const IS_PLAYER_URL = document.location.href.startsWith(PLAYER_URL)
+  const IS_PLAYER_FRAME = IS_PLAYER_URL && document.location.search.indexOf('iframe')
+
   if (allFeatures.darkMode.enabled) {
     // Darkmode in start() is only run on bandcamp domains
     if (!darkModeInjected) {
@@ -5713,7 +5718,7 @@ function onLoaded () {
       NOTIFICATION_TIMEOUT = parseInt(ms)
     })
 
-    if (allFeatures.releaseReminder.enabled) {
+    if (allFeatures.releaseReminder.enabled && !IS_PLAYER_FRAME) {
       showPastReleases()
     }
 
@@ -5809,7 +5814,7 @@ function onLoaded () {
       makeAlbumLinksGreat()
     }
 
-    if (allFeatures.backupReminder.enabled) {
+    if (allFeatures.backupReminder.enabled && !IS_PLAYER_FRAME) {
       checkBackupStatus()
     }
 
@@ -5839,7 +5844,7 @@ function onLoaded () {
       })
     }
 
-    if (document.location.href === PLAYER_URL) {
+    if (IS_PLAYER_URL) {
       showExplorer()
     } else if (document.location.pathname === LYRICS_EMPTY_PATH) {
       initGenius()
