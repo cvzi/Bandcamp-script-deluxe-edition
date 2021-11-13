@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.19.3
+// @version         1.19.4
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -924,8 +924,8 @@ SOFTWARE.
           className: "List",
           height: 600,
           itemCount: Object.keys(library).length,
-          itemSize: 35,
-          width: 600,
+          itemSize: 35 //width={600}
+          ,
           itemData: {
             library: library
           }
@@ -6593,30 +6593,6 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     geniusAddLyrics();
   }
 
-  function openExplorer() {
-    let iframe = document.getElementById('explorer-iframe');
-
-    if (iframe && iframe.style.display === 'block') {
-      closeExplorer();
-      return;
-    }
-
-    if (!iframe) {
-      iframe = document.body.appendChild(document.createElement('iframe'));
-      iframe.src = PLAYER_URL;
-      iframe.id = 'explorer-iframe';
-    }
-
-    iframe.style = 'display:block; position:fixed; top:2%; left:25%; width:50%; height:90%; z-index: 1101; background:#fffD;';
-    return iframe;
-  }
-
-  function closeExplorer() {
-    if (document.getElementById('explorer-iframe')) {
-      document.getElementById('explorer-iframe').style.display = 'none';
-    }
-  }
-
   let explorer = null;
 
   async function showExplorer() {
@@ -6693,10 +6669,11 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         aExplorer.appendChild(document.createTextNode('\uD83D\uDDC3\uFE0F'));
       }
 
-      liExplorer.addEventListener('click', function (ev) {
-        ev.preventDefault();
-        openExplorer();
-      });
+      aExplorer.target = '_blank'; // TODO open library in frame
+      // liExplorer.addEventListener('click', function (ev) {
+      // ev.preventDefault()
+      //   openExplorer()
+      // })
     }
 
     const liSearch = ul.insertBefore(document.createElement('li'), ul.firstChild);
@@ -6717,7 +6694,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     }
 
     aExplorer.setAttribute('id', 'bcsde_tagsearchbutton');
-    aExplorer.addEventListener('mouseover', showTagSearchForm);
+    aExplorer.addEventListener('click', showTagSearchForm);
   }
 
   function appendMainMenuButtonLeftTo(leftOf) {
@@ -6989,6 +6966,9 @@ If this is a malicious website, running the userscript may leak personal data (e
       return;
     }
 
+    const IS_PLAYER_URL = document.location.href.startsWith(PLAYER_URL);
+    const IS_PLAYER_FRAME = IS_PLAYER_URL && document.location.search.indexOf('iframe');
+
     if (allFeatures.darkMode.enabled) {
       // Darkmode in start() is only run on bandcamp domains
       if (!darkModeInjected) {
@@ -7016,7 +6996,7 @@ If this is a malicious website, running the userscript may leak personal data (e
         NOTIFICATION_TIMEOUT = parseInt(ms);
       });
 
-      if (allFeatures.releaseReminder.enabled) {
+      if (allFeatures.releaseReminder.enabled && !IS_PLAYER_FRAME) {
         showPastReleases();
       }
 
@@ -7083,6 +7063,16 @@ If this is a malicious website, running the userscript may leak personal data (e
         appendMainMenuButtonTo(document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav'));
       }
 
+      if (document.querySelector('.hd-banner-2018')) {
+        // Move the "we are hiring" banner (not loggin in)
+        document.querySelector('.hd-banner-2018').style.left = '-500px';
+      }
+
+      if (document.querySelector('.li-banner-2018')) {
+        // Remove the "we are hiring" banner (logged in)
+        document.querySelector('.li-banner-2018').remove();
+      }
+
       if (document.getElementById('carousel-player') || document.querySelector('.play-carousel')) {
         window.setTimeout(makeCarouselPlayerGreatAgain, 5000);
       }
@@ -7108,7 +7098,7 @@ If this is a malicious website, running the userscript may leak personal data (e
         makeAlbumLinksGreat();
       }
 
-      if (allFeatures.backupReminder.enabled) {
+      if (allFeatures.backupReminder.enabled && !IS_PLAYER_FRAME) {
         checkBackupStatus();
       }
 
@@ -7140,7 +7130,7 @@ If this is a malicious website, running the userscript may leak personal data (e
         });
       }
 
-      if (document.location.href === PLAYER_URL) {
+      if (IS_PLAYER_URL) {
         showExplorer();
       } else if (document.location.pathname === LYRICS_EMPTY_PATH) {
         initGenius();
