@@ -5776,6 +5776,14 @@ function onLoaded () {
       // Homepage and not logged in
       appendMainMenuButtonTo(document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav'))
     }
+    if (document.querySelector('.hd-banner-2018')) {
+      // Move the "we are hiring" banner (not loggin in)
+      document.querySelector('.hd-banner-2018').style.left = '-500px'
+    }
+    if (document.querySelector('.li-banner-2018')) {
+      // Remove the "we are hiring" banner (logged in)
+      document.querySelector('.li-banner-2018').remove()
+    }
 
     if (document.getElementById('carousel-player') || document.querySelector('.play-carousel')) {
       window.setTimeout(makeCarouselPlayerGreatAgain, 5000)
