@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.19.4](../../tree/v1.19.3) *(2021-11-02)*
+## [1.19.4](../../tree/v1.19.4) *(2021-11-13)*
 *   Move the "we are hiring" banner [#126](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/126)
 *   Click instead of mouseover to open search [#126](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/126)
 *   Explorer link instead of frame  [#126](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/126)
