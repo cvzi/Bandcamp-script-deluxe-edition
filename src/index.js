@@ -5435,7 +5435,7 @@ function appendMainMenuButtonTo (ul) {
     aExplorer.appendChild(document.createTextNode('\uD83D\uDD0D'))
   }
   aExplorer.setAttribute('id', 'bcsde_tagsearchbutton')
-  aExplorer.addEventListener('mouseover', showTagSearchForm)
+  aExplorer.addEventListener('click', showTagSearchForm)
 }
 
 function appendMainMenuButtonLeftTo (leftOf) {
