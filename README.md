@@ -10,7 +10,7 @@ or
 [FireMonkey ![Firefox logo](https://raw.githubusercontent.com/OpenUserJS/OpenUserJS.org/master/public/images/ua/firefox16.png)](https://addons.mozilla.org/en-US/firefox/addon/firemonkey/).
 General information about userscripts and how to use them can be found at [openuserjs.org/about/Userscript-Beginners-HOWTO](https://openuserjs.org/about/Userscript-Beginners-HOWTO).
 
-If you already have a userscript extension installed, you can **[click to install](https://openuserjs.org/install/cuzi/Bandcamp_script_(Deluxe_Edition).user.js)** this script.
+If you already have a userscript extension installed, you can **[click to install](https://greasyfork.org/scripts/390404-bandcamp-script-deluxe-edition/code/Bandcamp%20script%20(Deluxe%20Edition).user.js)** this script.
 
 This userscript runs on all websites (`// @include *`) because bandcamp pages can have custom domains ([discussion](../../issues/3)). If you don't want this feature, you can install the alternative version that only runs on bandcamp.com and campexplorer.io: **[Click to install alternative version](https://github.com/cvzi/Bandcamp-script-deluxe-edition/raw/master/dist/release-bandcamp.com-only.user.js)**.
 
