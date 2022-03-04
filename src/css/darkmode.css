@@ -34,7 +34,7 @@
 .inline_player .nextbutton,
 .inline_player .prevbutton,
 svg {
-    filter: invert(100%);
+    filter: invert(90%);
 }
 a {
     color: #da5 !important;
