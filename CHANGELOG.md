@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.19.5](../../tree/v1.19.5) *(2022-03-04)*
+*   Dark mode improved
 ## [1.19.4](../../tree/v1.19.4) *(2021-11-13)*
 *   Move the "we are hiring" banner [#126](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/126)
 *   Click instead of mouseover to open search [#126](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/126)
