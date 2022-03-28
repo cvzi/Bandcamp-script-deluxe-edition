@@ -25,7 +25,7 @@
         "GM.setValue",
         "GM.getValue",
         "GM.notification",
-        "GM.download",
+        "GM_download",
         "GM.registerMenuCommand",
         "GM_registerMenuCommand",
         "GM.addStyle",

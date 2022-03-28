@@ -4849,45 +4849,38 @@ function showBackupHint (lastBackup, changedRecords) {
 
 function downloadMp3FromLink (ev, a, addSpinner, removeSpinner, noGM) {
   const url = a.href
-  if (GM.download && !noGM) {
-    // Use Tampermonkey GM.download function
-    console.log('Using GM.download function')
+  if (GM_download && !noGM) {
+    // Use Tampermonkey GM_download function
+    console.log('Using GM_download function')
     ev.preventDefault()
     addSpinner(a)
     let GMdownloadStatus = 0
-    GM.download({
+    GM_download({
       url: url,
       name: a.download || 'default.mp3',
       onerror: function downloadMp3FromLinkOnError (e) {
-        console.log('GM.download onerror:', e)
+        console.log('GM_download onerror:', e)
+        window.setTimeout(function () {
+          if (GMdownloadStatus !== 1) {
+            if (url.startsWith('data')) {
+              console.log('GM_download failed with data url')
+              document.location.href = url
+            } else {
+              console.log('Trying again with GM_download disabled')
+              downloadMp3FromLink(ev, a, addSpinner, removeSpinner, true)
+            }
+          }
+        }, 1000)
       },
       ontimeout: function downloadMp3FromLinkOnTimeout () {
-        window.alert('Could not download via GM.download. Time out.')
+        window.alert('Could not download via GM_download. Time out.')
         document.location.href = url
       },
       onload: function downloadMp3FromLinkOnLoad () {
-        console.log('Successfully downloaded via GM.download')
+        console.log('Successfully downloaded via GM_download')
         GMdownloadStatus = 1
         window.setTimeout(() => removeSpinner(a), 500)
       }
-    }).then(function (o) {
-      console.log('GM.download() finished')
-      GMdownloadStatus = 1
-      window.setTimeout(() => removeSpinner(a), 500)
-    }).catch(function (e) {
-      GMdownloadStatus = 0
-      console.log('GM.download() failed', e)
-      window.setTimeout(function () {
-        if (GMdownloadStatus !== 1) {
-          if (url.startsWith('data')) {
-            console.log('GM.download failed with data url')
-            document.location.href = url
-          } else {
-            console.log('Trying again with GM.download disabled')
-            downloadMp3FromLink(ev, a, addSpinner, removeSpinner, true)
-          }
-        }
-      }, 1000)
     })
     return
   }
