@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.19.6](../../tree/v1.19.6) *(2022-03-28)*
+*   GM.download is broken in Tampermonkey, now using GM_download
 ## [1.19.5](../../tree/v1.19.5) *(2022-03-04)*
 *   Dark mode improved
 ## [1.19.4](../../tree/v1.19.4) *(2021-11-13)*
