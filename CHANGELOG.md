@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.19.7](../../tree/v1.19.7) *(2022-03-28)*
+*   GM.addStyle is not allowed on openuserjs.com
 ## [1.19.6](../../tree/v1.19.6) *(2022-03-28)*
 *   GM.download is broken in Tampermonkey, now using GM_download
 ## [1.19.5](../../tree/v1.19.5) *(2022-03-04)*

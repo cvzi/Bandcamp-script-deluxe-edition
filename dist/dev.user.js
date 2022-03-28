@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.19.6
+// @version         1.19.7
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -31,7 +31,7 @@
 // @grant           GM_download
 // @grant           GM.registerMenuCommand
 // @grant           GM_registerMenuCommand
-// @grant           GM.addStyle
+// @grant           GM_addStyle
 // @grant           unsafeWindow
 // ==/UserScript==
 /*  globals GM */

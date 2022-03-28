@@ -28,7 +28,7 @@
         "GM_download",
         "GM.registerMenuCommand",
         "GM_registerMenuCommand",
-        "GM.addStyle",
+        "GM_addStyle",
         "unsafeWindow"
     ],
     "connect" : [

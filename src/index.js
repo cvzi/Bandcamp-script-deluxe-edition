@@ -352,8 +352,8 @@ function fullfill (x) {
 
 const stylesToInsert = []
 function addStyle (css) {
-  if (GM.addStyle && css) {
-    return GM.addStyle(css)
+  if (GM_addStyle && css) {
+    return GM_addStyle(css)
   } else {
     if (css) {
       stylesToInsert.push(css)
