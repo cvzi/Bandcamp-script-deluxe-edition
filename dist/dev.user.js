@@ -7,8 +7,8 @@
 // @contributionURL https://github.com/cvzi/Bandcamp-script-deluxe-edition#donate
 // @require         https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @require         https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
-// @require         https://unpkg.com/react@17/umd/react.development.js
-// @require         https://unpkg.com/react-dom@17/umd/react-dom.development.js
+// @require         https://unpkg.com/react@18/umd/react.development.js
+// @require         https://unpkg.com/react-dom@18/umd/react-dom.development.js
 // @run-at          document-start
 // @include         https://*
 // @include         https://bandcamp.com/*
