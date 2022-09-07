@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.19.7
+// @version         1.20.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -961,7 +961,7 @@ SOFTWARE.
 
   var speakerIconHighSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAoCAMAAACPWYlDAAAAOVBMVEUAAABqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampHCtmUAAAAEnRSTlMAhTXgE+5yutBAH0yQKqibV2MOLOh8AAABXElEQVQ4y8WUW5aEIAxEeb/UVrP/xc5Mimk9IGn96vrhiLmkCBB1rWVRTzQlIv0gfqZfeXeeKkK4i8Qyx1S2ZLdRvLHUATw1XccHog4oxB4x0WilFijZIQMl14WXSC0QiPw0YWbuim+pBRaY2etU578DsLYtsPriKP8WNYDJqnhEOiT/O39NA+VIlMpWPzBqCZhQGfiMKrE3CTAzKoPKFYBGAhQTS+avUDCIgIqcIp08rTIwsW0N9y9wIuDYPTw5DkwyoLhaDkcQkOhzhlCB/QaQT0C5kQH7zOb2HhasOWOIn6sUcVQeF9Xi4AUA9a+XaTMYBGDHFcTKqcYVAdDnuxf+L4hkKVir62+rAjgRwJuGMePf3TDrQ6M3HWCs77e6A/gtR6epJmi1+wZQOfmVNzBoliY1AKfxl30Mcq8LoPaBgUIHqIjOOlI+mlaVm9PaxPc92aon0jZl9S39AOlqRk93STxjAAAAAElFTkSuQmCC";
 
-  /* globals GM, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics */
+  /* globals GM, GM_addStyle, GM_download, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics */
   // TODO Mark as played automatically when played
   // TODO custom CSS
 
@@ -984,6 +984,10 @@ SOFTWARE.
   const allFeatures = {
     discographyplayer: {
       name: 'Enable player on discography page',
+      default: true
+    },
+    tagSearchPlayer: {
+      name: 'Enable custom player on tag search page',
       default: true
     },
     albumPageVolumeBar: {
@@ -1475,7 +1479,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
         GM.xmlHttpRequest({
           method: 'GET',
           overrideMimeType: 'text/plain; charset=x-user-defined',
-          url: url,
+          url,
           onload: function (resp) {
             // Create a data url image
             const dataurl = 'data:image/jpeg;base64,' + base64encode(resp.responseText);
@@ -1566,8 +1570,8 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     const sunset = new Date(date);
     sunset.setHours(sunsetMin / 60, Math.round(sunsetMin % 60));
     return {
-      sunrise: sunrise,
-      sunset: sunset
+      sunrise,
+      sunset
     };
   }
 
@@ -2782,8 +2786,8 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       time: new Date().getTime(),
       htmlPlaylist: player.querySelector('.playlist').innerHTML,
       startPlayback: !audio.paused,
-      startPlaybackIndex: startPlaybackIndex,
-      startPlaybackTime: startPlaybackTime,
+      startPlaybackIndex,
+      startPlaybackTime,
       shuffleActive: player.querySelector('.shufflebutton').classList.contains('active')
     }));
   }
@@ -3152,16 +3156,16 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       const inWishlist = 'tralbum_collect_info' in TralbumData && 'is_collected' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_collected;
       const isPurchased = 'tralbum_collect_info' in TralbumData && 'is_purchased' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_purchased;
       addToPlaylist(startPlaybackIndex === i++, {
-        file: file,
-        title: title,
-        trackNumber: trackNumber,
-        duration: duration,
-        artist: artist,
-        album: album,
-        albumUrl: albumUrl,
-        albumCover: albumCover,
-        inWishlist: inWishlist,
-        isPurchased: isPurchased
+        file,
+        title,
+        trackNumber,
+        duration,
+        artist,
+        album,
+        albumUrl,
+        albumCover,
+        inWishlist,
+        isPurchased
       });
       streamable++;
     }
@@ -3215,7 +3219,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     return new Promise(function getTralbumDataPromise(resolve, reject) {
       GM.xmlHttpRequest({
         method: 'GET',
-        url: url,
+        url,
         onload: function getTralbumDataOnLoad(response) {
           if (!response.responseText || response.responseText.indexOf('400 Bad Request') !== -1) {
             let msg = '';
@@ -3459,15 +3463,17 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     await GM.setValue('tralbumlibrary', JSON.stringify(library));
   }
 
-  function playAlbumFromCover(ev) {
+  function playAlbumFromCover(ev, url) {
     let parent = this;
 
-    for (let j = 0; parent.tagName !== 'A' && j < 20; j++) {
-      parent = parent.parentNode;
+    if (!url) {
+      for (let j = 0; parent.tagName !== 'A' && j < 20; j++) {
+        parent = parent.parentNode;
+      }
+
+      url = parent.href;
     }
 
-    const url = parent.href;
-    parent.querySelector('img');
     parent.classList.add('discographyplayer_currentalbum'); // Check if already in playlist
 
     if (player) {
@@ -3638,6 +3644,21 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       clone.addEventListener('click', onclick);
       imgs[i].parentNode.appendChild(clone);
     }
+  }
+
+  function makeTagSearchCoversGreat() {
+    const onclick = function onclick(ev) {
+      ev.preventDefault();
+      const a = this.parentNode.querySelector('.info a[href]');
+      playAlbumFromCover.call(this, ev, a.href);
+    };
+
+    document.querySelectorAll('.dig-deeper-item').forEach(function (div) {
+      const artDiv = div.querySelector('div.art');
+      const dumbArtCopy = artDiv.cloneNode(true);
+      artDiv.parentNode.replaceChild(dumbArtCopy, artDiv);
+      dumbArtCopy.addEventListener('click', onclick);
+    });
   }
 
   async function makeAlbumLinksGreat(parentElement) {
@@ -4047,9 +4068,9 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         }
 
         navigator.mediaSession.metadata = new MediaMetadata({
-          title: title,
-          artist: artist,
-          album: album,
+          title,
+          artist,
+          album,
           artwork: [{
             src: artwork,
             sizes: '350x350',
@@ -4723,7 +4744,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
 
         cover.onload = function onCoverLoaded() {
           navigator.mediaSession.metadata = new MediaMetadata({
-            title: title,
+            title,
             artist: TralbumData.artist,
             album: TralbumData.current.title,
             artwork: [{
@@ -5279,7 +5300,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
           count: 20,
           search_term: query
         }),
-        url: url,
+        url,
         onload: function getTagSuggestionsOnLoad(response) {
           if (!response.responseText || response.responseText.indexOf('400 Bad Request') !== -1) {
             reject(new Error('Tag suggestions error: Too many cookies'));
@@ -6104,7 +6125,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       addSpinner(a);
       let GMdownloadStatus = 0;
       GM_download({
-        url: url,
+        url,
         name: a.download || 'default.mp3',
         onerror: function downloadMp3FromLinkOnError(e) {
           console.log('GM_download onerror:', e);
@@ -6147,7 +6168,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     GM.xmlHttpRequest({
       method: 'GET',
       overrideMimeType: 'text/plain; charset=x-user-defined',
-      url: url,
+      url,
       onload: function onMp3Load(response) {
         console.log('Successfully received data via GM.xmlHttpRequest, starting download');
         a.href = 'data:audio/mpeg;base64,' + base64encode(response.responseText);
@@ -6618,7 +6639,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
 
   `);
     new Explorer(document.getElementById('expRoot'), {
-      playAlbumFromUrl: playAlbumFromUrl
+      playAlbumFromUrl
     }).render();
   }
 
@@ -7026,6 +7047,13 @@ If this is a malicious website, running the userscript may leak personal data (e
 
         if (allFeatures.albumPageLyrics.enabled) {
           window.setTimeout(addLyricsToAlbumPage, 500);
+        }
+      }
+
+      if (document.location.pathname.startsWith('/tag/')) {
+        // Tag search page
+        if (allFeatures.tagSearchPlayer.enabled) {
+          makeTagSearchCoversGreat();
         }
       }
 

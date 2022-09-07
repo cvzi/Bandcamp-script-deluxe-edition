@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.20.0](../../tree/v1.19.7) *(2022-03-28)*
+*   Custom player on tag search album covers [#208](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/208)
 ## [1.19.7](../../tree/v1.19.7) *(2022-03-28)*
 *   GM.addStyle is not allowed on openuserjs.com
 ## [1.19.6](../../tree/v1.19.6) *(2022-03-28)*
