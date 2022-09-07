@@ -1,4 +1,6 @@
 # Changelog
+## [1.21.0](../../tree/v1.21.0) *(2022-09-07)*
+*   Extend discography player playlist to full screen height on mouse over
 ## [1.20.1](../../tree/v1.20.1) *(2022-09-07)*
 *   Pause/play indication on album covers on tag search
 *   Fix [#54](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/54): Pause icon was still visible when paused
