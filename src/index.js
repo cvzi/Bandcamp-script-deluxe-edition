@@ -13,7 +13,7 @@ import speakerIconLowSrc from './img/speaker_icon_low_48x40.png'
 import speakerIconMiddleSrc from './img/speaker_icon_middle_48x40.png'
 import speakerIconHighSrc from './img/speaker_icon_high_48x40.png'
 
-/* globals GM, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics */
+/* globals GM, GM_addStyle, GM_download, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics */
 
 // TODO Mark as played automatically when played
 // TODO custom CSS
@@ -35,6 +35,10 @@ let storeTralbumDataPermanentlySwitch = true
 const allFeatures = {
   discographyplayer: {
     name: 'Enable player on discography page',
+    default: true
+  },
+  tagSearchPlayer: {
+    name: 'Enable custom player on tag search page',
     default: true
   },
   albumPageVolumeBar: {
@@ -497,7 +501,7 @@ function loadCrossSiteImage (url) {
       GM.xmlHttpRequest({
         method: 'GET',
         overrideMimeType: 'text/plain; charset=x-user-defined',
-        url: url,
+        url,
         onload: function (resp) {
           // Create a data url image
           const dataurl = 'data:image/jpeg;base64,' + base64encode(resp.responseText)
@@ -579,7 +583,7 @@ function suntimes (date, lat, lng) {
   sunrise.setHours(sunriseMin / 60, Math.round(sunriseMin % 60))
   const sunset = new Date(date)
   sunset.setHours(sunsetMin / 60, Math.round(sunsetMin % 60))
-  return { sunrise: sunrise, sunset: sunset }
+  return { sunrise, sunset }
 }
 
 function fromISO6709 (s) {
@@ -1648,8 +1652,8 @@ function musicPlayerSaveState () {
     time: (new Date().getTime()),
     htmlPlaylist: player.querySelector('.playlist').innerHTML,
     startPlayback: !audio.paused,
-    startPlaybackIndex: startPlaybackIndex,
-    startPlaybackTime: startPlaybackTime,
+    startPlaybackIndex,
+    startPlaybackTime,
     shuffleActive: player.querySelector('.shufflebutton').classList.contains('active')
   }))
 }
@@ -2007,16 +2011,16 @@ function addAlbumToPlaylist (TralbumData, startPlaybackIndex = 0) {
     const inWishlist = 'tralbum_collect_info' in TralbumData && 'is_collected' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_collected
     const isPurchased = 'tralbum_collect_info' in TralbumData && 'is_purchased' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_purchased
     addToPlaylist(startPlaybackIndex === i++, {
-      file: file,
-      title: title,
-      trackNumber: trackNumber,
-      duration: duration,
-      artist: artist,
-      album: album,
-      albumUrl: albumUrl,
-      albumCover: albumCover,
-      inWishlist: inWishlist,
-      isPurchased: isPurchased
+      file,
+      title,
+      trackNumber,
+      duration,
+      artist,
+      album,
+      albumUrl,
+      albumCover,
+      inWishlist,
+      isPurchased
     })
     streamable++
   }
@@ -2064,7 +2068,7 @@ function getTralbumData (url, cb, retry = true) {
   return new Promise(function getTralbumDataPromise (resolve, reject) {
     GM.xmlHttpRequest({
       method: 'GET',
-      url: url,
+      url,
       onload: function getTralbumDataOnLoad (response) {
         if (!response.responseText || response.responseText.indexOf('400 Bad Request') !== -1) {
           let msg = ''
@@ -2277,13 +2281,14 @@ async function storeTralbumDataPermanently (TralbumData) {
   await GM.setValue('tralbumlibrary', JSON.stringify(library))
 }
 
-function playAlbumFromCover (ev) {
+function playAlbumFromCover (ev, url) {
   let parent = this
-  for (let j = 0; parent.tagName !== 'A' && j < 20; j++) {
-    parent = parent.parentNode
+  if (!url) {
+    for (let j = 0; parent.tagName !== 'A' && j < 20; j++) {
+      parent = parent.parentNode
+    }
+    url = parent.href
   }
-  const url = parent.href
-  parent.querySelector('img')
   parent.classList.add('discographyplayer_currentalbum')
 
   // Check if already in playlist
@@ -2446,6 +2451,21 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     clone.addEventListener('click', onclick)
     imgs[i].parentNode.appendChild(clone)
   }
+}
+
+function makeTagSearchCoversGreat () {
+  const onclick = function onclick (ev) {
+    ev.preventDefault()
+    const a = this.parentNode.querySelector('.info a[href]')
+    playAlbumFromCover.call(this, ev, a.href)
+  }
+
+  document.querySelectorAll('.dig-deeper-item').forEach(function (div) {
+    const artDiv = div.querySelector('div.art')
+    const dumbArtCopy = artDiv.cloneNode(true)
+    artDiv.parentNode.replaceChild(dumbArtCopy, artDiv)
+    dumbArtCopy.addEventListener('click', onclick)
+  })
 }
 
 async function makeAlbumLinksGreat (parentElement) {
@@ -2826,9 +2846,9 @@ function makeCarouselPlayerGreatAgain () {
       }
 
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: title,
-        artist: artist,
-        album: album,
+        title,
+        artist,
+        album,
         artwork: [{
           src: artwork,
           sizes: '350x350',
@@ -3489,7 +3509,7 @@ function addVolumeBarToAlbumPage () {
       const cover = document.createElement('img')
       cover.onload = function onCoverLoaded () {
         navigator.mediaSession.metadata = new MediaMetadata({
-          title: title,
+          title,
           artist: TralbumData.artist,
           album: TralbumData.current.title,
           artwork: [{
@@ -4028,7 +4048,7 @@ function getTagSuggestions (query) {
         count: 20,
         search_term: query
       }),
-      url: url,
+      url,
       onload: function getTagSuggestionsOnLoad (response) {
         if (!response.responseText || response.responseText.indexOf('400 Bad Request') !== -1) {
           reject(new Error('Tag suggestions error: Too many cookies'))
@@ -4861,7 +4881,7 @@ function downloadMp3FromLink (ev, a, addSpinner, removeSpinner, noGM) {
     addSpinner(a)
     let GMdownloadStatus = 0
     GM_download({
-      url: url,
+      url,
       name: a.download || 'default.mp3',
       onerror: function downloadMp3FromLinkOnError (e) {
         console.log('GM_download onerror:', e)
@@ -4904,7 +4924,7 @@ function downloadMp3FromLink (ev, a, addSpinner, removeSpinner, noGM) {
   GM.xmlHttpRequest({
     method: 'GET',
     overrideMimeType: 'text/plain; charset=x-user-defined',
-    url: url,
+    url,
     onload: function onMp3Load (response) {
       console.log('Successfully received data via GM.xmlHttpRequest, starting download')
       a.href = 'data:audio/mpeg;base64,' + base64encode(response.responseText)
@@ -5372,7 +5392,7 @@ async function showExplorer () {
   `)
 
   new Explorer(document.getElementById('expRoot'), {
-    playAlbumFromUrl: playAlbumFromUrl
+    playAlbumFromUrl
   }).render()
 }
 
@@ -5751,6 +5771,13 @@ function onLoaded () {
       }
       if (allFeatures.albumPageLyrics.enabled) {
         window.setTimeout(addLyricsToAlbumPage, 500)
+      }
+    }
+
+    if (document.location.pathname.startsWith('/tag/')) {
+      // Tag search page
+      if (allFeatures.tagSearchPlayer.enabled) {
+        makeTagSearchCoversGreat()
       }
     }
 
