@@ -7,8 +7,8 @@
 // @contributionURL https://github.com/cvzi/Bandcamp-script-deluxe-edition#donate
 // @require         https://unpkg.com/json5@2.1.0/dist/index.min.js
 // @require         https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
-// @require         https://unpkg.com/react@17/umd/react.development.js
-// @require         https://unpkg.com/react-dom@17/umd/react-dom.development.js
+// @require         https://unpkg.com/react@18/umd/react.development.js
+// @require         https://unpkg.com/react-dom@18/umd/react-dom.development.js
 // @run-at          document-start
 // @include         https://bandcamp.com/*
 // @include         https://*.bandcamp.com/*
@@ -132,6 +132,14 @@ SOFTWARE.
     return _extends.apply(this, arguments);
   }
 
+  function _assertThisInitialized(self) {
+    if (self === void 0) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return self;
+  }
+
   function _setPrototypeOf(o, p) {
     _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
       o.__proto__ = p;
@@ -145,14 +153,6 @@ SOFTWARE.
     subClass.prototype = Object.create(superClass.prototype);
     subClass.prototype.constructor = subClass;
     _setPrototypeOf(subClass, superClass);
-  }
-
-  function _assertThisInitialized(self) {
-    if (self === void 0) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return self;
   }
 
   var safeIsNaN = Number.isNaN || function ponyfill(value) {
@@ -297,7 +297,7 @@ SOFTWARE.
   }; // In DEV mode, this Set helps us only log a warning once per component instance.
 
   function createListComponent(_ref) {
-    var _class, _temp;
+    var _class;
 
     var getItemOffset = _ref.getItemOffset,
         getEstimatedTotalSize = _ref.getEstimatedTotalSize,
@@ -308,7 +308,7 @@ SOFTWARE.
         initInstanceProps = _ref.initInstanceProps,
         shouldResetStyleCacheOnItemSizeChange = _ref.shouldResetStyleCacheOnItemSizeChange,
         validateProps = _ref.validateProps;
-    return _temp = _class = /*#__PURE__*/function (_PureComponent) {
+    return _class = /*#__PURE__*/function (_PureComponent) {
       _inheritsLoose(List, _PureComponent); // Always use explicit constructor for React components.
       // It produces less code after transpilation. (#26)
       // eslint-disable-next-line no-useless-constructor
@@ -318,11 +318,11 @@ SOFTWARE.
         var _this;
 
         _this = _PureComponent.call(this, props) || this;
-        _this._instanceProps = initInstanceProps(_this.props, _assertThisInitialized(_assertThisInitialized(_this)));
+        _this._instanceProps = initInstanceProps(_this.props, _assertThisInitialized(_this));
         _this._outerRef = void 0;
         _this._resetIsScrollingTimeoutId = null;
         _this.state = {
-          instance: _assertThisInitialized(_assertThisInitialized(_this)),
+          instance: _assertThisInitialized(_this),
           isScrolling: false,
           scrollDirection: 'forward',
           scrollOffset: typeof _this.props.initialScrollOffset === 'number' ? _this.props.initialScrollOffset : 0,
@@ -681,11 +681,11 @@ SOFTWARE.
 
           this._callOnScroll(_scrollDirection, _scrollOffset, _scrollUpdateWasRequested);
         }
-      }; // Lazily create and cache item styles while scrolling,
+      } // Lazily create and cache item styles while scrolling,
       // So that pure component sCU will prevent re-renders.
       // We maintain this cache, and pass a style prop rather than index,
       // So that List can clear cached styles and force item re-render if necessary.
-
+      ;
 
       _proto._getRangeToRender = function _getRangeToRender() {
         var _this$props5 = this.props,
@@ -716,7 +716,7 @@ SOFTWARE.
       layout: 'vertical',
       overscanCount: 2,
       useIsScrolling: false
-    }, _temp;
+    }, _class;
   } // NOTE: I considered further wrapping individual items with a pure ListItem component.
   // This would avoid ever calling the render function for the same index more than once,
   // But it would also add the overhead of a lot of components/fibers.
@@ -1391,39 +1391,38 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
   }
 
   function timeSince(date) {
-    // From https://stackoverflow.com/a/3177838/10367381
-    const seconds = Math.floor((new Date() - date) / 1000);
-    let interval = Math.floor(seconds / 31536000);
+    // https://stackoverflow.com/a/72973090/
+    const MINUTE = 60;
+    const HOUR = MINUTE * 60;
+    const DAY = HOUR * 24;
+    const WEEK = DAY * 7;
+    const MONTH = DAY * 30;
+    const YEAR = DAY * 365;
+    const secondsAgo = Math.round((Date.now() - Number(date)) / 1000);
 
-    if (interval > 1) {
-      return interval + ' years';
+    if (secondsAgo < MINUTE) {
+      return secondsAgo + ` second${secondsAgo !== 1 ? 's' : ''} ago`;
     }
 
-    interval = Math.floor(seconds / 2592000);
+    let divisor;
+    let unit = '';
 
-    if (interval > 1) {
-      return interval + ' months';
+    if (secondsAgo < HOUR) {
+      [divisor, unit] = [MINUTE, 'minute'];
+    } else if (secondsAgo < DAY) {
+      [divisor, unit] = [HOUR, 'hour'];
+    } else if (secondsAgo < WEEK) {
+      [divisor, unit] = [DAY, 'day'];
+    } else if (secondsAgo < MONTH) {
+      [divisor, unit] = [WEEK, 'week'];
+    } else if (secondsAgo < YEAR) {
+      [divisor, unit] = [MONTH, 'month'];
+    } else {
+      [divisor, unit] = [YEAR, 'year'];
     }
 
-    interval = Math.floor(seconds / 86400);
-
-    if (interval > 1) {
-      return interval + ' days';
-    }
-
-    interval = Math.floor(seconds / 3600);
-
-    if (interval > 1) {
-      return interval + ' hours';
-    }
-
-    interval = Math.floor(seconds / 60);
-
-    if (interval > 1) {
-      return interval + ' minutes';
-    }
-
-    return Math.floor(seconds) + ' seconds';
+    const count = Math.floor(secondsAgo / divisor);
+    return `${count} ${unit}${count > 1 ? 's' : ''} ago`;
   }
 
   function nowInTimeRange(range) {
