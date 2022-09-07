@@ -218,6 +218,7 @@
   margin:0px;
   padding: 0px 5px 0px 5px;
   scrollbar-color: rgba(50,50,50,0.4) white;
+  background:white;
 }
 #discographyplayer_contextmenu {
   position:absolute;

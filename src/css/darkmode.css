@@ -502,6 +502,9 @@ input[type=text],input[type=password],textarea {
   background-color:#26423b !important;
   color:#869593 !important;
 }
+#discographyplayer .playlist {
+  background: #26423b !important;
+}
 #discographyplayer .playlist .playing {
   background: #619aa9db !important;
 }

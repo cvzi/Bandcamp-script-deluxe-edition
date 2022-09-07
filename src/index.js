@@ -81,6 +81,10 @@ const allFeatures = {
     name: 'Show discography player as a sidebar on the right',
     default: false
   },
+  discographyplayerFullHeightPlaylist: {
+    name: 'Extend discography player playlist to full screen height on mouse over',
+    default: true
+  },
   discographyplayerPersist: {
     name: 'Recover discography player on next page',
     default: true
@@ -1712,6 +1716,48 @@ function musicPlayerToggleMinimize (ev, hide) {
   }
 }
 
+function musicPlayerPlaylistFullHeight () {
+  // Extend the playlist to the full height of the window
+  if ('mode' in this.dataset && this.dataset.mode === 'full_height') {
+    // Already in full height mode
+    return
+  }
+  // Store width so it does not change on multiple mouse-overs
+  this.dataset.mode = 'full_height'
+  let width = this.clientWidth
+  if ('width' in this.dataset) {
+    width = this.dataset.width
+  } else {
+    this.dataset.width = width
+  }
+  // Set CSS to full height
+  this.style.position = 'fixed'
+  this.style.maxHeight = '100%'
+  this.style.height = '100%'
+  this.style.maxWidth = `${width}px`
+  this.style.width = `${width}px`
+  this.style.top = '0px'
+}
+
+function musicPlayerPlaylistNormalHeight () {
+  // Revert the playlist to the normal height of the discography player
+  if ('mode' in this.dataset && this.dataset.mode !== 'full_height') {
+    // Already in normal height mode
+    return
+  }
+  if (document.getElementById('discographyplayer_contextmenu')) {
+    // Context menu is open, don't change the height
+    return
+  }
+  this.dataset.mode = 'normal'
+
+  // Revert CSS
+  this.style.position = ''
+  this.style.maxHeight = ''
+  this.style.maxWidth = ''
+  this.style.top = ''
+}
+
 function musicPlayerClose () {
   if (player) {
     player.style.display = 'none'
@@ -1921,6 +1967,12 @@ function musicPlayerCreate () {
     const removeSpinner = (el) => el.classList.remove('downloading')
     downloadMp3FromLink(ev, this, addSpinner, removeSpinner)
   })
+
+  if (allFeatures.discographyplayerFullHeightPlaylist.enabled && !allFeatures.discographyplayerSidebar.enabled) {
+    player.querySelector('.playlist').addEventListener('mouseover', musicPlayerPlaylistFullHeight)
+    player.querySelector('.playlist').addEventListener('mouseout', musicPlayerPlaylistNormalHeight)
+  }
+
   if (NOEMOJI) {
     player.querySelector('.downloadlink').innerHTML = '↓'
   }
