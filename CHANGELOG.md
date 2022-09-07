@@ -1,6 +1,8 @@
 # Changelog
-
-## [1.20.0](../../tree/v1.19.7) *(2022-03-28)*
+## [1.20.1](../../tree/v1.20.1) *(2022-09-07)*
+*   Pause/play indication on album covers on tag search
+*   Fix [#54](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/54): Pause icon was still visible when paused
+## [1.20.0](../../tree/v1.20.0) *(2022-09-07)*
 *   Custom player on tag search album covers [#208](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/208)
 ## [1.19.7](../../tree/v1.19.7) *(2022-03-28)*
 *   GM.addStyle is not allowed on openuserjs.com
