@@ -421,29 +421,34 @@ function decodeHTMLentities (input) {
 }
 
 function timeSince (date) {
-  // From https://stackoverflow.com/a/3177838/10367381
-  const seconds = Math.floor((new Date() - date) / 1000)
-  let interval = Math.floor(seconds / 31536000)
-  if (interval > 1) {
-    return interval + ' years'
+  // https://stackoverflow.com/a/72973090/
+  const MINUTE = 60
+  const HOUR = MINUTE * 60
+  const DAY = HOUR * 24
+  const WEEK = DAY * 7
+  const MONTH = DAY * 30
+  const YEAR = DAY * 365
+  const secondsAgo = Math.round((Date.now() - Number(date)) / 1000)
+  if (secondsAgo < MINUTE) {
+    return secondsAgo + ` second${secondsAgo !== 1 ? 's' : ''} ago`
   }
-  interval = Math.floor(seconds / 2592000)
-  if (interval > 1) {
-    return interval + ' months'
+  let divisor
+  let unit = ''
+  if (secondsAgo < HOUR) {
+    [divisor, unit] = [MINUTE, 'minute']
+  } else if (secondsAgo < DAY) {
+    [divisor, unit] = [HOUR, 'hour']
+  } else if (secondsAgo < WEEK) {
+    [divisor, unit] = [DAY, 'day']
+  } else if (secondsAgo < MONTH) {
+    [divisor, unit] = [WEEK, 'week']
+  } else if (secondsAgo < YEAR) {
+    [divisor, unit] = [MONTH, 'month']
+  } else {
+    [divisor, unit] = [YEAR, 'year']
   }
-  interval = Math.floor(seconds / 86400)
-  if (interval > 1) {
-    return interval + ' days'
-  }
-  interval = Math.floor(seconds / 3600)
-  if (interval > 1) {
-    return interval + ' hours'
-  }
-  interval = Math.floor(seconds / 60)
-  if (interval > 1) {
-    return interval + ' minutes'
-  }
-  return Math.floor(seconds) + ' seconds'
+  const count = Math.floor(secondsAgo / divisor)
+  return `${count} ${unit}${count > 1 ? 's' : ''} ago`
 }
 
 function nowInTimeRange (range) {
