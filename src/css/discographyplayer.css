@@ -426,7 +426,7 @@
   display:none
 }
 
-.music-grid-item .albumIsCurrentlyPlaying {
+.music-grid-item .albumIsCurrentlyPlaying, .dig-deeper-item .albumIsCurrentlyPlaying {
   border:none
 }
 
@@ -434,7 +434,7 @@
   display:none;
 }
 
-.music-grid-item .albumIsCurrentlyPlayingIndicator {
+.music-grid-item .albumIsCurrentlyPlayingIndicator, .dig-deeper-item .albumIsCurrentlyPlayingIndicator {
     position: absolute;
     display:block;
     width: 74px;

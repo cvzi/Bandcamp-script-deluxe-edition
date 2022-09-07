@@ -966,7 +966,7 @@ function musicPlayerPlaySong (next, startTime) {
 
   document.querySelectorAll('img.albumIsCurrentlyPlaying').forEach(img => img.classList.remove('albumIsCurrentlyPlaying'))
   document.querySelectorAll('.albumIsCurrentlyPlayingIndicator').forEach(div => div.remove())
-  document.querySelectorAll('a[href*="' + coverLinkPattern + '"] img').forEach(function (img) {
+  document.querySelectorAll('a[href*="' + coverLinkPattern + '"] img,.info>a[href*="' + coverLinkPattern + '"]').forEach(function (img) {
     let node = img
     while (node) {
       if (node.id === 'discographyplayer') {
@@ -977,12 +977,17 @@ function musicPlayerPlaySong (next, startTime) {
       }
       node = node.parentNode
     }
+    if (img.tagName === 'A') {
+      img = img.parentNode.parentNode.querySelector('.art img')
+    }
+
     img.classList.add('albumIsCurrentlyPlaying')
     if (!img.parentNode.querySelector('.albumIsCurrentlyPlayingIndicator')) {
       const indicator = img.parentNode.appendChild(document.createElement('div'))
       indicator.classList.add('albumIsCurrentlyPlayingIndicator')
       indicator.addEventListener('click', function (ev) {
         ev.preventDefault()
+        ev.stopPropagation()
         if (!musicPlayerPlay()) {
           // Album is now paused -> Remove indicators
           document.querySelectorAll('img.albumIsCurrentlyPlaying').forEach(img => img.classList.remove('albumIsCurrentlyPlaying'))
@@ -1037,6 +1042,8 @@ function musicPlayerPlay () {
     return true
   } else {
     audio.pause()
+    document.querySelectorAll('img.albumIsCurrentlyPlaying').forEach(img => img.classList.remove('albumIsCurrentlyPlaying'))
+    document.querySelectorAll('.albumIsCurrentlyPlayingIndicator').forEach(div => div.remove())
     return false
   }
 }
