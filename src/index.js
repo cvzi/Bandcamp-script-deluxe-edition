@@ -13,7 +13,7 @@ import speakerIconLowSrc from './img/speaker_icon_low_48x40.png'
 import speakerIconMiddleSrc from './img/speaker_icon_middle_48x40.png'
 import speakerIconHighSrc from './img/speaker_icon_high_48x40.png'
 
-/* globals GM, GM_addStyle, GM_download, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics */
+/* globals GM, GM_addStyle, GM_download, GM_setClipboard, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics */
 
 // TODO Mark as played automatically when played
 // TODO custom CSS
@@ -107,6 +107,10 @@ const allFeatures = {
   },
   darkMode: {
     name: (CHROME ? '🅳🅐🆁🅺🅼🅞🅳🅴' : '🅳🅰🆁🅺🅼🅾🅳🅴') + ' - enable <a href="https://userstyles.org/styles/171538/bandcamp-in-dark">dark theme by Simonus</a>',
+    default: false
+  },
+  showAlbumID: {
+    name: 'Show album ID on album page',
     default: false
   }
 }
@@ -5545,6 +5549,30 @@ function humour () {
   }
 }
 
+function showAlbumID () {
+  if (unsafeWindow.TralbumData && 'id' in unsafeWindow.TralbumData && document.querySelector('#name-section h3')) {
+    document.querySelectorAll('#name-section h3').forEach(function (h3) {
+      const id = unsafeWindow.TralbumData.id
+      const h4 = h3.parentNode.appendChild(document.createElement('h4'))
+      h4.style.fontSize = '13px'
+      h4.style.fontWeight = 'normal'
+      h4.style.opacity = 0.6
+      h4.style.marginTop = '4px'
+      h4.innerHTML = `Album ID: <span style="user-select: all;">${id}</span>`
+      h4.addEventListener('click', function () {
+        GM_setClipboard(id.toString())
+        const span = h4.appendChild(document.createElement('span'))
+        span.innerHTML = ' copied!'
+        span.style.marginLeft = '5px'
+        span.style.transition = 'opacity 2s'
+        span.style.opacity = 1
+        window.setInterval(() => (span.style.opacity = 0), 0)
+        window.setInterval(() => span.remove(), 1000)
+      })
+    })
+  }
+}
+
 function darkMode () {
   // CSS taken from https://userstyles.org/styles/171538/bandcamp-in-dark by Simonus (Version from January 24, 2020)
   // https://userstyles.org/api/v1/styles/css/171538
@@ -5900,6 +5928,10 @@ function onLoaded () {
 
     if (allFeatures.backupReminder.enabled && !IS_PLAYER_FRAME) {
       checkBackupStatus()
+    }
+
+    if (allFeatures.showAlbumID.enabled) {
+      showAlbumID()
     }
 
     if (CAMPEXPLORER) {
