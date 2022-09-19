@@ -29,6 +29,7 @@
         "GM.registerMenuCommand",
         "GM_registerMenuCommand",
         "GM_addStyle",
+        "GM_setClipboard",
         "unsafeWindow"
     ],
     "connect" : [

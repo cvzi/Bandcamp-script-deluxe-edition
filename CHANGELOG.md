@@ -1,4 +1,6 @@
 # Changelog
+## [1.21.1](../../tree/v1.21.1) *(2022-09-19)*
+*   Option to show the Album ID on the album page below the album name
 ## [1.21.0](../../tree/v1.21.0) *(2022-09-07)*
 *   Extend discography player playlist to full screen height on mouse over
 ## [1.20.1](../../tree/v1.20.1) *(2022-09-07)*
