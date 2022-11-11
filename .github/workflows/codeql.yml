@@ -3,10 +3,12 @@ name: "CodeQL"
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - 'dist/'
   pull_request:
     branches: [ "master" ]
-  schedule:
-    - cron: "23 3 * * 2"
+    paths-ignore:
+      - 'dist/'
 
 jobs:
   analyze:
@@ -31,6 +33,8 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
+          paths-ignore:
+            - 'dist/'
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v2
