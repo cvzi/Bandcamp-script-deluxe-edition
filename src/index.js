@@ -13,7 +13,7 @@ import speakerIconLowSrc from './img/speaker_icon_low_48x40.png'
 import speakerIconMiddleSrc from './img/speaker_icon_middle_48x40.png'
 import speakerIconHighSrc from './img/speaker_icon_high_48x40.png'
 
-/* globals GM, GM_addStyle, GM_download, GM_setClipboard, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics */
+/* globals GM, GM_addStyle, GM_download, GM_setClipboard, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics, Blob */
 
 // TODO Mark as played automatically when played
 // TODO custom CSS
@@ -312,6 +312,17 @@ function humanDuration (duration) {
   }
   seconds = (seconds < 10 ? '0' : '') + seconds
   return `${hours}${minutes}:${seconds}`
+}
+
+function humanBytes (bytes, precision) {
+  bytes = parseInt(bytes, 10)
+  if (bytes === 0) {
+    return '0 Byte'
+  }
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toPrecision(2)) + ' ' + sizes[i]
 }
 
 function addLogVolume (mediaElement) {
@@ -2334,7 +2345,19 @@ async function storeTralbumDataPermanently (TralbumData) {
   if (!storeTralbumDataPermanentlySwitch) {
     return
   }
-  const library = JSON.parse(await GM.getValue('tralbumlibrary', '{}'))
+  let library
+  try {
+    library = JSON.parse(await GM.getValue('tralbumlibrary', '{}'))
+  } catch (e) {
+    if (e instanceof DOMException && e.code === DOMException.INVALID_CHARACTER_ERR) {
+      console.error("Could not read GM.getValue('tralbumlibrary')", e)
+      await GM.setValue('tralbumlibrary', '{}')
+      library = {}
+    } else {
+      throw e
+    }
+  }
+
   const key = albumKey(TralbumData.url)
   if (key in library) {
     library[key] = Object.assign(library[key], TralbumData)
@@ -4425,6 +4448,14 @@ function mainMenu (startBackup) {
 
     main.appendChild(document.createElement('br'))
     main.appendChild(document.createElement('br'))
+
+    const developerButton = main.appendChild(document.createElement('button'))
+    developerButton.appendChild(document.createTextNode('Developer options'))
+    developerButton.style.color = 'black'
+    developerButton.addEventListener('click', function onDeveloperButtonClick () {
+      document.querySelector('.deluxemenu').remove()
+      developerMenu()
+    })
   })
   window.setTimeout(function moveMenuIntoView () {
     let moveLeft = 0
@@ -4444,6 +4475,177 @@ function mainMenu (startBackup) {
       main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth) - moveLeft) + 'px'
     }, 10)
   }, 10)
+}
+
+function developerMenu () {
+  // Blur background
+  if (document.getElementById('centerWrapper')) { document.getElementById('centerWrapper').style.filter = 'blur(4px)' }
+
+  const main = document.body.appendChild(document.createElement('div'))
+  main.className = 'deluxedeveloper deluxemenu'
+
+  window.setTimeout(function moveMenuIntoView () {
+    main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
+    main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
+    main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
+  }, 0)
+
+  const h2 = main.appendChild(document.createElement('h2'))
+  h2.appendChild(document.createTextNode('Developer options'))
+
+  const table = main.appendChild(document.createElement('table'))
+
+  // Bottom buttons
+  main.appendChild(document.createElement('br'))
+  main.appendChild(document.createElement('br'))
+  const buttons = main.appendChild(document.createElement('div'))
+
+  const closeButton = buttons.appendChild(document.createElement('button'))
+  closeButton.appendChild(document.createTextNode('Close'))
+  closeButton.style.color = 'black'
+  closeButton.addEventListener('click', function onCloseButtonClick () {
+    document.querySelector('.deluxedeveloper').remove()
+    // Un-blur background
+    if (document.getElementById('centerWrapper')) {
+      document.getElementById('centerWrapper').style.filter = ''
+    }
+  })
+
+  let tr
+  let td
+  let input
+
+  GM.getValue('myalbums', '{}').then(function myalbumsLoaded (myalbumsStr) {
+    const myalbums = JSON.parse(myalbumsStr)
+    const listenedAlbums = []
+    for (const key in myalbums) {
+      if (myalbums[key].listened) {
+        listenedAlbums.push(myalbums[key])
+      }
+    }
+
+    tr = table.appendChild(document.createElement('tr'))
+    td = tr.appendChild(document.createElement('td'))
+    td.appendChild(document.createTextNode('"myalbums" listened records'))
+
+    td = tr.appendChild(document.createElement('td'))
+    input = td.appendChild(document.createElement('input'))
+    input.type = 'text'
+    input.value = listenedAlbums.length.toString()
+    input.readonly = true
+    input.style.width = '200px'
+
+    tr = table.appendChild(document.createElement('tr'))
+    td = tr.appendChild(document.createElement('td'))
+    td.appendChild(document.createTextNode('"myalbums" string length'))
+
+    td = tr.appendChild(document.createElement('td'))
+    input = td.appendChild(document.createElement('input'))
+    input.type = 'text'
+    input.value = myalbumsStr.length.toString()
+    input.readonly = true
+    input.style.width = '200px'
+
+    tr = table.appendChild(document.createElement('tr'))
+    td = tr.appendChild(document.createElement('td'))
+    td.appendChild(document.createTextNode('"myalbums" size'))
+
+    td = tr.appendChild(document.createElement('td'))
+    input = td.appendChild(document.createElement('input'))
+    input.type = 'text'
+    input.value = humanBytes(new Blob([myalbumsStr]).size)
+    input.readonly = true
+    input.style.width = '200px'
+  })
+
+  GM.getValue('tralbumdata', '{}').then(function tralbumdataLoaded (tralbumdataStr) {
+    const tralbumdata = JSON.parse(tralbumdataStr)
+
+    tr = table.appendChild(document.createElement('tr'))
+    td = tr.appendChild(document.createElement('td'))
+    td.appendChild(document.createTextNode('"tralbumdataStr" entries'))
+
+    td = tr.appendChild(document.createElement('td'))
+    input = td.appendChild(document.createElement('input'))
+    input.type = 'text'
+    input.value = Object.keys(tralbumdata).length.toString()
+    input.readonly = true
+    input.style.width = '200px'
+
+    tr = table.appendChild(document.createElement('tr'))
+    td = tr.appendChild(document.createElement('td'))
+    td.appendChild(document.createTextNode('"tralbumdataStr" string length'))
+
+    td = tr.appendChild(document.createElement('td'))
+    input = td.appendChild(document.createElement('input'))
+    input.type = 'text'
+    input.value = tralbumdataStr.length.toString()
+    input.readonly = true
+    input.style.width = '200px'
+
+    tr = table.appendChild(document.createElement('tr'))
+    td = tr.appendChild(document.createElement('td'))
+    td.appendChild(document.createTextNode('"tralbumdataStr" size'))
+
+    td = tr.appendChild(document.createElement('td'))
+    input = td.appendChild(document.createElement('input'))
+    input.type = 'text'
+    input.value = humanBytes(new Blob([tralbumdataStr]).size)
+    input.readonly = true
+    input.style.width = '200px'
+  })
+
+  try {
+    GM.getValue('tralbumlibrary', '{}').then(function tralbumlibraryLoaded (tralbumlibraryStr) {
+      const tralbumlibrary = JSON.parse(tralbumlibraryStr)
+
+      tr = table.appendChild(document.createElement('tr'))
+      td = tr.appendChild(document.createElement('td'))
+      td.appendChild(document.createTextNode('"tralbumlibraryStr" entries'))
+
+      td = tr.appendChild(document.createElement('td'))
+      input = td.appendChild(document.createElement('input'))
+      input.type = 'text'
+      input.value = Object.keys(tralbumlibrary).length.toString()
+      input.readonly = true
+      input.style.width = '200px'
+      console.log(3)
+      tr = table.appendChild(document.createElement('tr'))
+      td = tr.appendChild(document.createElement('td'))
+      td.appendChild(document.createTextNode('"tralbumlibraryStr" string length'))
+
+      td = tr.appendChild(document.createElement('td'))
+      input = td.appendChild(document.createElement('input'))
+      input.type = 'text'
+      input.value = tralbumlibraryStr.length.toString()
+      input.readonly = true
+      input.style.width = '200px'
+
+      tr = table.appendChild(document.createElement('tr'))
+      td = tr.appendChild(document.createElement('td'))
+      td.appendChild(document.createTextNode('"tralbumlibraryStr" size'))
+
+      td = tr.appendChild(document.createElement('td'))
+      input = td.appendChild(document.createElement('input'))
+      input.type = 'text'
+      input.value = humanBytes(new Blob([tralbumlibraryStr]).size)
+      input.readonly = true
+      input.style.width = '200px'
+    })
+  } catch (e) {
+    tr = table.appendChild(document.createElement('tr'))
+    td = tr.appendChild(document.createElement('td'))
+    td.appendChild(document.createTextNode('"tralbumlibraryStr"'))
+
+    td = tr.appendChild(document.createElement('td'))
+    td.appendChild(document.createTextNode('Error: ' + e.toString()))
+  }
+
+  window.setTimeout(function moveMenuIntoView () {
+    main.style.maxHeight = (document.documentElement.clientHeight - 40) + 'px'
+    main.style.maxWidth = (document.documentElement.clientWidth - 40) + 'px'
+    main.style.left = Math.max(20, 0.5 * (document.body.clientWidth - main.clientWidth)) + 'px'
+  }, 500)
 }
 
 function exportMenu (showClearButton) {
