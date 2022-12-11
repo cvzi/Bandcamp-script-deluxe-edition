@@ -1,4 +1,7 @@
 # Changelog
+## [1.22.0](../../tree/v1.22.0) *(2022-12-11)*
+*   Show size of storage in Developer options
+*   Fix error `InvalidCharacterError: String contains an invalid character`
 ## [1.21.1](../../tree/v1.21.1) *(2022-09-19)*
 *   Option to show the Album ID on the album page below the album name
 ## [1.21.0](../../tree/v1.21.0) *(2022-09-07)*
