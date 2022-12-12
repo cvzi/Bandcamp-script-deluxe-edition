@@ -14,3 +14,4 @@ jobs:
         npm run build
         npm run build:release
         npm run build:singledomain
+        npm run testserve

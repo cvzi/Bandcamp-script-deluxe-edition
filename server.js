@@ -1,4 +1,4 @@
-import { red, green, cyan, bold } from 'colorette'
+import { red, green, cyan, bold, italic } from 'colorette'
 const loadConfigFile = require('rollup/dist/loadConfigFile')
 const path = require('path')
 const fs = require('fs')
@@ -6,9 +6,17 @@ const http = require('http')
 const handler = require('serve-handler')
 const rollup = require('rollup')
 const metablock = require('rollup-plugin-userscript-metablock')
+import { strict as assert } from 'assert'
+import util from "util"
+import { runInThisContext } from 'vm'
 
 const pkg = require('./package.json')
 const meta = require('./meta.json')
+
+
+
+const httpGetStatus = util.promisify((url, cb) => http.get(url, (res) => cb(null, res.statusCode)))
+
 
 console.log('👀 watch & serve 🤲\n###################\n')
 
@@ -62,15 +70,36 @@ const outContent = typeof result === 'string' ? result : result.code
 fs.writeFileSync(devScriptOutFile, outContent)
 console.log(green(`created ${bold(devScriptOutFile)}. Please install in Tampermonkey: `) + hyperlink(`http://localhost:${port}/${destDir}${devScriptInFile}`))
 
+let outFiles = []
 loadConfigFile(path.resolve(__dirname, 'rollup.config.js')).then(
   async ({ options, warnings }) => {
     // Start rollup watch
     const watcher = rollup.watch(options)
 
+    // Run tests
+    if (process.argv.indexOf('--test') !== -1) {
+      console.log(italic('\n###### Test Mode ######\n'))
+      setTimeout(async function () {
+        console.log(italic('Running tests...'))
+        assert.equal(await httpGetStatus(`http://localhost:${port}/${destDir}${devScriptInFile}`), 200, `http://localhost:${port}/${destDir}${devScriptInFile}`)
+        if (outFiles) {
+          for(let i = 0; i < outFiles.length; i++) {
+            const urlPath = outFiles[i].replace('\\', '/')
+            console.log(`Checking http://localhost:${port}/${urlPath}`)
+            assert.equal(await httpGetStatus(`http://localhost:${port}/${urlPath}`), 200, `http://localhost:${port}/${urlPath}`)
+          }
+        }
+        console.log(italic('Stopping server and watcher after 10 seconds and exiting.'))
+        watcher.close()
+        server.close()
+      }, 10000)
+    }
+
     watcher.on('event', event => {
       if (event.code === 'BUNDLE_START') {
         console.log(cyan(`bundles ${bold(event.input)} → ${bold(event.output.map(fullPath => path.relative(path.resolve(__dirname), fullPath)).join(', '))}...`))
       } else if (event.code === 'BUNDLE_END') {
+        outFiles = event.output.map(fullPath => path.relative(path.resolve(__dirname), fullPath))
         console.log(green(`created ${bold(event.output.map(fullPath => path.relative(path.resolve(__dirname), fullPath)).join(', '))} in ${event.duration}ms`))
       } else if (event.code === 'ERROR') {
         console.log(bold(red('⚠ Error')))

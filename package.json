@@ -25,6 +25,7 @@
         "watch": "npx rollup --config rollup.config.js --watch",
         "serve": "node -r esm server.js",
         "start": "node -r esm server.js",
+        "testserve": "node -r esm server.js --test",
         "build:release": "npx rollup --config rollupRelease.config.js",
         "build:singledomain": "npx rollup --config rollupSingleDomain.config.js",
         "version": "npm run build:release && git add dist/release-$npm_package_version.user.js"
