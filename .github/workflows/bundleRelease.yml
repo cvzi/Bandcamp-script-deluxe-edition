@@ -14,12 +14,15 @@ jobs:
   singleDomain:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: git config
       run: |
         git config --global user.name github-actions
         git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
         git pull
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '19'
     - name: create release version in dist/
       run: |
         npm install
