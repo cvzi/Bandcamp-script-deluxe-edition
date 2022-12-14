@@ -21,8 +21,8 @@
     "license": "MIT",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "npx rollup --config rollup.config.js",
-        "watch": "npx rollup --config rollup.config.js --watch",
+        "build": "npx rollup --config rollup.config.mjs",
+        "watch": "npx rollup --config rollup.config.mjs --watch",
         "serve": "node server.js",
         "start": "node server.js",
         "testserve": "node server.js --test",
