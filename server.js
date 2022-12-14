@@ -1,22 +1,18 @@
-import { red, green, cyan, bold, italic } from 'colorette'
-const loadConfigFile = require('rollup/dist/loadConfigFile')
+const { red, green, cyan, bold, italic } = require('colorette')
+const { loadConfigFile } = require('rollup/dist/loadConfigFile.js')
 const path = require('path')
 const fs = require('fs')
 const http = require('http')
 const handler = require('serve-handler')
 const rollup = require('rollup')
 const metablock = require('rollup-plugin-userscript-metablock')
-import { strict as assert } from 'assert'
-import util from "util"
-import { runInThisContext } from 'vm'
+const assert = require('assert').strict
+const util = require('util')
 
 const pkg = require('./package.json')
 const meta = require('./meta.json')
 
-
-
 const httpGetStatus = util.promisify((url, cb) => http.get(url, (res) => cb(null, res.statusCode)))
-
 
 console.log('👀 watch & serve 🤲\n###################\n')
 
@@ -71,7 +67,7 @@ fs.writeFileSync(devScriptOutFile, outContent)
 console.log(green(`created ${bold(devScriptOutFile)}. Please install in Tampermonkey: `) + hyperlink(`http://localhost:${port}/${destDir}${devScriptInFile}`))
 
 let outFiles = []
-loadConfigFile(path.resolve(__dirname, 'rollup.config.js')).then(
+loadConfigFile(path.resolve(__dirname, 'rollup.config.mjs')).then(
   async ({ options, warnings }) => {
     // Start rollup watch
     const watcher = rollup.watch(options)
@@ -83,7 +79,7 @@ loadConfigFile(path.resolve(__dirname, 'rollup.config.js')).then(
         console.log(italic('Running tests...'))
         assert.equal(await httpGetStatus(`http://localhost:${port}/${destDir}${devScriptInFile}`), 200, `http://localhost:${port}/${destDir}${devScriptInFile}`)
         if (outFiles) {
-          for(let i = 0; i < outFiles.length; i++) {
+          for (let i = 0; i < outFiles.length; i++) {
             const urlPath = outFiles[i].replace('\\', '/')
             console.log(`Checking http://localhost:${port}/${urlPath}`)
             assert.equal(await httpGetStatus(`http://localhost:${port}/${urlPath}`), 200, `http://localhost:${port}/${urlPath}`)
