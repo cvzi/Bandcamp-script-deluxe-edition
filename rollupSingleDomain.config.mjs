@@ -1,5 +1,5 @@
 import metablock from 'rollup-plugin-userscript-metablock'
-import config from './rollupRelease.config.js'
+import config from './rollupRelease.config.mjs'
 import pkg from './package.json' assert { type: 'json' }
 import meta from './meta.json' assert { type: 'json' }
 
