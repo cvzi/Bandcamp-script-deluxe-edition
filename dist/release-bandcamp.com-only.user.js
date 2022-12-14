@@ -68,8 +68,7 @@ SOFTWARE.
 (function (React, ReactDOM) {
   'use strict';
 
-  function _interopNamespace(e) {
-    if (e && e.__esModule) return e;
+  function _interopNamespaceDefault(e) {
     var n = Object.create(null);
     if (e) {
       Object.keys(e).forEach(function (k) {
@@ -82,12 +81,12 @@ SOFTWARE.
         }
       });
     }
-    n["default"] = e;
+    n.default = e;
     return Object.freeze(n);
   }
 
-  var React__namespace = /*#__PURE__*/_interopNamespace(React);
-  var ReactDOM__namespace = /*#__PURE__*/_interopNamespace(ReactDOM);
+  var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
+  var ReactDOM__namespace = /*#__PURE__*/_interopNamespaceDefault(ReactDOM);
 
   /*
   Compatibility adaptions for Violentmonkey https://github.com/violentmonkey/violentmonkey
@@ -102,6 +101,7 @@ SOFTWARE.
   }
 
   function _defineProperty(obj, key, value) {
+    key = _toPropertyKey(key);
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -114,9 +114,23 @@ SOFTWARE.
     }
     return obj;
   }
+  function _toPrimitive(input, hint) {
+    if (typeof input !== "object" || input === null) return input;
+    var prim = input[Symbol.toPrimitive];
+    if (prim !== undefined) {
+      var res = prim.call(input, hint || "default");
+      if (typeof res !== "object") return res;
+      throw new TypeError("@@toPrimitive must return a primitive value.");
+    }
+    return (hint === "string" ? String : Number)(input);
+  }
+  function _toPropertyKey(arg) {
+    var key = _toPrimitive(arg, "string");
+    return typeof key === "symbol" ? key : String(key);
+  }
 
   function _extends() {
-    _extends = Object.assign || function (target) {
+    _extends = Object.assign ? Object.assign.bind() : function (target) {
       for (var i = 1; i < arguments.length; i++) {
         var source = arguments[i];
         for (var key in source) {
@@ -138,7 +152,7 @@ SOFTWARE.
   }
 
   function _setPrototypeOf(o, p) {
-    _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) {
       o.__proto__ = p;
       return o;
     };
@@ -2968,8 +2982,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
             if (response.responseText.indexOf('var TralbumData =') !== -1) {
               TralbumData = JSON5.parse(response.responseText.split('var TralbumData =')[1].split('\n};\n')[0].replace(/"\s+\+\s+"/, '') + '\n}');
             } else if (response.responseText.indexOf('data-tralbum="') !== -1) {
-              let str = response.responseText.split('data-tralbum="')[1].split('"')[0];
-              str = decodeHTMLentities(response.responseText.split('data-tralbum="')[1].split('"')[0]);
+              let str = decodeHTMLentities(response.responseText.split('data-tralbum="')[1].split('"')[0]);
               TralbumData = JSON.parse(str);
             }
           } catch (e) {
