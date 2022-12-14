@@ -1,5 +1,5 @@
 {
-    "name" : "Bandcamp script (Deluxe Edition)",
+    "name": "Bandcamp script (Deluxe Edition)",
     "namespace": "https://openuserjs.org/users/cuzi",
     "copyright": "2020, cuzi (https://openuserjs.org/users/cuzi)",
     "supportURL": "https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues",
@@ -16,7 +16,7 @@
         "https://*",
         "https://bandcamp.com/*"
     ],
-    "exclude" : [
+    "exclude": [
         "https://bandcamp.com/videoframe*",
         "https://bandcamp.com/EmbeddedPlayer*"
     ],
@@ -32,7 +32,7 @@
         "GM_setClipboard",
         "unsafeWindow"
     ],
-    "connect" : [
+    "connect": [
         "bandcamp.com",
         "*.bandcamp.com",
         "bcbits.com",

@@ -7,7 +7,7 @@
   new Promise(function loadBundleFromServer (resolve, reject) {
     const req = GM.xmlHttpRequest({
       method: 'GET',
-      url: url,
+      url,
       onload: function (r) {
         if (r.status !== 200) {
           return reject(r)

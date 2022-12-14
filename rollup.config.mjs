@@ -4,7 +4,7 @@ import nodeResolve from '@rollup/plugin-node-resolve'
 import replace from '@rollup/plugin-replace'
 import metablock from 'rollup-plugin-userscript-metablock'
 import CleanCSS from 'clean-css'
-import {createFilter} from 'rollup-pluginutils'
+import { createFilter } from 'rollup-pluginutils'
 import path from 'path'
 import fs from 'fs'
 import pkg from './package.json' assert { type: 'json' }
@@ -63,7 +63,7 @@ export default {
     file: 'dist/bundle.user.js',
     format: 'iife',
     name: 'rollupUserScript',
-    banner: banner,
+    banner,
     sourcemap: true,
     globals: {
       react: 'React',
