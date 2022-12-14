@@ -2179,8 +2179,7 @@ function getTralbumData (url, cb, retry = true) {
           if (response.responseText.indexOf('var TralbumData =') !== -1) {
             TralbumData = JSON5.parse(response.responseText.split('var TralbumData =')[1].split('\n};\n')[0].replace(/"\s+\+\s+"/, '') + '\n}')
           } else if (response.responseText.indexOf('data-tralbum="') !== -1) {
-            let str = response.responseText.split('data-tralbum="')[1].split('"')[0]
-            str = decodeHTMLentities(response.responseText.split('data-tralbum="')[1].split('"')[0])
+            let str = decodeHTMLentities(response.responseText.split('data-tralbum="')[1].split('"')[0])
             TralbumData = JSON.parse(str)
           }
         } catch (e) {

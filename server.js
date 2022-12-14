@@ -80,7 +80,7 @@ loadConfigFile(path.resolve(__dirname, 'rollup.config.mjs')).then(
         assert.equal(await httpGetStatus(`http://localhost:${port}/${destDir}${devScriptInFile}`), 200, `http://localhost:${port}/${destDir}${devScriptInFile}`)
         if (outFiles) {
           for (let i = 0; i < outFiles.length; i++) {
-            const urlPath = outFiles[i].replace('\\', '/')
+            const urlPath = outFiles[i].replace(/\\/, '/')
             console.log(`Checking http://localhost:${port}/${urlPath}`)
             assert.equal(await httpGetStatus(`http://localhost:${port}/${urlPath}`), 200, `http://localhost:${port}/${urlPath}`)
           }
