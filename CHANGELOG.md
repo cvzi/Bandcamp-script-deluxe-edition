@@ -1,4 +1,8 @@
 # Changelog
+
+## [1.22.1](../../tree/v1.22.1) *(2022-12-14)*
+*   Update dependencies
+*   Minor bug fixes
 ## [1.22.0](../../tree/v1.22.0) *(2022-12-11)*
 *   Show size of storage in Developer options
 *   Fix error `InvalidCharacterError: String contains an invalid character`
