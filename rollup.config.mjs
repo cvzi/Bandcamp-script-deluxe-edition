@@ -3,11 +3,11 @@ import commonjs from '@rollup/plugin-commonjs'
 import nodeResolve from '@rollup/plugin-node-resolve'
 import replace from '@rollup/plugin-replace'
 import metablock from 'rollup-plugin-userscript-metablock'
-const CleanCSS = require('clean-css')
-const { createFilter } = require('rollup-pluginutils')
-const fs = require('fs')
-const path = require('path')
-const pkg = require('./package.json')
+import CleanCSS from 'clean-css'
+import {createFilter} from 'rollup-pluginutils'
+import path from 'path'
+import fs from 'fs'
+import pkg from './package.json' assert { type: 'json' }
 const port = pkg.config.port
 
 export function importText (options = {}) {
