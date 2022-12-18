@@ -12,8 +12,8 @@
         "https://unpkg.com/react-dom@18/umd/react-dom.development.js"
     ],
     "run-at": "document-start",
-    "include": [
-        "https://*",
+    "match": [
+        "https://*/*",
         "https://bandcamp.com/*"
     ],
     "exclude": [
