@@ -17,10 +17,10 @@ for (let i = 0; i < config.plugins.length; i++) {
         author: pkg.author,
         license: pkg.license,
         connect: meta.connect.filter(s => s !== '*'),
-        include: [
+        match: [
           'https://bandcamp.com/*',
           'https://*.bandcamp.com/*',
-          'https://campexplorer.io/'
+          'https://campexplorer.io/*'
         ]
       }
     })
