@@ -10,9 +10,9 @@
 // @require         https://unpkg.com/react@18/umd/react.development.js
 // @require         https://unpkg.com/react-dom@18/umd/react-dom.development.js
 // @run-at          document-start
-// @include         https://bandcamp.com/*
-// @include         https://*.bandcamp.com/*
-// @include         https://campexplorer.io/
+// @match           https://bandcamp.com/*
+// @match           https://*.bandcamp.com/*
+// @match           https://campexplorer.io/*
 // @exclude         https://bandcamp.com/videoframe*
 // @exclude         https://bandcamp.com/EmbeddedPlayer*
 // @connect         bandcamp.com
@@ -20,7 +20,7 @@
 // @connect         bcbits.com
 // @connect         *.bcbits.com
 // @connect         genius.com
-// @version         1.22.0
+// @version         1.22.2
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
