@@ -5522,6 +5522,21 @@ function geniusOnNoResults (songTitle, songArtistsArr) {
   document.querySelector(`#track_table tr[rel="tracknum=${geniusTrackNum}"]`).classList.add('showlyrics')
   geniusShowSearchField(songArtistsArr.join(' ') + ' ' + songTitle)
 }
+let geniusAudio = null
+let geniusLastPos = null
+function geniusAudioTimeUpdate () {
+  if (!geniusAudio) {
+    geniusAudio = document.querySelector('body>audio[src]')
+  }
+  if (!geniusAudio) {
+    return
+  }
+  const pos = geniusAudio.currentTime / geniusAudio.duration
+  if (pos !== null && pos >= 0 && `${geniusLastPos}` !== `${pos}`) {
+    geniusLastPos = pos
+    genius.f.scrollLyrics(pos)
+  }
+}
 function initGenius () {
   if (!genius) {
     genius = geniusLyrics({
@@ -5546,6 +5561,7 @@ function initGenius () {
       onLyricsReady: geniusOnLyricsReady,
       onNoResults: geniusOnNoResults
     })
+    document.addEventListener('timeupdate', geniusAudioTimeUpdate, true)
   }
 }
 
