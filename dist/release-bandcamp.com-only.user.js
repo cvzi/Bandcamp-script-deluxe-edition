@@ -20,7 +20,7 @@
 // @connect         bcbits.com
 // @connect         *.bcbits.com
 // @connect         genius.com
-// @version         1.22.2
+// @version         1.23.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -2982,7 +2982,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
             if (response.responseText.indexOf('var TralbumData =') !== -1) {
               TralbumData = JSON5.parse(response.responseText.split('var TralbumData =')[1].split('\n};\n')[0].replace(/"\s+\+\s+"/, '') + '\n}');
             } else if (response.responseText.indexOf('data-tralbum="') !== -1) {
-              let str = decodeHTMLentities(response.responseText.split('data-tralbum="')[1].split('"')[0]);
+              const str = decodeHTMLentities(response.responseText.split('data-tralbum="')[1].split('"')[0]);
               TralbumData = JSON.parse(str);
             }
           } catch (e) {
@@ -6067,6 +6067,21 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     document.querySelector(`#track_table tr[rel="tracknum=${geniusTrackNum}"]`).classList.add('showlyrics');
     geniusShowSearchField(songArtistsArr.join(' ') + ' ' + songTitle);
   }
+  let geniusAudio = null;
+  let geniusLastPos = null;
+  function geniusAudioTimeUpdate() {
+    if (!geniusAudio) {
+      geniusAudio = document.querySelector('body>audio[src]');
+    }
+    if (!geniusAudio) {
+      return;
+    }
+    const pos = geniusAudio.currentTime / geniusAudio.duration;
+    if (pos !== null && pos >= 0 && `${geniusLastPos}` !== `${pos}`) {
+      geniusLastPos = pos;
+      genius.f.scrollLyrics(pos);
+    }
+  }
   function initGenius() {
     if (!genius) {
       genius = geniusLyrics({
@@ -6091,6 +6106,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         onLyricsReady: geniusOnLyricsReady,
         onNoResults: geniusOnNoResults
       });
+      document.addEventListener('timeupdate', geniusAudioTimeUpdate, true);
     }
   }
   function loadGeniusLyrics(trackNum) {
