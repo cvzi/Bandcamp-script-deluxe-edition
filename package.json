@@ -1,6 +1,6 @@
 {
     "name": "bandcamp-script-deluxe-edition",
-    "version": "1.22.2",
+    "version": "1.23.0",
     "description": "A discography player for bandcamp.com and manager for your played albums",
     "keywords": [
         "userscript",
@@ -42,8 +42,8 @@
         ]
     },
     "devDependencies": {
-        "@babel/cli": "^7.19.3",
-        "@babel/core": "^7.20.5",
+        "@babel/cli": "^7.20.7",
+        "@babel/core": "^7.20.7",
         "@babel/eslint-parser": "^7.19.1",
         "@babel/plugin-proposal-class-properties": "^7.18.6",
         "@babel/plugin-syntax-import-assertions": "^7.20.0",
@@ -56,7 +56,7 @@
         "colorette": "^2.0.19",
         "eslint": "^8.30.0",
         "esm": "^3.2.25",
-        "rollup": "^3.7.5",
+        "rollup": "^3.9.0",
         "rollup-plugin-string": "^3.0.0",
         "rollup-plugin-userscript-metablock": "^0.3.1",
         "serve": "^14.1.2",

@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.23.0](../../tree/v1.23.0) *(2022-12-30)*
+*   Auto scroll genius.com lyrics
 ## [1.22.2](../../tree/v1.22.2) *(2022-12-18)*
 *   Replace @include with @match
 ## [1.22.1](../../tree/v1.22.1) *(2022-12-14)*
