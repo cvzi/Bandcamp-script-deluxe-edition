@@ -63,5 +63,4 @@ If you enjoy using this app, please consider donating, so I can spend more time 
  *   https://liberapay.com/cuzi/
  *   https://buymeacoff.ee/cuzi
  *   https://flattr.com/@cuzi/github/cvzi
- *   [![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/3KDs3RjvsKzbFQ8XoHkGqZxQtSxn2WYbn1)](https://en.cryptobadges.io/donate/3KDs3RjvsKzbFQ8XoHkGqZxQtSxn2WYbn1)
  *   https://bandcamp.com/cuzi/wishlist
