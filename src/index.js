@@ -112,6 +112,10 @@ const allFeatures = {
   showAlbumID: {
     name: 'Show album ID on album page',
     default: false
+  },
+  feedShowOnlyNewReleases: {
+    name: 'Show only new releases in the feed',
+    default: false
   }
 }
 
@@ -5788,6 +5792,31 @@ function showAlbumID () {
   }
 }
 
+function feedShowOnlyNewReleases () {
+  const stories = document.querySelectorAll('#stories li.story')
+  if (stories.length < 0) {
+    window.setTimeout(feedShowOnlyNewReleases, 10000)
+    return
+  }
+
+  if (Array.from(stories).reduce((accumulator, story) => {
+    // Remove stories that are not 'nr' => new releases
+    if (!story.classList.contains('nr')) {
+      story.remove()
+      accumulator++
+    }
+    return accumulator
+  }, 0)
+  ) {
+    // If any were removed, trigger a reload of the feed
+    window.scrollBy(0, 1)
+    window.scrollBy(0, -1)
+    window.setTimeout(feedShowOnlyNewReleases, 500)
+  } else {
+    window.setTimeout(feedShowOnlyNewReleases, 1500)
+  }
+}
+
 function darkMode () {
   // CSS taken from https://userstyles.org/styles/171538/bandcamp-in-dark by Simonus (Version from January 24, 2020)
   // https://userstyles.org/api/v1/styles/css/171538
@@ -6147,6 +6176,10 @@ function onLoaded () {
 
     if (allFeatures.showAlbumID.enabled) {
       showAlbumID()
+    }
+
+    if (allFeatures.feedShowOnlyNewReleases.enabled && document.querySelector('#stories li.story')) {
+      feedShowOnlyNewReleases()
     }
 
     if (CAMPEXPLORER) {
