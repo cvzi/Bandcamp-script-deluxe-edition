@@ -116,6 +116,10 @@ const allFeatures = {
   feedShowOnlyNewReleases: {
     name: 'Show only new releases in the feed',
     default: false
+  },
+  feedShowAudioControls: {
+    name: 'Show play/pause/seek-bar in the feed',
+    default: true
   }
 }
 
@@ -5817,6 +5821,27 @@ function feedShowOnlyNewReleases () {
   }
 }
 
+function feedShowAudioControls () {
+  const makeAudioVisible = function() {
+    this.removeEventListener('timeupdate', makeAudioVisible)
+    this.controls = true
+    this.loop = true
+    this.style = `
+      width: 20%;
+      min-width: 200px;
+      height: 40px;
+      position: fixed;
+      right: 0px;
+      bottom: 0px;
+      display: block;
+      opacity: 1;`
+  }
+  const audio = document.querySelector('body>audio')
+  if (audio) {
+    audio.addEventListener('timeupdate', makeAudioVisible)
+  }
+}
+
 function darkMode () {
   // CSS taken from https://userstyles.org/styles/171538/bandcamp-in-dark by Simonus (Version from January 24, 2020)
   // https://userstyles.org/api/v1/styles/css/171538
@@ -6180,6 +6205,10 @@ function onLoaded () {
 
     if (allFeatures.feedShowOnlyNewReleases.enabled && document.querySelector('#stories li.story')) {
       feedShowOnlyNewReleases()
+    }
+
+    if (allFeatures.feedShowAudioControls.enabled && document.querySelector('#stories li.story')) {
+      feedShowAudioControls()
     }
 
     if (CAMPEXPLORER) {
