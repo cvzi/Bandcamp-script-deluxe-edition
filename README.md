@@ -51,6 +51,10 @@ Discography player as a sidebar:
 
 ![Screenshot of discography sidebar](screenshots/screenshotDiscographySidebar.png)
 
+Options:
+
+![Screenshot of script options](screenshots/screenshotOptions.png)
+
 [Changelog](CHANGELOG.md)
 
 [License](LICENSE)
