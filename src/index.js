@@ -4539,7 +4539,7 @@ function developerMenu () {
     input = td.appendChild(document.createElement('input'))
     input.type = 'text'
     input.value = listenedAlbums.length.toString()
-    input.readonly = true
+    input.readOnly = true
     input.style.width = '200px'
 
     tr = table.appendChild(document.createElement('tr'))
@@ -4550,7 +4550,7 @@ function developerMenu () {
     input = td.appendChild(document.createElement('input'))
     input.type = 'text'
     input.value = myalbumsStr.length.toString()
-    input.readonly = true
+    input.readOnly = true
     input.style.width = '200px'
 
     tr = table.appendChild(document.createElement('tr'))
@@ -4561,7 +4561,7 @@ function developerMenu () {
     input = td.appendChild(document.createElement('input'))
     input.type = 'text'
     input.value = humanBytes(new Blob([myalbumsStr]).size)
-    input.readonly = true
+    input.readOnly = true
     input.style.width = '200px'
   })
 
@@ -4576,7 +4576,7 @@ function developerMenu () {
     input = td.appendChild(document.createElement('input'))
     input.type = 'text'
     input.value = Object.keys(tralbumdata).length.toString()
-    input.readonly = true
+    input.readOnly = true
     input.style.width = '200px'
 
     tr = table.appendChild(document.createElement('tr'))
@@ -4587,7 +4587,7 @@ function developerMenu () {
     input = td.appendChild(document.createElement('input'))
     input.type = 'text'
     input.value = tralbumdataStr.length.toString()
-    input.readonly = true
+    input.readOnly = true
     input.style.width = '200px'
 
     tr = table.appendChild(document.createElement('tr'))
@@ -4598,7 +4598,7 @@ function developerMenu () {
     input = td.appendChild(document.createElement('input'))
     input.type = 'text'
     input.value = humanBytes(new Blob([tralbumdataStr]).size)
-    input.readonly = true
+    input.readOnly = true
     input.style.width = '200px'
   })
 
@@ -4614,7 +4614,7 @@ function developerMenu () {
       input = td.appendChild(document.createElement('input'))
       input.type = 'text'
       input.value = Object.keys(tralbumlibrary).length.toString()
-      input.readonly = true
+      input.readOnly = true
       input.style.width = '200px'
       console.log(3)
       tr = table.appendChild(document.createElement('tr'))
@@ -4625,7 +4625,7 @@ function developerMenu () {
       input = td.appendChild(document.createElement('input'))
       input.type = 'text'
       input.value = tralbumlibraryStr.length.toString()
-      input.readonly = true
+      input.readOnly = true
       input.style.width = '200px'
 
       tr = table.appendChild(document.createElement('tr'))
@@ -4636,7 +4636,7 @@ function developerMenu () {
       input = td.appendChild(document.createElement('input'))
       input.type = 'text'
       input.value = humanBytes(new Blob([tralbumlibraryStr]).size)
-      input.readonly = true
+      input.readOnly = true
       input.style.width = '200px'
     })
   } catch (e) {
@@ -4900,7 +4900,7 @@ function exportMenu (showClearButton) {
     const inputExample = td.appendChild(document.createElement('input'))
     inputExample.type = 'text'
     inputExample.value = listenedAlbums.length > 0 ? formatAlbum(format, listenedAlbums[0]) : ''
-    inputExample.readonly = true
+    inputExample.readOnly = true
     inputExample.id = 'format_example'
     inputExample.style.width = '600px'
 
