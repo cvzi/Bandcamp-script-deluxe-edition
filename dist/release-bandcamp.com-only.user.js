@@ -20,7 +20,7 @@
 // @connect         bcbits.com
 // @connect         *.bcbits.com
 // @connect         genius.com
-// @version         1.23.0
+// @version         1.25.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -1005,6 +1005,10 @@ SOFTWARE.
     feedShowOnlyNewReleases: {
       name: 'Show only new releases in the feed',
       default: false
+    },
+    feedShowAudioControls: {
+      name: 'Show play/pause/seek-bar in the feed',
+      default: true
     }
   };
   const moreSettings = {
@@ -5153,7 +5157,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       input = td.appendChild(document.createElement('input'));
       input.type = 'text';
       input.value = listenedAlbums.length.toString();
-      input.readonly = true;
+      input.readOnly = true;
       input.style.width = '200px';
       tr = table.appendChild(document.createElement('tr'));
       td = tr.appendChild(document.createElement('td'));
@@ -5162,7 +5166,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       input = td.appendChild(document.createElement('input'));
       input.type = 'text';
       input.value = myalbumsStr.length.toString();
-      input.readonly = true;
+      input.readOnly = true;
       input.style.width = '200px';
       tr = table.appendChild(document.createElement('tr'));
       td = tr.appendChild(document.createElement('td'));
@@ -5171,7 +5175,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       input = td.appendChild(document.createElement('input'));
       input.type = 'text';
       input.value = humanBytes(new Blob([myalbumsStr]).size);
-      input.readonly = true;
+      input.readOnly = true;
       input.style.width = '200px';
     });
     GM.getValue('tralbumdata', '{}').then(function tralbumdataLoaded(tralbumdataStr) {
@@ -5183,7 +5187,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       input = td.appendChild(document.createElement('input'));
       input.type = 'text';
       input.value = Object.keys(tralbumdata).length.toString();
-      input.readonly = true;
+      input.readOnly = true;
       input.style.width = '200px';
       tr = table.appendChild(document.createElement('tr'));
       td = tr.appendChild(document.createElement('td'));
@@ -5192,7 +5196,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       input = td.appendChild(document.createElement('input'));
       input.type = 'text';
       input.value = tralbumdataStr.length.toString();
-      input.readonly = true;
+      input.readOnly = true;
       input.style.width = '200px';
       tr = table.appendChild(document.createElement('tr'));
       td = tr.appendChild(document.createElement('td'));
@@ -5201,7 +5205,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       input = td.appendChild(document.createElement('input'));
       input.type = 'text';
       input.value = humanBytes(new Blob([tralbumdataStr]).size);
-      input.readonly = true;
+      input.readOnly = true;
       input.style.width = '200px';
     });
     try {
@@ -5214,7 +5218,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         input = td.appendChild(document.createElement('input'));
         input.type = 'text';
         input.value = Object.keys(tralbumlibrary).length.toString();
-        input.readonly = true;
+        input.readOnly = true;
         input.style.width = '200px';
         console.log(3);
         tr = table.appendChild(document.createElement('tr'));
@@ -5224,7 +5228,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         input = td.appendChild(document.createElement('input'));
         input.type = 'text';
         input.value = tralbumlibraryStr.length.toString();
-        input.readonly = true;
+        input.readOnly = true;
         input.style.width = '200px';
         tr = table.appendChild(document.createElement('tr'));
         td = tr.appendChild(document.createElement('td'));
@@ -5233,7 +5237,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         input = td.appendChild(document.createElement('input'));
         input.type = 'text';
         input.value = humanBytes(new Blob([tralbumlibraryStr]).size);
-        input.readonly = true;
+        input.readOnly = true;
         input.style.width = '200px';
       });
     } catch (e) {
@@ -5484,7 +5488,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       const inputExample = td.appendChild(document.createElement('input'));
       inputExample.type = 'text';
       inputExample.value = listenedAlbums.length > 0 ? formatAlbum(format, listenedAlbums[0]) : '';
-      inputExample.readonly = true;
+      inputExample.readOnly = true;
       inputExample.id = 'format_example';
       inputExample.style.width = '600px';
       td = tr.appendChild(document.createElement('td'));
@@ -6320,6 +6324,26 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       window.setTimeout(feedShowOnlyNewReleases, 1500);
     }
   }
+  function feedShowAudioControls() {
+    const makeAudioVisible = function () {
+      this.removeEventListener('timeupdate', makeAudioVisible);
+      this.controls = true;
+      this.loop = true;
+      this.style = `
+      width: 20%;
+      min-width: 200px;
+      height: 40px;
+      position: fixed;
+      right: 0px;
+      bottom: 0px;
+      display: block;
+      opacity: 1;`;
+    };
+    const audio = document.querySelector('body>audio');
+    if (audio) {
+      audio.addEventListener('timeupdate', makeAudioVisible);
+    }
+  }
   function darkMode() {
     // CSS taken from https://userstyles.org/styles/171538/bandcamp-in-dark by Simonus (Version from January 24, 2020)
     // https://userstyles.org/api/v1/styles/css/171538
@@ -6649,6 +6673,9 @@ If this is a malicious website, running the userscript may leak personal data (e
       }
       if (allFeatures.feedShowOnlyNewReleases.enabled && document.querySelector('#stories li.story')) {
         feedShowOnlyNewReleases();
+      }
+      if (allFeatures.feedShowAudioControls.enabled && document.querySelector('#stories li.story')) {
+        feedShowAudioControls();
       }
       if (CAMPEXPLORER) {
         let lastTagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : '';
