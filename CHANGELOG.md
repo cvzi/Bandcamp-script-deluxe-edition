@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.25.0](../../tree/v1.25.0) *(2023-01-07)*
+*   Make `<audio>` player visible in the feed
 ## [1.24.0](../../tree/v1.24.0) *(2023-01-06)*
 *   Option to only show new releases in feed [#245](https://github.com/cvzi/Bandcamp-script-deluxe-edition/discussions/245)
 ## [1.23.0](../../tree/v1.23.0) *(2022-12-30)*
