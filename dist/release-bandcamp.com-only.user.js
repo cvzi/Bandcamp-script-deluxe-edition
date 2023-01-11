@@ -2622,7 +2622,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       player.style.display = 'block';
       return;
     }
-    musicPlayerCookieChannel(musicPlayerStop);
+    musicPlayerCookieChannel(_ => musicPlayerStop());
     const img1px = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mOsmLZvJgAFwQJn5VVZ5QAAAABJRU5ErkJggg==';
     const listenedListUrl = findUserProfileUrl() + '#listened-tab';
     const checkSymbol = NOEMOJI ? '✓' : '✔';
@@ -6085,7 +6085,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       return;
     }
     const pos = geniusAudio.currentTime / geniusAudio.duration;
-    if (pos !== null && pos >= 0 && `${geniusLastPos}` !== `${pos}`) {
+    if (pos >= 0 && `${geniusLastPos}` !== `${pos}`) {
       geniusLastPos = pos;
       genius.f.scrollLyrics(pos);
     }
