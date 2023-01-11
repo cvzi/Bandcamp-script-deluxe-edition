@@ -1798,7 +1798,7 @@ function musicPlayerCreate () {
     return
   }
 
-  musicPlayerCookieChannel(musicPlayerStop)
+  musicPlayerCookieChannel(_ => musicPlayerStop())
 
   const img1px = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mOsmLZvJgAFwQJn5VVZ5QAAAABJRU5ErkJggg=='
 
@@ -5540,7 +5540,7 @@ function geniusAudioTimeUpdate () {
     return
   }
   const pos = geniusAudio.currentTime / geniusAudio.duration
-  if (pos !== null && pos >= 0 && `${geniusLastPos}` !== `${pos}`) {
+  if (pos >= 0 && `${geniusLastPos}` !== `${pos}`) {
     geniusLastPos = pos
     genius.f.scrollLyrics(pos)
   }
@@ -5822,7 +5822,7 @@ function feedShowOnlyNewReleases () {
 }
 
 function feedShowAudioControls () {
-  const makeAudioVisible = function() {
+  const makeAudioVisible = function () {
     this.removeEventListener('timeupdate', makeAudioVisible)
     this.controls = true
     this.loop = true
