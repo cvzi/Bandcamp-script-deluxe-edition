@@ -2622,7 +2622,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       player.style.display = 'block';
       return;
     }
-    musicPlayerCookieChannel(musicPlayerStop);
+    musicPlayerCookieChannel(_ => musicPlayerStop());
     const img1px = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mOsmLZvJgAFwQJn5VVZ5QAAAABJRU5ErkJggg==';
     const listenedListUrl = findUserProfileUrl() + '#listened-tab';
     const checkSymbol = NOEMOJI ? '✓' : '✔';
@@ -5078,7 +5078,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       const donateButton = donateLink.appendChild(document.createElement('button'));
       donateButton.appendChild(document.createTextNode('\u2764\uFE0F Donate & Support'));
       donateButton.style.color = '#e81224';
-      donateLink.setAttribute('href', 'https://github.com/cvzi/Bandcamp-script-deluxe-edition#donate');
+      donateLink.setAttribute('href', 'https://cvzi.github.io/.github/');
       donateLink.setAttribute('target', '_blank');
       main.appendChild(document.createElement('br'));
       main.appendChild(document.createElement('br'));
@@ -6085,7 +6085,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       return;
     }
     const pos = geniusAudio.currentTime / geniusAudio.duration;
-    if (pos !== null && pos >= 0 && `${geniusLastPos}` !== `${pos}`) {
+    if (pos >= 0 && `${geniusLastPos}` !== `${pos}`) {
       geniusLastPos = pos;
       genius.f.scrollLyrics(pos);
     }
@@ -6198,32 +6198,46 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     }).render();
   }
   function appendMainMenuButtonTo(ul) {
-    const li = ul.insertBefore(document.createElement('li'), ul.firstChild);
-    li.className = 'menubar-item hoverable';
-    li.title = 'userscript settings - ' + SCRIPT_NAME;
-    const a = li.appendChild(document.createElement('a'));
-    a.className = 'settingssymbol';
-    a.style.fontSize = '24px';
-    a.style.transition = 'transform 2s ease-out';
+    addStyle(`
+    .menubar-item .menubar-symbol {
+      display:flex;
+      font-size:24px !important;
+      transition:transform 1s ease-out
+    }
+    .menubar-item .menubar-symbol:hover {
+      text-decoration:none
+    }
+    .menubar-item:hover .menubar-symbol-settings {
+      transform:rotate(1turn)
+    }
+    .menubar-item:hover .menubar-symbol-library {
+      transform:scale(-1, 1)
+    }
+    .menubar-item:hover .menubar-symbol-tag-search {
+      transform:scale(1.3)
+    }
+  `);
+    const liSettings = ul.insertBefore(document.createElement('li'), ul.firstChild);
+    liSettings.className = 'menubar-item hoverable';
+    liSettings.title = 'userscript settings - ' + SCRIPT_NAME;
+    const aSettings = liSettings.appendChild(document.createElement('a'));
+    aSettings.className = 'menubar-symbol menubar-symbol-settings';
+    aSettings.href = '#';
     if (NOEMOJI) {
-      const img = a.appendChild(document.createElement('img'));
+      const img = aSettings.appendChild(document.createElement('img'));
       img.style = 'display:inline; width:34px; vertical-align:middle;';
       img.src = 'https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/color/72x72/2699.png';
     } else {
-      a.appendChild(document.createTextNode('\u2699\uFE0F'));
+      aSettings.appendChild(document.createTextNode('\u2699\uFE0F'));
     }
-    a.addEventListener('mouseover', function () {
-      this.style.transform = 'rotate(360deg)';
-    });
-    li.addEventListener('click', () => mainMenu());
+    liSettings.addEventListener('click', () => mainMenu());
     if (allFeatures.keepLibrary.enabled) {
       const liExplorer = ul.insertBefore(document.createElement('li'), ul.firstChild);
       liExplorer.className = 'menubar-item hoverable';
       liExplorer.title = 'library - ' + SCRIPT_NAME;
       const aExplorer = liExplorer.appendChild(document.createElement('a'));
-      aExplorer.className = 'settingssymbol';
+      aExplorer.className = 'menubar-symbol menubar-symbol-library';
       aExplorer.href = PLAYER_URL;
-      aExplorer.style.fontSize = '24px';
       if (NOEMOJI) {
         const img = aExplorer.appendChild(document.createElement('img'));
         img.style = 'display:inline; width:34px; vertical-align:middle;';
@@ -6242,20 +6256,19 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     const liSearch = ul.insertBefore(document.createElement('li'), ul.firstChild);
     liSearch.className = 'menubar-item hoverable menubar-item-tag-search';
     liSearch.title = 'tag search - ' + SCRIPT_NAME;
-    const aExplorer = liSearch.appendChild(document.createElement('a'));
-    aExplorer.className = 'settingssymbol';
-    aExplorer.href = '#';
-    aExplorer.style.fontSize = '24px';
+    const aSearch = liSearch.appendChild(document.createElement('a'));
+    aSearch.className = 'menubar-symbol menubar-symbol-tag-search';
+    aSearch.href = '#';
     if (NOEMOJI) {
-      aExplorer.innerHTML = `
+      aSearch.innerHTML = `
     <svg width="22" height="22" viewBox="0 0 15 16" class="svg-icon" style="border: 2px solid #000000c4;border-radius: 30%;padding: 3px;">
         <use xlink:href="#menubar-search-input-icon">
     </svg>`;
     } else {
-      aExplorer.appendChild(document.createTextNode('\uD83D\uDD0D'));
+      aSearch.appendChild(document.createTextNode('\uD83D\uDD0D'));
     }
-    aExplorer.setAttribute('id', 'bcsde_tagsearchbutton');
-    aExplorer.addEventListener('click', showTagSearchForm);
+    aSearch.setAttribute('id', 'bcsde_tagsearchbutton');
+    aSearch.addEventListener('click', showTagSearchForm);
   }
   function appendMainMenuButtonLeftTo(leftOf) {
     const rect = leftOf.getBoundingClientRect();
@@ -6571,7 +6584,7 @@ If this is a malicious website, running the userscript may leak personal data (e
       console.log('Maintenance detected');
     } else {
       if (NOEMOJI) {
-        addStyle('@font-face{font-family:Symbola;src:local("Symbola Regular"),local("Symbola"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format("woff2"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format("woff"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format("truetype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format("opentype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format("svg")}' + '.sharepanelchecksymbol,.bdp_check_onlinkhover_symbol,.bdp_check_onchecked_symbol,.volumeSymbol,.downloaddisk,.downloadlink,#user-nav .settingssymbol,.listened-symbol,.mark-listened-symbol,.minimizebutton{font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif}' + '.downloaddisk,.downloadlink{font-weight: bolder}');
+        addStyle('@font-face{font-family:Symbola;src:local("Symbola Regular"),local("Symbola"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format("woff2"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format("woff"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format("truetype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format("opentype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format("svg")}' + '.sharepanelchecksymbol,.bdp_check_onlinkhover_symbol,.bdp_check_onchecked_symbol,.volumeSymbol,.downloaddisk,.downloadlink,#user-nav .menubar-symbol,.listened-symbol,.mark-listened-symbol,.minimizebutton{font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif}' + '.downloaddisk,.downloadlink{font-weight: bolder}');
       }
       GM.getValue('notification_timeout', NOTIFICATION_TIMEOUT).then(function (ms) {
         NOTIFICATION_TIMEOUT = parseInt(ms);
