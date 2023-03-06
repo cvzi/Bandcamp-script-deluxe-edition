@@ -58,7 +58,7 @@
         "esm": "^3.2.25",
         "rollup": "^3.18.0",
         "rollup-plugin-string": "^3.0.0",
-        "rollup-plugin-userscript-metablock": "^0.3.1",
+        "rollup-plugin-userscript-metablock": "^0.3.2",
         "serve": "^14.2.0",
         "standard": "^17.0.0"
     },
