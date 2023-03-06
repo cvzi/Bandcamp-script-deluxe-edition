@@ -5078,7 +5078,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       const donateButton = donateLink.appendChild(document.createElement('button'));
       donateButton.appendChild(document.createTextNode('\u2764\uFE0F Donate & Support'));
       donateButton.style.color = '#e81224';
-      donateLink.setAttribute('href', 'https://github.com/cvzi/Bandcamp-script-deluxe-edition#donate');
+      donateLink.setAttribute('href', 'https://cvzi.github.io/.github/');
       donateLink.setAttribute('target', '_blank');
       main.appendChild(document.createElement('br'));
       main.appendChild(document.createElement('br'));
