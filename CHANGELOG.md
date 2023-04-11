@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.25.1](../../tree/v1.25.1) *(2023-04-11)*
+*   Fix lyrics provided by bandcamp
 ## [1.25.0](../../tree/v1.25.0) *(2023-01-07)*
 *   Make `<audio>` player visible in the feed
 ## [1.24.0](../../tree/v1.24.0) *(2023-01-06)*
