@@ -20,7 +20,7 @@
 // @connect         bcbits.com
 // @connect         *.bcbits.com
 // @connect         genius.com
-// @version         1.25.0
+// @version         1.25.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -3567,6 +3567,8 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       }
       return node.parentNode
     }
+    /*
+    // seems this is no longer necessary
     function onLyricsClick (ev) {
       ev.preventDefault()
       const tr = parentByClassName(this, 'track_row_view')
@@ -3579,6 +3581,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     document.querySelectorAll('#track_table .track_row_view .info_link a').forEach(function (a) {
       a.addEventListener('click', onLyricsClick)
     })
+    */
 
     // Hide popup (not really needed, but won't hurt)
     window.setInterval(function() {
