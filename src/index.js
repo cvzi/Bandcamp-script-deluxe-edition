@@ -2795,6 +2795,8 @@ function removeTheTimeHasComeToOpenThyHeartWallet () {
       }
       return node.parentNode
     }
+    /*
+    // seems this is no longer necessary
     function onLyricsClick (ev) {
       ev.preventDefault()
       const tr = parentByClassName(this, 'track_row_view')
@@ -2807,6 +2809,7 @@ function removeTheTimeHasComeToOpenThyHeartWallet () {
     document.querySelectorAll('#track_table .track_row_view .info_link a').forEach(function (a) {
       a.addEventListener('click', onLyricsClick)
     })
+    */
 
     // Hide popup (not really needed, but won't hurt)
     window.setInterval(function() {
