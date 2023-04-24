@@ -65,7 +65,7 @@
     "dependencies": {
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-window": "^1.8.8"
+        "react-window": "^1.8.9"
     },
     "config": {
         "port": "8125"
