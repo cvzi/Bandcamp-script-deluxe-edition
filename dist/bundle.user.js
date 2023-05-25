@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.25.1
+// @version         1.26.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -882,7 +882,7 @@ SOFTWARE.
     };
   }
 
-  var discographyplayerCSS = ".cll{clear:left}.clb{clear:both}#discographyplayer{z-index:1010;position:fixed;bottom:0;height:83px;width:100%;padding-top:3px;background:#fff;color:#505958;border-top:1px solid rgba(0,0,0,.15);font:13px/1.231 \"Helvetica Neue\",Helvetica,Arial,sans-serif;transition:bottom .5s}#discographyplayer a:link,#discographyplayer a:visited{color:#0687f5;text-decoration:none;cursor:pointer}#discographyplayer a:hover{color:#0687f5;text-decoration:underline;cursor:pointer}#discographyplayer .nowPlaying .cover,#discographyplayer .nowPlaying .info{display:inline-block;vertical-align:top}#discographyplayer .nowPlaying img{width:60px;height:60px;margin-top:4px;margin-left:4px;margin-bottom:4px}#discographyplayer .nowPlaying .info{line-height:18px;margin-left:8px;margin-top:8px;max-width:calc(100% - 76px);border:0 solid #000;padding:0;width:auto;max-height:auto;overflow-y:hidden}#discographyplayer .nowPlaying .info .album,#discographyplayer .nowPlaying .info .title{font-size:13px;font-weight:400;color:#0687f5;margin:0;padding:0}#discographyplayer .currentlyPlaying{display:inline-block;vertical-align:top;overflow:hidden;transition:margin-left 3s ease-in-out;width:99%}#discographyplayer .nextInRow{display:inline-block;vertical-align:top;width:0%;overflow:hidden;transition:width 6s ease-in-out}#discographyplayer .durationDisplay{margin-top:24px;float:left}#discographyplayer .downloadlink:link{display:block;float:right;margin-top:22px;font-size:15px;padding:0 3px;color:#0687f5;border:1px solid #0687f5;transition:color .3s ease-in-out,border-color .3s ease-in-out}#discographyplayer .downloadlink:hover{text-decoration:none;background-color:#0687f5;color:#fff;border:1px solid #fff}#discographyplayer .downloadlink.downloading{color:#f0f;border-color:#f0f;animation:downloadrotation 3s infinite linear;cursor:wait}@keyframes downloadrotation{from{transform:rotate(0)}to{transform:rotate(359deg)}}#discographyplayer .controls{margin-top:10px;width:auto;float:left}#discographyplayer .controls>*{display:inline-block;cursor:pointer;border:1px solid #d9d9d9;padding:11px;margin-right:4px;height:18px;width:17px;transition:background-color .1s}#discographyplayer .controls>:hover{background-color:#0687f52b}#discographyplayer .playpause .play{width:0;height:0;border-top:9px inset transparent;border-bottom:9px inset transparent;border-left:15px solid #222;cursor:pointer;margin-left:2px}#discographyplayer .playpause .pause{border:0;border-left:5px solid #2d2d2d;border-right:5px solid #2d2d2d;height:18px;width:4px;margin-right:2px;margin-left:1px}#discographyplayer .playpause .busy{background-image:url(https://bandcamp.com/img/playerbusy-noborder.gif);background-position:50% 50%;background-repeat:no-repeat;border:none;height:30px;margin:0 0 0 -3px;width:25px;overflow:hidden;background-size:contain}#discographyplayer .shuffleswitch .shufflebutton{background-size:cover;background-position-y:0px;filter:drop-shadow(#FFFF 0px 0px 0px);transition:filter .5s;border:0;height:13px;width:20px;margin-top:4px}#discographyplayer .shuffleswitch .shufflebutton.active{filter:drop-shadow(#0060F2 1px 1px 2px)}#discographyplayer .arrowbutton{border:0;height:13px;width:20px;margin-top:4px;background:url(https://bandcamp.com/img/nextprev.png) 0 0/40px 12px no-repeat transparent;background-position-x:0px;cursor:pointer}#discographyplayer .arrowbutton.next-icon{background-position:100% 0}#discographyplayer .arrowbutton.prevalbum-icon{border-right:3px solid #2d2d2d}#discographyplayer .arrowbutton.nextalbum-icon{background-position:100% 0;border-left:3px solid #2d2d2d}#timeline{width:100%;background:rgba(50,50,50,.4);margin-top:5px;border-left:1px solid #000;border-right:1px solid #000}#playhead{width:10px;height:10px;border-radius:50%;background:#323232;cursor:pointer}.bufferbaranimation{transition:width 1s}#bufferbar{position:absolute;width:0;height:10px;background:rgba(0,0,0,.1)}#discographyplayer .playlist{position:relative;width:100%;display:inline-block;max-height:80px;overflow:auto;list-style:none;margin:0;padding:0 5px 0 5px;scrollbar-color:rgba(50,50,50,0.4) white;background:#fff}#discographyplayer_contextmenu{position:absolute;box-shadow:#000000b0 2px 2px 2px;background-color:#fff;border:#619aa9 2px solid;z-index:1011}#discographyplayer_contextmenu .contextmenu_submenu{cursor:pointer;padding:2px;border:1px solid #619aa9}#discographyplayer_contextmenu .contextmenu_submenu:hover{background-color:#619aa9;color:#fff;border:1px solid #fff}#discographyplayer .playlist .isselected{border:1px solid red}#discographyplayer .playlist .playlistentry{cursor:pointer;margin:1px 0}#discographyplayer .playlist .playlistentry .duration{float:right}#discographyplayer .playlist .playing{background:#619aa950}#discographyplayer .playlist .playlistheading{background:rgba(50,50,50,.4);margin:3px 0}#discographyplayer .playlist .playlistheading a:hover,#discographyplayer .playlist .playlistheading a:link,#discographyplayer .playlist .playlistheading a:visited{color:#eee;cursor:pointer}#discographyplayer .playlist .playlistheading a.notloaded{color:#ccc}#discographyplayer .playlist .playlistheading.notloaded{cursor:copy}#discographyplayer .vol{float:left;position:relative;width:100px;margin-left:1em;margin-top:1em}#discographyplayer .vol-icon-wrapper{font-size:20px;cursor:pointer;width:27px}#discographyplayer .vol-slider{width:60px;height:10px;position:relative;cursor:pointer}#discographyplayer .vol>*{display:inline-block;vertical-align:middle}#discographyplayer .vol-bg{background:rgba(50,50,50,.4);width:100%;margin-top:4px;height:3px;position:absolute}#discographyplayer .vol-amt{margin-top:4px;height:3px;position:absolute;background:#323232}#discographyplayer .vol-control-outer{height:100%;position:relative;margin-left:-3px;margin-right:5px}#discographyplayer .collect{float:left;margin-left:1em}#discographyplayer .collect-wishlist{cursor:default;margin-top:.5em}#discographyplayer .collect-wishlist .wishlist-add{cursor:pointer}#discographyplayer .collect-listened{cursor:pointer;margin-top:.5em;margin-left:2px}#discographyplayer .collect .icon{height:13px;width:14px;display:inline-block;position:relative;top:2px}#discographyplayer .collect .add-item-icon{background-position:0 -73px}#discographyplayer .collect .collected-item-icon{background-position:-28px -73px}#discographyplayer .collect .own-item-icon{background-position:-42px -73px}#discographyplayer .collect .wishlist-add,#discographyplayer .collect .wishlist-collected,#discographyplayer .collect .wishlist-own,#discographyplayer .collect .wishlist-saving{display:none}#discographyplayer .collect .wishlist-add:hover .add-item-icon{background-position:-56px -73px}#discographyplayer .collect .wishlist-add:hover .add-item-label{text-decoration:underline}#discographyplayer .collect .listened,#discographyplayer .collect .listened-saving,#discographyplayer .collect .mark-listened{display:none}#discographyplayer .collect .listened .listened-symbol{color:#00dc32;text-shadow:1px 0 #ddd,-1px 0 #ddd,0 -1px #ddd,0 1px #ddd}#discographyplayer .collect .mark-listened .mark-listened-symbol{color:#fff;text-shadow:1px 0 #959595,-1px 0 #959595,0 -1px #959595,0 1px #959595}#discographyplayer .collect .mark-listened:hover .mark-listened-symbol{text-shadow:1px 0 #0af,-1px 0 #0af,0 -1px #0af,0 1px #0af}#discographyplayer .collect .mark-listened:hover .mark-listened-label{text-decoration:underline}#discographyplayer .closebutton,#discographyplayer .minimizebutton{position:absolute;top:1px;right:1px;border:1px solid #505958;color:#505958;font-size:10px;box-shadow:0 0 2px #505958;cursor:pointer;opacity:0;transition:opacity .3s;min-width:8px;min-height:13px;text-align:center}#discographyplayer .minimizebutton{right:13px}#discographyplayer .minimizebutton .minimized{display:none}#discographyplayer .minimizebutton.minimized .maximized{display:none}#discographyplayer .minimizebutton.minimized .minimized{display:inline}#discographyplayer:hover .closebutton,#discographyplayer:hover .minimizebutton{opacity:1}#discographyplayer .col{float:left;min-height:1px;position:relative}#discographyplayer .col25{width:25%}#discographyplayer .col35{width:35%}#discographyplayer .col30{width:30%}#discographyplayer .col15{width:14%}#discographyplayer .col20{width:20%}#discographyplayer .colcontrols{user-select:none}#discographyplayer .colvolumecontrols{margin-left:10px}.albumIsCurrentlyPlaying{border:2px solid #0f0}.albumIsCurrentlyPlaying+.art-play{display:none}.dig-deeper-item .albumIsCurrentlyPlaying,.music-grid-item .albumIsCurrentlyPlaying{border:none}.albumIsCurrentlyPlayingIndicator{display:none}.dig-deeper-item .albumIsCurrentlyPlayingIndicator,.music-grid-item .albumIsCurrentlyPlayingIndicator{position:absolute;display:block;width:74px;height:54px;left:50%;top:50%;margin-left:-36px;margin-top:-27px;opacity:.5;transition:opacity .2s}.albumIsCurrentlyPlayingIndicator .currentlyPlayingBg{position:absolute;width:100%;height:100%;left:0;top:0;background:#000;border-radius:4px}.albumIsCurrentlyPlayingIndicator .currentlyPlayingIcon{position:absolute;width:10px;height:20px;left:28px;top:17px;border-width:0 5px;border-color:#fff;border-style:solid}@media (max-width:1600px){#discographyplayer .controls>*{padding:4px 11px 5px 11px;height:18px}#discographyplayer .durationDisplay{margin-top:0}#discographyplayer .downloadlink:link{margin-top:0}}@media (max-width:1170px){#discographyplayer .colcontrols{width:39%}#discographyplayer .colvolumecontrols{display:none}}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rpc2NvZ3JhcGh5cGxheWVyLmNzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxLQUNFLE1BQU0sS0FFUixLQUNFLE1BQU0sS0FFUixtQkFDRSxRQUFRLEtBQ1IsU0FBUyxNQUNULE9BQU8sRUFDUCxPQUFPLEtBQ1AsTUFBTSxLQUNOLFlBQVksSUFDWixXQUFXLEtBQ1gsTUFBTSxRQUNOLFdBQVksSUFBSSxNQUFNLGdCQUN0QixLQUFNLElBQUksQ0FBQyxNQUFNLGdCQUFnQixDQUFDLFNBQVMsQ0FBQyxLQUFLLENBQUMsV0FDbEQsV0FBWSxPQUFPLElBRXJCLDBCQUEwQiw2QkFDeEIsTUFBTyxRQUNQLGdCQUFpQixLQUNqQixPQUFRLFFBRVYsMkJBQ0UsTUFBTyxRQUNQLGdCQUFpQixVQUNqQixPQUFRLFFBRTJCLHNDQUFyQyxxQ0FDSSxRQUFTLGFBQ1QsZUFBZ0IsSUFFcEIsbUNBQ0ksTUFBTyxLQUNQLE9BQVEsS0FDUixXQUFZLElBQ1osWUFBYSxJQUNiLGNBQWUsSUFFbkIscUNBQ0ksWUFBYSxLQUNiLFlBQWEsSUFDYixXQUFZLElBQ1osVUFBVyxrQkFFWCxPQUFRLEVBQUksTUFBTSxLQUNsQixRQUFTLEVBQ1QsTUFBTyxLQUNQLFdBQVksS0FDWixXQUFZLE9BRTZCLDRDQUE3Qyw0Q0FDRSxVQUFXLEtBQ1gsWUFBYSxJQUNiLE1BQU8sUUFDUCxPQUFPLEVBQ1AsUUFBUSxFQUVWLHFDQUNFLFFBQVEsYUFDUixlQUFnQixJQUNoQixTQUFVLE9BQ1YsV0FBWSxZQUFZLEdBQUcsWUFDM0IsTUFBTSxJQUVSLDhCQUNFLFFBQVEsYUFDUixlQUFnQixJQUNoQixNQUFNLEdBQ04sU0FBVSxPQUNWLFdBQVksTUFBTSxHQUFHLFlBRXZCLG9DQUNFLFdBQVcsS0FDWCxNQUFNLEtBRVIsc0NBQ0UsUUFBUSxNQUNSLE1BQU0sTUFDTixXQUFZLEtBQ1osVUFBVSxLQUNWLFFBQVMsRUFBSSxJQUNiLE1BQU8s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 */";
+  var discographyplayerCSS = ".cll{clear:left}.clb{clear:both}#discographyplayer{z-index:1010;position:fixed;bottom:0;height:83px;width:100%;padding-top:3px;background:#fff;color:#505958;border-top:1px solid rgba(0,0,0,.15);font:13px/1.231 \"Helvetica Neue\",Helvetica,Arial,sans-serif;transition:bottom .5s}#discographyplayer a:link,#discographyplayer a:visited{color:#0687f5;text-decoration:none;cursor:pointer}#discographyplayer a:hover{color:#0687f5;text-decoration:underline;cursor:pointer}#discographyplayer .nowPlaying .cover,#discographyplayer .nowPlaying .info{display:inline-block;vertical-align:top}#discographyplayer .nowPlaying img{width:60px;height:60px;margin-top:4px;margin-left:4px;margin-bottom:4px}#discographyplayer .nowPlaying .info{line-height:18px;margin-left:8px;margin-top:8px;max-width:calc(100% - 76px);border:0 solid #000;padding:0;width:auto;max-height:auto;overflow-y:hidden}#discographyplayer .nowPlaying .info .album,#discographyplayer .nowPlaying .info .title{font-size:13px;font-weight:400;color:#0687f5;margin:0;padding:0}#discographyplayer .currentlyPlaying{display:inline-block;vertical-align:top;overflow:hidden;transition:margin-left 3s ease-in-out;width:99%}#discographyplayer .nextInRow{display:inline-block;vertical-align:top;width:0%;overflow:hidden;transition:width 6s ease-in-out}#discographyplayer .durationDisplay{margin-top:24px;float:left}#discographyplayer .downloadlink:link{display:block;float:right;margin-top:22px;font-size:15px;padding:0 3px;color:#0687f5;border:1px solid #0687f5;transition:color .3s ease-in-out,border-color .3s ease-in-out}#discographyplayer .downloadlink:hover{text-decoration:none;background-color:#0687f5;color:#fff;border:1px solid #fff}#discographyplayer .downloadlink.downloading{color:#f0f;border-color:#f0f;animation:downloadrotation 3s infinite linear;cursor:wait}@keyframes downloadrotation{from{transform:rotate(0)}to{transform:rotate(359deg)}}#discographyplayer .controls{margin-top:10px;width:auto;float:left}#discographyplayer .controls>*{display:inline-block;cursor:pointer;border:1px solid #d9d9d9;padding:11px;margin-right:4px;height:18px;width:17px;transition:background-color .1s}#discographyplayer .controls>:hover{background-color:#0687f52b}#discographyplayer .playpause .play{width:0;height:0;border-top:9px inset transparent;border-bottom:9px inset transparent;border-left:15px solid #222;cursor:pointer;margin-left:2px}#discographyplayer .playpause .pause{border:0;border-left:5px solid #2d2d2d;border-right:5px solid #2d2d2d;height:18px;width:4px;margin-right:2px;margin-left:1px}#discographyplayer .playpause .busy{background-image:url(https://bandcamp.com/img/playerbusy-noborder.gif);background-position:50% 50%;background-repeat:no-repeat;border:none;height:30px;margin:0 0 0 -3px;width:25px;overflow:hidden;background-size:contain}#discographyplayer .shuffleswitch .shufflebutton{background-size:cover;background-position-y:0px;filter:drop-shadow(#FFFF 0px 0px 0px);transition:filter .5s;border:0;height:13px;width:20px;margin-top:4px}#discographyplayer .shuffleswitch .shufflebutton.active{filter:drop-shadow(#0060F2 1px 1px 2px)}#discographyplayer .arrowbutton{border:0;height:13px;width:20px;margin-top:4px;background:url(https://bandcamp.com/img/nextprev.png) 0 0/40px 12px no-repeat transparent;background-position-x:0px;cursor:pointer}#discographyplayer .arrowbutton.next-icon{background-position:100% 0}#discographyplayer .arrowbutton.prevalbum-icon{border-right:3px solid #2d2d2d}#discographyplayer .arrowbutton.nextalbum-icon{background-position:100% 0;border-left:3px solid #2d2d2d}#timeline{width:100%;background:rgba(50,50,50,.4);margin-top:5px;border-left:1px solid #000;border-right:1px solid #000}#playhead{width:10px;height:10px;border-radius:50%;background:#323232;cursor:pointer}.bufferbaranimation{transition:width 1s}#bufferbar{position:absolute;width:0;height:10px;background:rgba(0,0,0,.1)}#discographyplayer .playlist{position:relative;width:100%;display:inline-block;max-height:80px;overflow:auto;list-style:none;margin:0;padding:0 5px 0 5px;scrollbar-color:rgba(50,50,50,0.4) white;background:#fff}#discographyplayer_contextmenu{position:absolute;box-shadow:#000000b0 2px 2px 2px;background-color:#fff;border:#619aa9 2px solid;z-index:1011}#discographyplayer_contextmenu .contextmenu_submenu{cursor:pointer;padding:2px;border:1px solid #619aa9}#discographyplayer_contextmenu .contextmenu_submenu:hover{background-color:#619aa9;color:#fff;border:1px solid #fff}#discographyplayer .playlist .isselected{border:1px solid red}#discographyplayer .playlist .playlistentry{cursor:pointer;margin:1px 0}#discographyplayer .playlist .playlistentry .duration{float:right}#discographyplayer .playlist .playing{background:#619aa950}#discographyplayer .playlist .playlistheading{background:rgba(50,50,50,.4);margin:3px 0}#discographyplayer .playlist .playlistheading a:hover,#discographyplayer .playlist .playlistheading a:link,#discographyplayer .playlist .playlistheading a:visited{color:#eee;cursor:pointer}#discographyplayer .playlist .playlistheading a.notloaded{color:#ccc}#discographyplayer .playlist .playlistheading.notloaded{cursor:copy}#discographyplayer .vol{float:left;position:relative;width:100px;margin-left:1em;margin-top:1em}#discographyplayer .vol-icon-wrapper{font-size:20px;cursor:pointer;width:27px}#discographyplayer .vol-slider{width:60px;height:10px;position:relative;cursor:pointer}#discographyplayer .vol>*{display:inline-block;vertical-align:middle}#discographyplayer .vol-bg{background:rgba(50,50,50,.4);width:100%;margin-top:4px;height:3px;position:absolute}#discographyplayer .vol-amt{margin-top:4px;height:3px;position:absolute;background:#323232}#discographyplayer .vol-control-outer{height:100%;position:relative;margin-left:-3px;margin-right:5px}#discographyplayer .collect{float:left;margin-left:1em}#discographyplayer .{cursor:default;margin-top:.5em}#discographyplayer .collect-wishlist .wishlist-add{cursor:pointer}#discographyplayer .collect-listened{cursor:pointer;margin-top:.5em;margin-left:2px}#discographyplayer .collect .icon{height:13px;width:14px;display:inline-block;position:relative;top:2px}#discographyplayer .collect .add-item-icon{background-position:0 -73px}#discographyplayer .collect .collected-item-icon{background-position:-28px -73px}#discographyplayer .collect .own-item-icon{background-position:-42px -73px}#discographyplayer .collect .wishlist-add,#discographyplayer .collect .wishlist-collected,#discographyplayer .collect .wishlist-own,#discographyplayer .collect .wishlist-saving{display:none}#discographyplayer .collect .wishlist-add:hover .add-item-icon{background-position:-56px -73px}#discographyplayer .collect .wishlist-add .add-item-label:hover{text-decoration:underline}#discographyplayer .collect .listened,#discographyplayer .collect .listened-saving,#discographyplayer .collect .mark-listened{display:none}#discographyplayer .collect .listened .listened-symbol{color:#00dc32;text-shadow:1px 0 #ddd,-1px 0 #ddd,0 -1px #ddd,0 1px #ddd}#discographyplayer .collect .mark-listened .mark-listened-symbol{color:#fff;text-shadow:1px 0 #959595,-1px 0 #959595,0 -1px #959595,0 1px #959595}#discographyplayer .collect .mark-listened:hover .mark-listened-symbol{text-shadow:1px 0 #0af,-1px 0 #0af,0 -1px #0af,0 1px #0af}#discographyplayer .collect .mark-listened:hover .mark-listened-label{text-decoration:underline}#discographyplayer .closebutton,#discographyplayer .minimizebutton{position:absolute;top:1px;right:1px;border:1px solid #505958;color:#505958;font-size:10px;box-shadow:0 0 2px #505958;cursor:pointer;opacity:0;transition:opacity .3s;min-width:8px;min-height:13px;text-align:center}#discographyplayer .minimizebutton{right:13px}#discographyplayer .minimizebutton .minimized{display:none}#discographyplayer .minimizebutton.minimized .maximized{display:none}#discographyplayer .minimizebutton.minimized .minimized{display:inline}#discographyplayer:hover .closebutton,#discographyplayer:hover .minimizebutton{opacity:1}#discographyplayer .col{float:left;min-height:1px;position:relative}#discographyplayer .col25{width:25%}#discographyplayer .col35{width:35%}#discographyplayer .col30{width:30%}#discographyplayer .col15{width:14%}#discographyplayer .col20{width:20%}#discographyplayer .colcontrols{user-select:none}#discographyplayer .colvolumecontrols{margin-left:10px}.albumIsCurrentlyPlaying{border:2px solid #0f0}.albumIsCurrentlyPlaying+.art-play{display:none}.dig-deeper-item .albumIsCurrentlyPlaying,.music-grid-item .albumIsCurrentlyPlaying{border:none}.albumIsCurrentlyPlayingIndicator{display:none}.dig-deeper-item .albumIsCurrentlyPlayingIndicator,.music-grid-item .albumIsCurrentlyPlayingIndicator{position:absolute;display:block;width:74px;height:54px;left:50%;top:50%;margin-left:-36px;margin-top:-27px;opacity:.5;transition:opacity .2s}.albumIsCurrentlyPlayingIndicator .currentlyPlayingBg{position:absolute;width:100%;height:100%;left:0;top:0;background:#000;border-radius:4px}.albumIsCurrentlyPlayingIndicator .currentlyPlayingIcon{position:absolute;width:10px;height:20px;left:28px;top:17px;border-width:0 5px;border-color:#fff;border-style:solid}@media (max-width:1600px){#discographyplayer .controls>*{padding:4px 11px 5px 11px;height:18px}#discographyplayer .durationDisplay{margin-top:0}#discographyplayer .downloadlink:link{margin-top:0}}@media (max-width:1170px){#discographyplayer .colcontrols{width:39%}#discographyplayer .colvolumecontrols{display:none}}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rpc2NvZ3JhcGh5cGxheWVyLmNzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxLQUNFLE1BQU0sS0FFUixLQUNFLE1BQU0sS0FFUixtQkFDRSxRQUFRLEtBQ1IsU0FBUyxNQUNULE9BQU8sRUFDUCxPQUFPLEtBQ1AsTUFBTSxLQUNOLFlBQVksSUFDWixXQUFXLEtBQ1gsTUFBTSxRQUNOLFdBQVksSUFBSSxNQUFNLGdCQUN0QixLQUFNLElBQUksQ0FBQyxNQUFNLGdCQUFnQixDQUFDLFNBQVMsQ0FBQyxLQUFLLENBQUMsV0FDbEQsV0FBWSxPQUFPLElBRXJCLDBCQUEwQiw2QkFDeEIsTUFBTyxRQUNQLGdCQUFpQixLQUNqQixPQUFRLFFBRVYsMkJBQ0UsTUFBTyxRQUNQLGdCQUFpQixVQUNqQixPQUFRLFFBRTJCLHNDQUFyQyxxQ0FDSSxRQUFTLGFBQ1QsZUFBZ0IsSUFFcEIsbUNBQ0ksTUFBTyxLQUNQLE9BQVEsS0FDUixXQUFZLElBQ1osWUFBYSxJQUNiLGNBQWUsSUFFbkIscUNBQ0ksWUFBYSxLQUNiLFlBQWEsSUFDYixXQUFZLElBQ1osVUFBVyxrQkFFWCxPQUFRLEVBQUksTUFBTSxLQUNsQixRQUFTLEVBQ1QsTUFBTyxLQUNQLFdBQVksS0FDWixXQUFZLE9BRTZCLDRDQUE3Qyw0Q0FDRSxVQUFXLEtBQ1gsWUFBYSxJQUNiLE1BQU8sUUFDUCxPQUFPLEVBQ1AsUUFBUSxFQUVWLHFDQUNFLFFBQVEsYUFDUixlQUFnQixJQUNoQixTQUFVLE9BQ1YsV0FBWSxZQUFZLEdBQUcsWUFDM0IsTUFBTSxJQUVSLDhCQUNFLFFBQVEsYUFDUixlQUFnQixJQUNoQixNQUFNLEdBQ04sU0FBVSxPQUNWLFdBQVksTUFBTSxHQUFHLFlBRXZCLG9DQUNFLFdBQVcsS0FDWCxNQUFNLEtBRVIsc0NBQ0UsUUFBUSxNQUNSLE1BQU0sTUFDTixXQUFZLEtBQ1osVUFBVSxLQUNWLFFBQVMsRUFBSSxJQUNiLE1BQU8s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 */";
 
   var discographyplayerSidebarCSS = "@media (min-width:1600px){#menubar-wrapper:hover{z-index:1100}#discographyplayer{display:block;bottom:0;height:100vh;max-height:100vh;width:calc((100vw - 915px - 35px)/ 2);right:0;border-left:1px solid #0007;padding-left:1px}#discographyplayer .playlist{height:calc(100vh - 80px - 80px - 50px - 13px);max-height:calc(100vh - 80px - 80px - 50px - 13px)}#discographyplayer .playlist .playlistentry{overflow-x:hidden}#discographyplayer .col25{width:98%}#discographyplayer .col.nowPlaying{height:70px}#discographyplayer .col.col25.colcontrols{height:85px}#discographyplayer .col35{width:97%}#discographyplayer .col15{width:96%}#discographyplayer .colvolumecontrols{height:50px}#bufferbar,#playhead{height:25px;border-radius:0}#discographyplayer .audioplayer a.downloadlink{position:fixed;bottom:5px;right:5px;z-index:10}#discographyplayer .minimizebutton{display:none}#discographyplayer .currentlyPlaying{transition:margin-top 1s ease-in-out;width:99%;height:99%}#discographyplayer .nextInRow{height:0%;width:99%;transition:height 1s ease-in-out}}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rpc2NvZ3JhcGh5cGxheWVyU2lkZWJhci5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsMEJBQ0UsdUJBQ0UsUUFBUSxLQUVWLG1CQUNFLFFBQVMsTUFDVCxPQUFRLEVBQ1IsT0FBUSxNQUNSLFdBQVksTUFDWixNQUFPLGdDQUNQLE1BQU8sRUFDUCxZQUFhLElBQUksTUFBTSxNQUN2QixhQUFjLElBRWhCLDZCQUNFLE9BQVEsd0NBQ1IsV0FBWSx3Q0FFZCw0Q0FDRSxXQUFXLE9BRWIsMEJBQ0UsTUFBTyxJQUVULG1DQUNFLE9BQVEsS0FFViwwQ0FDRSxPQUFRLEtBRVYsMEJBQ0UsTUFBTyxJQUVULDBCQUNFLE1BQU8sSUFFVCxzQ0FDRSxPQUFRLEtBRUMsV0FBWCxVQUNFLE9BQVEsS0FDUixjQUFlLEVBRWpCLCtDQUNFLFNBQVUsTUFDVixPQUFRLElBQ1IsTUFBTyxJQUNQLFFBQVMsR0FFWCxtQ0FDRSxRQUFRLEtBRVYscUNBQ0UsV0FBWSxXQUFXLEdBQUcsWUFDMUIsTUFBTSxJQUNOLE9BQU8sSUFFVCw4QkFDRSxPQUFPLEdBQ1AsTUFBTSxJQUNOLFdBQVksT0FBTyxHQUFHIn0= */";
 
@@ -1009,6 +1009,10 @@ SOFTWARE.
     feedShowAudioControls: {
       name: 'Show play/pause/seek-bar in the feed',
       default: true
+    },
+    customReleaseDateFormat: {
+      name: 'Format release date on album page',
+      default: false
     }
   };
   const moreSettings = {
@@ -1172,6 +1176,59 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
         labelPostTimeout.setAttribute('for', 'bcsde_notification_timeout');
         labelPostTimeout.appendChild(document.createTextNode(' seconds (0 = show until manually closed or default value of browser)'));
       }
+    },
+    customReleaseDateFormat: {
+      true: async function populateCustomReleaseDateFormatSettings(container) {
+        const defaultFormat = '%YYYY%.%MM%.%DD%';
+        const onChange = async function () {
+          const input = this;
+          document.getElementById('bcsde_custom_release_date_format_str').classList.remove('errorblink');
+          let format = defaultFormat;
+          const customFormat = document.getElementById('bcsde_custom_release_date_format_str').value;
+          if (customFormat && customFormat.trim()) {
+            format = customFormat.trim();
+            await GM.setValue('custom_release_date_format_str', format);
+            input.style.boxShadow = '2px 2px 5px #0a0f';
+            window.setTimeout(function resetBoxShadowTimeout() {
+              input.style.boxShadow = '';
+            }, 3000);
+          } else {
+            document.getElementById('bcsde_custom_release_date_format_str').classList.add('errorblink');
+          }
+        };
+        const onKeyUp = function () {
+          let format = '';
+          const customFormat = document.getElementById('bcsde_custom_release_date_format_str').value;
+          const preview = document.getElementById('bcsde_custom_release_date_preview');
+          if (customFormat && customFormat.trim()) {
+            format = customFormat.trim();
+            preview.textContent = 'Preview: ' + customDateFormatter(format, new Date(981154800000));
+          } else {
+            preview.textContent = 'Preview:';
+          }
+        };
+        const labelFormat = container.appendChild(document.createElement('label'));
+        labelFormat.setAttribute('for', 'bcsde_custom_release_date_format_str');
+        labelFormat.appendChild(document.createTextNode('Custom format: '));
+        const inputFormat = container.appendChild(document.createElement('input'));
+        inputFormat.setAttribute('type', 'text');
+        inputFormat.setAttribute('size', '40');
+        inputFormat.setAttribute('value', await GM.getValue('custom_release_date_format_str', defaultFormat));
+        inputFormat.setAttribute('id', 'bcsde_custom_release_date_format_str');
+        inputFormat.addEventListener('change', onChange);
+        inputFormat.addEventListener('change', onKeyUp);
+        inputFormat.addEventListener('keyup', onKeyUp);
+        container.appendChild(document.createElement('br'));
+        const preview = container.appendChild(document.createElement('span'));
+        preview.setAttribute('id', 'bcsde_custom_release_date_preview');
+        preview.readOnly = true;
+        container.appendChild(document.createElement('br'));
+        const link = container.appendChild(document.createElement('a'));
+        link.setAttribute('target', '_blank');
+        link.setAttribute('href', 'https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/284#issuecomment-1563394077');
+        link.appendChild(document.createTextNode('Format options: %DD%, %MM%, %YYYY%, ...'));
+        onKeyUp();
+      }
     }
   };
   let player, audio, currentDuration, timeline, playhead, bufferbar;
@@ -1246,6 +1303,42 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
   }
   function fullfill(x) {
     return new Promise(resolve => resolve(x));
+  }
+  function customDateFormatter(format, date) {
+    const fields = {
+      '%isoDate%': () => date.toISOString(),
+      '%unix%': () => parseInt(date.getTime() / 1000),
+      '%YY%': () => date.getFullYear().toString().substring(2),
+      '%YYYY%': () => date.getFullYear(),
+      '%M%': () => date.getMonth() + 1,
+      '%MM%': () => padd(date.getMonth() + 1, 2, '0'),
+      '%Mon%': () => date.toLocaleString(undefined, {
+        month: 'short'
+      }),
+      '%Month%': () => date.toLocaleString(undefined, {
+        month: 'long'
+      }),
+      '%D%': () => date.getDate(),
+      '%DD%': () => padd(date.getDate(), 2, '0'),
+      '%Da%': () => date.toLocaleString(undefined, {
+        weekday: 'short'
+      }),
+      '%Day%': () => date.toLocaleString(undefined, {
+        weekday: 'long'
+      }),
+      '%Dord%': () => date.getDate() + (date.getDate() % 10 === 1 && date.getDate() !== 11 ? 'st' : date.getDate() % 10 === 2 && date.getDate() !== 12 ? 'nd' : date.getDate() % 10 === 3 && date.getDate() !== 13 ? 'rd' : 'th'),
+      '%json%': () => date.toJSON()
+    };
+    for (const field in fields) {
+      if (format.includes(field)) {
+        try {
+          format = format.replace(field, fields[field]());
+        } catch (e) {
+          console.log('customDateFormatter: Could not format replace "' + field + '": ' + e);
+        }
+      }
+    }
+    return format;
   }
   const stylesToInsert = [];
   function addStyle(css) {
@@ -1749,8 +1842,19 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       player.querySelector('.collect-wishlist .wishlist-collected').style.display = 'inline-block';
       collectWishlist.dataset.wishlist = 'collected';
     } else {
+      // Always show whishlist button for whole album
       player.querySelector('.collect-wishlist .wishlist-add').style.display = 'inline-block';
+      player.querySelector('.collect-wishlist .wishlist-add .album').style.display = 'inline';
       collectWishlist.dataset.wishlist = 'add';
+      if (next.dataset.isDownloadable === 'true' && next.dataset.trackUrl) {
+        // Only show wishlist button for single track if the track is downloadable and there is a track url
+        collectWishlist.dataset.trackUrl = next.dataset.trackUrl;
+        player.querySelector('.collect-wishlist .wishlist-add .track').style.display = 'inline';
+        player.querySelector('.collect-wishlist .wishlist-add .slash').style.display = 'inline';
+      } else {
+        player.querySelector('.collect-wishlist .wishlist-add .track').style.display = 'none';
+        player.querySelector('.collect-wishlist .wishlist-add .slash').style.display = 'none';
+      }
     }
 
     // Played/Listened
@@ -2406,7 +2510,11 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     if (player.querySelector('.collect-wishlist').dataset === 'own') {
       return;
     }
-    const url = player.querySelector('.collect-wishlist').dataset.albumUrl;
+    let url = player.querySelector('.collect-wishlist').dataset.albumUrl;
+    if (this.classList.contains('track') && player.querySelector('.collect-wishlist').dataset.trackUrl) {
+      // Wishlist track
+      url = player.querySelector('.collect-wishlist').dataset.trackUrl;
+    }
     player.querySelectorAll('.collect-wishlist>*').forEach(function (e) {
       e.style.display = 'none';
     });
@@ -2720,11 +2828,13 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     <div class="collect-wishlist">
       <a class="wishlist-default" href="https://bandcamp.com/wishlist">Wishlist</a>
 
-      <span class="wishlist-add" title="Add this album to your wishlist">
+      <span class="wishlist-add">
         <span class="bc-ui2 icon add-item-icon"></span>
-        <span class="add-item-label">Add to wishlist</span>
+        <span class="add-item-label track" title="Add this song to your wishlist">Add song</span>
+        <span class="slash">/</span>
+        <span class="add-item-label album" title="Add this album to your wishlist">Add album to wishlist</span>
       </span>
-      <span class="wishlist-collected" title="Remove this album from your wishlist">
+      <span class="wishlist-collected">
         <span class="bc-ui2 icon collected-item-icon"></span>
         <span>In Wishlist</span>
       </span>
@@ -2797,7 +2907,8 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       passive: false
     });
     player.querySelector('.vol-icon-wrapper').addEventListener('click', musicPlayerOnMuteClick);
-    player.querySelector('.collect-wishlist').addEventListener('click', musicPlayerCollectWishlistClick);
+    player.querySelector('.collect-wishlist .track').addEventListener('click', musicPlayerCollectWishlistClick);
+    player.querySelector('.collect-wishlist .album').addEventListener('click', musicPlayerCollectWishlistClick);
     player.querySelector('.collect-listened').addEventListener('click', musicPlayerCollectListenedClick);
     player.querySelector('.downloadlink').addEventListener('click', function onDownloadLinkClick(ev) {
       const addSpinner = el => el.classList.add('downloading');
@@ -2864,6 +2975,8 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     li.dataset.albumCover = data.albumCover;
     li.dataset.inWishlist = data.inWishlist;
     li.dataset.isPurchased = data.isPurchased;
+    li.dataset.isDownloadable = data.isDownloadable;
+    li.dataset.trackUrl = data.trackUrl;
     li.addEventListener('click', musicPlayerOnPlaylistClick);
     li.addEventListener('contextmenu', musicPlayerOnPlaylistContextMenu);
     li.className = 'playlistentry';
@@ -2880,6 +2993,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     }
   }
   function addAlbumToPlaylist(TralbumData, startPlaybackIndex = 0) {
+    console.log(TralbumData);
     let i = 0;
     const artist = TralbumData.artist;
     const album = TralbumData.current.title;
@@ -2896,18 +3010,22 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       const file = track.file[Object.keys(track.file)[0]];
       const title = track.title;
       const duration = track.duration;
+      const trackUrl = track.title_link;
       const inWishlist = 'tralbum_collect_info' in TralbumData && 'is_collected' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_collected;
+      const isDownloadable = track.is_downloadable === true;
       const isPurchased = 'tralbum_collect_info' in TralbumData && 'is_purchased' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_purchased;
       addToPlaylist(startPlaybackIndex === i++, {
         file,
         title,
         trackNumber,
+        trackUrl,
         duration,
         artist,
         album,
         albumUrl,
         albumCover,
         inWishlist,
+        isDownloadable,
         isPurchased
       });
       streamable++;
@@ -2992,6 +3110,11 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
             } else if (response.responseText.indexOf('data-tralbum="') !== -1) {
               const str = decodeHTMLentities(response.responseText.split('data-tralbum="')[1].split('"')[0]);
               TralbumData = JSON.parse(str);
+              // Try to add tralbum_collect_info / TralbumCollectInfo
+              if (TralbumData && response.responseText.indexOf('data-tralbum-collect-info="') !== -1) {
+                const collectInfoStr = decodeHTMLentities(response.responseText.split('data-tralbum-collect-info="')[1].split('"')[0]);
+                TralbumData.tralbum_collect_info = JSON.parse(collectInfoStr);
+              }
             }
           } catch (e) {
             window.alert('An error occured when parsing TralbumData from url=' + url + '.\n\nOriginal error:\n' + e);
@@ -6274,18 +6397,22 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     aSearch.addEventListener('click', showTagSearchForm);
   }
   function appendMainMenuButtonLeftTo(leftOf) {
-    const rect = leftOf.getBoundingClientRect();
-    const ul = document.createElement('ul');
-    ul.className = 'bcsde_settingsbar';
-    appendMainMenuButtonTo(document.body.appendChild(ul));
-    addStyle(`
-  .bcsde_settingsbar {position:absolute; top:-15px; left:${rect.right}px; list-style-type: none; padding:0; margin:0; opacity:0.6; transition:top 300ms}
-  .bcsde_settingsbar:hover {top:${rect.top}px}
-  .bcsde_settingsbar a:hover {text-decoration:none}
-  .bcsde_settingsbar li {float:left; padding:0; margin:0}`);
-    window.addEventListener('resize', function () {
-      ul.style.left = leftOf.getBoundingClientRect().right + 'px';
-    });
+    // Wait for the design to load images
+    window.setTimeout(() => {
+      const rect = leftOf.getBoundingClientRect();
+      console.log(rect);
+      const ul = document.createElement('ul');
+      ul.className = 'bcsde_settingsbar';
+      appendMainMenuButtonTo(document.body.appendChild(ul));
+      addStyle(`
+    .bcsde_settingsbar {position:absolute; top:-15px; left:${rect.right}px; list-style-type: none; padding:0; margin:0; opacity:0.6; transition:top 300ms}
+    .bcsde_settingsbar:hover {top:${rect.top}px}
+    .bcsde_settingsbar a:hover {text-decoration:none}
+    .bcsde_settingsbar li {float:left; padding:0; margin:0}`);
+      window.addEventListener('resize', function () {
+        ul.style.left = leftOf.getBoundingClientRect().right + 'px';
+      });
+    }, 500);
   }
   function humour() {
     if (document.getElementById('salesfeed')) {
@@ -6317,6 +6444,66 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         });
       });
     }
+  }
+  function formatReleaseDateOnAlbumPage() {
+    const textContainers = document.querySelectorAll('.tralbumData');
+    if (textContainers.length === 0) {
+      return;
+    }
+    GM.getValue('custom_release_date_format_str').then(function customFormatReleaseDate(format) {
+      if (!format || !format.trim()) {
+        console.warn('formatReleaseDateOnAlbumPage: No custom release date format string set.');
+        return;
+      }
+      textContainers.forEach(function (textContainer) {
+        for (const match of textContainer.innerHTML.matchAll(/(modified|released|published|recorded)\s+([^\n$]{6,})$/gim)) {
+          const epochMs = Date.parse(match[2].trim());
+          if (Number.isNaN(epochMs)) {
+            console.warn(`formatReleaseDateOnAlbumPage: Could not parse date string "${match[2].trim()}"`);
+            continue;
+          }
+          const date = new Date(epochMs);
+          textContainer.innerHTML = textContainer.innerHTML.replace(match[0], `${match[1]} ${customDateFormatter(format, date)}`);
+        }
+      });
+    });
+  }
+  function showDownloadLinkOnAlbumPage() {
+    if (!document.querySelector('a[href*="purchases?from=menubar"]')) {
+      return;
+    }
+    const purchasesUrl = document.querySelector('a[href*="purchases?from=menubar"]').href;
+    const itemUrl = document.location.href.split('#')[0];
+    GM.xmlHttpRequest({
+      method: 'GET',
+      url: purchasesUrl,
+      onload: function loadPurchases(response) {
+        const doc = new window.DOMParser().parseFromString(response.responseText, 'text/html').documentElement;
+        for (const purchasesItem of Array.from(doc.querySelectorAll('.purchases-item'))) {
+          if (!purchasesItem.querySelector('.purchases-item-title[href]')) {
+            continue;
+          }
+          const url = purchasesItem.querySelector('.purchases-item-title[href]').href;
+          if (url !== itemUrl) {
+            continue;
+          }
+          const downloadLink = purchasesItem.querySelector('.purchases-item-download a[href]');
+          if (!downloadLink && !downloadLink.href) {
+            continue;
+          }
+          const purchasedMsgA = document.querySelector('#purchased-msg a');
+          purchasedMsgA.href = downloadLink.href;
+          purchasedMsgA.textContent = 'Download';
+          return;
+        }
+
+        // TODO if no match was found, load the next batch of download links, see https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/288
+      },
+
+      onerror: function loadPurchasesError(response) {
+        console.log('showDownloadLinkOnAlbumPage() in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''));
+      }
+    });
   }
   function feedShowOnlyNewReleases() {
     const stories = document.querySelectorAll('#stories li.story');
@@ -6644,6 +6831,9 @@ If this is a malicious website, running the userscript may leak personal data (e
           addReleaseDateButton();
         }
       }
+      if (unsafeWindow.TralbumData && unsafeWindow.TralbumData.tralbum_collect_info && unsafeWindow.TralbumData.tralbum_collect_info.is_purchased) {
+        showDownloadLinkOnAlbumPage();
+      }
       GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu);
       if (document.getElementById('user-nav')) {
         appendMainMenuButtonTo(document.getElementById('user-nav'));
@@ -6683,6 +6873,9 @@ If this is a malicious website, running the userscript may leak personal data (e
       }
       if (allFeatures.backupReminder.enabled && !IS_PLAYER_FRAME) {
         checkBackupStatus();
+      }
+      if (allFeatures.customReleaseDateFormat.enabled) {
+        formatReleaseDateOnAlbumPage();
       }
       if (allFeatures.showAlbumID.enabled) {
         showAlbumID();
