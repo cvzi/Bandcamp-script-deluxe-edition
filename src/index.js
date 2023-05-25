@@ -120,7 +120,11 @@ const allFeatures = {
   feedShowAudioControls: {
     name: 'Show play/pause/seek-bar in the feed',
     default: true
-  }
+  },
+  customReleaseDateFormat: {
+    name: 'Format release date on album page',
+    default: false
+  },
 }
 
 const moreSettings = {
@@ -294,6 +298,64 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`
       labelPostTimeout.setAttribute('for', 'bcsde_notification_timeout')
       labelPostTimeout.appendChild(document.createTextNode(' seconds (0 = show until manually closed or default value of browser)'))
     }
+  },
+  customReleaseDateFormat: {
+    true: async function populateCustomReleaseDateFormatSettings (container) {
+      const defaultFormat = '%YYYY%.%MM%.%DD%'
+      const onChange = async function () {
+        const input = this
+        document.getElementById('bcsde_custom_release_date_format_str').classList.remove('errorblink')
+
+        let format = defaultFormat
+        const customFormat = document.getElementById('bcsde_custom_release_date_format_str').value
+        if (customFormat && customFormat.trim()) {
+          format = customFormat.trim()
+
+          await GM.setValue('custom_release_date_format_str', format)
+          input.style.boxShadow = '2px 2px 5px #0a0f'
+          window.setTimeout(function resetBoxShadowTimeout () {
+            input.style.boxShadow = ''
+          }, 3000)
+        } else {
+          document.getElementById('bcsde_custom_release_date_format_str').classList.add('errorblink')
+        }
+      }
+
+      const onKeyUp = function () {
+        let format = ''
+        const customFormat = document.getElementById('bcsde_custom_release_date_format_str').value
+        const preview = document.getElementById('bcsde_custom_release_date_preview')
+        if (customFormat && customFormat.trim()) {
+          format = customFormat.trim()
+          preview.textContent = 'Preview: ' + customDateFormatter(format, new Date(981154800000))
+        } else {
+          preview.textContent = 'Preview:'
+        }
+      }
+
+      const labelFormat = container.appendChild(document.createElement('label'))
+      labelFormat.setAttribute('for', 'bcsde_custom_release_date_format_str')
+      labelFormat.appendChild(document.createTextNode('Custom format: '))
+      const inputFormat = container.appendChild(document.createElement('input'))
+      inputFormat.setAttribute('type', 'text')
+      inputFormat.setAttribute('size', '40')
+      inputFormat.setAttribute('value', (await GM.getValue('custom_release_date_format_str', defaultFormat)))
+      inputFormat.setAttribute('id', 'bcsde_custom_release_date_format_str')
+      inputFormat.addEventListener('change', onChange)
+      inputFormat.addEventListener('change', onKeyUp)
+      inputFormat.addEventListener('keyup', onKeyUp)
+      container.appendChild(document.createElement('br'))
+      const preview = container.appendChild(document.createElement('span'))
+      preview.setAttribute('id', 'bcsde_custom_release_date_preview')
+      preview.readOnly = true
+      container.appendChild(document.createElement('br'))
+      const link = container.appendChild(document.createElement('a'))
+      link.setAttribute('target', '_blank')
+      link.setAttribute('href', 'https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/284#issuecomment-1563394077')
+      link.appendChild(document.createTextNode('Format options: %DD%, %MM%, %YYYY%, ...'))
+
+      onKeyUp()
+    }
   }
 
 }
@@ -379,6 +441,36 @@ function fixFilename (s) {
 
 function fullfill (x) {
   return new Promise(resolve => resolve(x))
+}
+
+function customDateFormatter (format, date) {
+  const fields = {
+    '%isoDate%': () => date.toISOString(),
+    '%unix%': () => parseInt(date.getTime() / 1000),
+    '%YY%': () => date.getFullYear().toString().substring(2),
+    '%YYYY%': () => date.getFullYear(),
+    '%M%': () => date.getMonth() + 1,
+    '%MM%': () => padd(date.getMonth() + 1, 2, '0'),
+    '%Mon%': () => date.toLocaleString(undefined, { month: 'short' }),
+    '%Month%': () => date.toLocaleString(undefined, { month: 'long' }),
+    '%D%': () => date.getDate(),
+    '%DD%': () => padd(date.getDate(), 2, '0'),
+    '%Da%': () => date.toLocaleString(undefined, { weekday: 'short' }),
+    '%Day%': () => date.toLocaleString(undefined, { weekday: 'long' }),
+    '%Dord%': () => date.getDate() + (date.getDate() % 10 === 1 && date.getDate() !== 11 ? 'st' : (date.getDate() % 10 === 2 && date.getDate() !== 12 ? 'nd' : (date.getDate() % 10 === 3 && date.getDate() !== 13 ? 'rd' : 'th'))),
+    '%json%': () => date.toJSON()
+  }
+
+  for (const field in fields) {
+    if (format.includes(field)) {
+      try {
+        format = format.replace(field, fields[field]())
+      } catch (e) {
+        console.log('customDateFormatter: Could not format replace "' + field + '": ' + e)
+      }
+    }
+  }
+  return format
 }
 
 const stylesToInsert = []
@@ -882,8 +974,19 @@ function musicPlayerPlaySong (next, startTime) {
     player.querySelector('.collect-wishlist .wishlist-collected').style.display = 'inline-block'
     collectWishlist.dataset.wishlist = 'collected'
   } else {
+    // Always show whishlist button for whole album
     player.querySelector('.collect-wishlist .wishlist-add').style.display = 'inline-block'
+    player.querySelector('.collect-wishlist .wishlist-add .album').style.display = 'inline'
     collectWishlist.dataset.wishlist = 'add'
+    if (next.dataset.isDownloadable === 'true' && next.dataset.trackUrl) {
+      // Only show wishlist button for single track if the track is downloadable and there is a track url
+      collectWishlist.dataset.trackUrl = next.dataset.trackUrl
+      player.querySelector('.collect-wishlist .wishlist-add .track').style.display = 'inline'
+      player.querySelector('.collect-wishlist .wishlist-add .slash').style.display = 'inline'
+    } else {
+      player.querySelector('.collect-wishlist .wishlist-add .track').style.display = 'none'
+      player.querySelector('.collect-wishlist .wishlist-add .slash').style.display = 'none'
+    }
   }
 
   // Played/Listened
@@ -1568,7 +1671,11 @@ function musicPlayerCollectWishlistClick (ev) {
     return
   }
 
-  const url = player.querySelector('.collect-wishlist').dataset.albumUrl
+  let url = player.querySelector('.collect-wishlist').dataset.albumUrl
+  if (this.classList.contains('track') && player.querySelector('.collect-wishlist').dataset.trackUrl) {
+    // Wishlist track
+    url = player.querySelector('.collect-wishlist').dataset.trackUrl
+  }
 
   player.querySelectorAll('.collect-wishlist>*').forEach(function (e) { e.style.display = 'none' })
 
@@ -1900,11 +2007,13 @@ function musicPlayerCreate () {
     <div class="collect-wishlist">
       <a class="wishlist-default" href="https://bandcamp.com/wishlist">Wishlist</a>
 
-      <span class="wishlist-add" title="Add this album to your wishlist">
+      <span class="wishlist-add">
         <span class="bc-ui2 icon add-item-icon"></span>
-        <span class="add-item-label">Add to wishlist</span>
+        <span class="add-item-label track" title="Add this song to your wishlist">Add song</span>
+        <span class="slash">/</span>
+        <span class="add-item-label album" title="Add this album to your wishlist">Add album to wishlist</span>
       </span>
-      <span class="wishlist-collected" title="Remove this album from your wishlist">
+      <span class="wishlist-collected">
         <span class="bc-ui2 icon collected-item-icon"></span>
         <span>In Wishlist</span>
       </span>
@@ -1982,7 +2091,8 @@ function musicPlayerCreate () {
   player.querySelector('.vol').addEventListener('wheel', musicPlayerOnVolumeWheel, { passive: false })
   player.querySelector('.vol-icon-wrapper').addEventListener('click', musicPlayerOnMuteClick)
 
-  player.querySelector('.collect-wishlist').addEventListener('click', musicPlayerCollectWishlistClick)
+  player.querySelector('.collect-wishlist .track').addEventListener('click', musicPlayerCollectWishlistClick)
+  player.querySelector('.collect-wishlist .album').addEventListener('click', musicPlayerCollectWishlistClick)
   player.querySelector('.collect-listened').addEventListener('click', musicPlayerCollectListenedClick)
 
   player.querySelector('.downloadlink').addEventListener('click', function onDownloadLinkClick (ev) {
@@ -2057,6 +2167,8 @@ function addToPlaylist (startPlayback, data) {
   li.dataset.albumCover = data.albumCover
   li.dataset.inWishlist = data.inWishlist
   li.dataset.isPurchased = data.isPurchased
+  li.dataset.isDownloadable = data.isDownloadable
+  li.dataset.trackUrl = data.trackUrl
 
   li.addEventListener('click', musicPlayerOnPlaylistClick)
   li.addEventListener('contextmenu', musicPlayerOnPlaylistContextMenu)
@@ -2074,6 +2186,7 @@ function addToPlaylist (startPlayback, data) {
 }
 
 function addAlbumToPlaylist (TralbumData, startPlaybackIndex = 0) {
+  console.log(TralbumData)
   let i = 0
   const artist = TralbumData.artist
   const album = TralbumData.current.title
@@ -2090,18 +2203,22 @@ function addAlbumToPlaylist (TralbumData, startPlaybackIndex = 0) {
     const file = track.file[Object.keys(track.file)[0]]
     const title = track.title
     const duration = track.duration
+    const trackUrl = track.title_link
     const inWishlist = 'tralbum_collect_info' in TralbumData && 'is_collected' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_collected
+    const isDownloadable = track.is_downloadable === true
     const isPurchased = 'tralbum_collect_info' in TralbumData && 'is_purchased' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_purchased
     addToPlaylist(startPlaybackIndex === i++, {
       file,
       title,
       trackNumber,
+      trackUrl,
       duration,
       artist,
       album,
       albumUrl,
       albumCover,
       inWishlist,
+      isDownloadable,
       isPurchased
     })
     streamable++
@@ -2189,6 +2306,11 @@ function getTralbumData (url, cb, retry = true) {
           } else if (response.responseText.indexOf('data-tralbum="') !== -1) {
             const str = decodeHTMLentities(response.responseText.split('data-tralbum="')[1].split('"')[0])
             TralbumData = JSON.parse(str)
+            // Try to add tralbum_collect_info / TralbumCollectInfo
+            if (TralbumData && response.responseText.indexOf('data-tralbum-collect-info="') !== -1) {
+              const collectInfoStr = decodeHTMLentities(response.responseText.split('data-tralbum-collect-info="')[1].split('"')[0])
+              TralbumData.tralbum_collect_info = JSON.parse(collectInfoStr)
+            }
           }
         } catch (e) {
           window.alert('An error occured when parsing TralbumData from url=' + url + '.\n\nOriginal error:\n' + e)
@@ -5762,18 +5884,22 @@ function appendMainMenuButtonTo (ul) {
 }
 
 function appendMainMenuButtonLeftTo (leftOf) {
-  const rect = leftOf.getBoundingClientRect()
-  const ul = document.createElement('ul')
-  ul.className = 'bcsde_settingsbar'
-  appendMainMenuButtonTo(document.body.appendChild(ul))
-  addStyle(`
-  .bcsde_settingsbar {position:absolute; top:-15px; left:${rect.right}px; list-style-type: none; padding:0; margin:0; opacity:0.6; transition:top 300ms}
-  .bcsde_settingsbar:hover {top:${rect.top}px}
-  .bcsde_settingsbar a:hover {text-decoration:none}
-  .bcsde_settingsbar li {float:left; padding:0; margin:0}`)
-  window.addEventListener('resize', function () {
-    ul.style.left = leftOf.getBoundingClientRect().right + 'px'
-  })
+  // Wait for the design to load images
+  window.setTimeout(() => {
+    const rect = leftOf.getBoundingClientRect()
+    console.log(rect)
+    const ul = document.createElement('ul')
+    ul.className = 'bcsde_settingsbar'
+    appendMainMenuButtonTo(document.body.appendChild(ul))
+    addStyle(`
+    .bcsde_settingsbar {position:absolute; top:-15px; left:${rect.right}px; list-style-type: none; padding:0; margin:0; opacity:0.6; transition:top 300ms}
+    .bcsde_settingsbar:hover {top:${rect.top}px}
+    .bcsde_settingsbar a:hover {text-decoration:none}
+    .bcsde_settingsbar li {float:left; padding:0; margin:0}`)
+    window.addEventListener('resize', function () {
+      ul.style.left = leftOf.getBoundingClientRect().right + 'px'
+    })
+  }, 500)
 }
 
 function humour () {
@@ -5811,6 +5937,70 @@ function showAlbumID () {
       })
     })
   }
+}
+
+function formatReleaseDateOnAlbumPage () {
+  const textContainers = document.querySelectorAll('.tralbumData')
+  if (textContainers.length === 0) {
+    return
+  }
+
+  GM.getValue('custom_release_date_format_str').then(function customFormatReleaseDate (format) {
+    if (!format || !format.trim()) {
+      console.warn('formatReleaseDateOnAlbumPage: No custom release date format string set.')
+      return
+    }
+
+    textContainers.forEach(function (textContainer) {
+      for (const match of textContainer.innerHTML.matchAll(/(modified|released|published|recorded)\s+([^\n$]{6,})$/gim)) {
+        const epochMs = Date.parse(match[2].trim())
+        if (Number.isNaN(epochMs)) {
+          console.warn(`formatReleaseDateOnAlbumPage: Could not parse date string "${match[2].trim()}"`)
+          continue
+        }
+        const date = new Date(epochMs)
+        textContainer.innerHTML = textContainer.innerHTML.replace(match[0], `${match[1]} ${customDateFormatter(format, date)}`)
+      }
+    })
+  })
+}
+
+function showDownloadLinkOnAlbumPage () {
+  if (!document.querySelector('a[href*="purchases?from=menubar"]')) {
+    return
+  }
+  const purchasesUrl = document.querySelector('a[href*="purchases?from=menubar"]').href
+  const itemUrl = document.location.href.split('#')[0]
+  GM.xmlHttpRequest({
+    method: 'GET',
+    url: purchasesUrl,
+    onload: function loadPurchases (response) {
+      const doc = new window.DOMParser().parseFromString(response.responseText, 'text/html').documentElement
+
+      for (const purchasesItem of Array.from(doc.querySelectorAll('.purchases-item'))) {
+        if (!purchasesItem.querySelector('.purchases-item-title[href]')) {
+          continue
+        }
+        const url = purchasesItem.querySelector('.purchases-item-title[href]').href
+        if (url !== itemUrl) {
+          continue
+        }
+        const downloadLink = purchasesItem.querySelector('.purchases-item-download a[href]')
+        if (!downloadLink && !downloadLink.href) {
+          continue
+        }
+        const purchasedMsgA = document.querySelector('#purchased-msg a')
+        purchasedMsgA.href = downloadLink.href
+        purchasedMsgA.textContent = 'Download'
+        return
+      }
+
+      // TODO if no match was found, load the next batch of download links, see https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/288
+    },
+    onerror: function loadPurchasesError (response) {
+      console.log('showDownloadLinkOnAlbumPage() in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
+    }
+  })
 }
 
 function feedShowOnlyNewReleases () {
@@ -6170,6 +6360,10 @@ function onLoaded () {
       }
     }
 
+    if (unsafeWindow.TralbumData && unsafeWindow.TralbumData.tralbum_collect_info && unsafeWindow.TralbumData.tralbum_collect_info.is_purchased) {
+      showDownloadLinkOnAlbumPage()
+    }
+
     GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu)
     if (document.getElementById('user-nav')) {
       appendMainMenuButtonTo(document.getElementById('user-nav'))
@@ -6214,6 +6408,10 @@ function onLoaded () {
 
     if (allFeatures.backupReminder.enabled && !IS_PLAYER_FRAME) {
       checkBackupStatus()
+    }
+
+    if (allFeatures.customReleaseDateFormat.enabled) {
+      formatReleaseDateOnAlbumPage()
     }
 
     if (allFeatures.showAlbumID.enabled) {

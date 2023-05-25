@@ -309,7 +309,7 @@
   float:left;
   margin-left: 1em;
 }
-#discographyplayer .collect-wishlist {
+#discographyplayer . {
   cursor:default;
   margin-top:0.5em;
 }
@@ -343,7 +343,7 @@
 #discographyplayer .collect .wishlist-add:hover .add-item-icon{
   background-position: -56px -73px;
 }
-#discographyplayer .collect .wishlist-add:hover .add-item-label{
+#discographyplayer .collect .wishlist-add .add-item-label:hover{
   text-decoration:underline;
 }
 #discographyplayer .collect .listened,#discographyplayer .collect .mark-listened, #discographyplayer .collect .listened-saving{
