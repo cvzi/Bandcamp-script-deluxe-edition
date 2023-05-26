@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.26.1](../../tree/v1.26.0) *(2023-05-25)*
+*   Format album release date: Fix for preorder albums [#284](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/284)
 ## [1.26.0](../../tree/v1.26.0) *(2023-05-25)*
 *   Add tracks to whishlist from player [#285](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/285)
 *   Format album release date [#284](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/284)

@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.26.0
+// @version         1.26.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -6456,14 +6456,14 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         return;
       }
       textContainers.forEach(function (textContainer) {
-        for (const match of textContainer.innerHTML.matchAll(/(modified|released|published|recorded)\s+([^\n$]{6,})$/gim)) {
-          const epochMs = Date.parse(match[2].trim());
+        for (const match of textContainer.innerHTML.matchAll(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})/gim)) {
+          const epochMs = Date.parse(match[0]);
           if (Number.isNaN(epochMs)) {
-            console.warn(`formatReleaseDateOnAlbumPage: Could not parse date string "${match[2].trim()}"`);
+            console.warn(`formatReleaseDateOnAlbumPage: Could not parse date string "${match[0].trim()}"`);
             continue;
           }
           const date = new Date(epochMs);
-          textContainer.innerHTML = textContainer.innerHTML.replace(match[0], `${match[1]} ${customDateFormatter(format, date)}`);
+          textContainer.innerHTML = textContainer.innerHTML.replace(match[0], `${customDateFormatter(format, date)}`);
         }
       });
     });
