@@ -1,6 +1,8 @@
 # Changelog
 
-## [1.26.1](../../tree/v1.26.0) *(2023-05-25)*
+## [1.27.0](../../tree/v1.27.0) *(2023-06-05)*
+*   Delete album with right-click in library/explorer [#293](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/293)
+## [1.26.1](../../tree/v1.26.1) *(2023-05-26)*
 *   Format album release date: Fix for preorder albums [#284](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/284)
 ## [1.26.0](../../tree/v1.26.0) *(2023-05-25)*
 *   Add tracks to whishlist from player [#285](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/285)

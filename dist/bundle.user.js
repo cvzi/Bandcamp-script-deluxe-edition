@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.26.1
+// @version         1.27.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -813,6 +813,22 @@ SOFTWARE.
             });
           }, 1);
         });
+        _defineProperty(this, "handleContextMenu", ev => {
+          ev.preventDefault();
+          ev.target.classList.add('selected');
+          const TralbumData = this.state.TralbumData;
+          const url = TralbumData.url;
+          if (!confirm(`Delete album "${TralbumData.current.title}" by ${TralbumData.artist}?`)) {
+            ev.target.classList.remove('selected');
+            return;
+          }
+          window.setTimeout(() => {
+            runHooks('deletePermanentTralbum', url).then(function () {
+              ev.target.classList.remove('selected');
+              ev.target.style.visibility = 'hidden';
+            });
+          }, 1);
+        });
         this.state = {
           TralbumData: props.data.library[Object.keys(props.data.library)[props.index]]
         };
@@ -821,6 +837,7 @@ SOFTWARE.
         return /*#__PURE__*/React__namespace.createElement("div", {
           className: `albumListItem ${this.props.index % 2 ? 'albumListItemOdd' : ''}`,
           onClick: this.handleAlbumClick,
+          onContextMenu: this.handleContextMenu,
           title: "Click to play",
           style: this.props.style
         }, this.state.TralbumData.artist, " - ", this.state.TralbumData.current.title);
@@ -876,9 +893,9 @@ SOFTWARE.
       }
     }
     this.render = function () {
-      ReactDOM__namespace.render( /*#__PURE__*/React__namespace.createElement(AlbumList, {
+      ReactDOM__namespace.createRoot(root).render( /*#__PURE__*/React__namespace.createElement(AlbumList, {
         getKey: "tralbumlibrary"
-      }), root);
+      }));
     };
   }
 
@@ -3273,18 +3290,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     if (!storeTralbumDataPermanentlySwitch) {
       return;
     }
-    let library;
-    try {
-      library = JSON.parse(await GM.getValue('tralbumlibrary', '{}'));
-    } catch (e) {
-      if (e instanceof DOMException && e.code === DOMException.INVALID_CHARACTER_ERR) {
-        console.error("Could not read GM.getValue('tralbumlibrary')", e);
-        await GM.setValue('tralbumlibrary', '{}');
-        library = {};
-      } else {
-        throw e;
-      }
-    }
+    const library = JSON.parse(await GM.getValue('tralbumlibrary', '{}'));
     const key = albumKey(TralbumData.url);
     if (key in library) {
       library[key] = Object.assign(library[key], TralbumData);
@@ -3292,6 +3298,16 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       library[key] = TralbumData;
     }
     await GM.setValue('tralbumlibrary', JSON.stringify(library));
+  }
+  async function deletePermanentTralbum(url) {
+    const library = JSON.parse(await GM.getValue('tralbumlibrary', '{}'));
+    const key = albumKey(url);
+    if (key in library) {
+      delete library[key];
+      await GM.setValue('tralbumlibrary', JSON.stringify(library));
+      return key;
+    }
+    return null;
   }
   function playAlbumFromCover(ev, url) {
     let parent = this;
@@ -6318,9 +6334,14 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
   background:greenyellow
 }
 
+#expRoot .albumListItem.selected{
+  background:#aaa;
+}
+
   `);
     new Explorer(document.getElementById('expRoot'), {
-      playAlbumFromUrl
+      playAlbumFromUrl,
+      deletePermanentTralbum
     }).render();
   }
   function appendMainMenuButtonTo(ul) {
