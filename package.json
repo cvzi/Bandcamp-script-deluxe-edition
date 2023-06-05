@@ -60,7 +60,7 @@
         "rollup-plugin-string": "^3.0.0",
         "rollup-plugin-userscript-metablock": "^0.3.3",
         "serve": "^14.2.0",
-        "standard": "^17.0.0"
+        "standard": "^17.1.0"
     },
     "dependencies": {
         "react": "^18.2.0",
