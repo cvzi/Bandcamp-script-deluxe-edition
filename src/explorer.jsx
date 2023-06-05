@@ -33,9 +33,35 @@ export default function Explorer (root, hooks) {
       }, 1)
     }
 
+    handleContextMenu = (ev) => {
+      ev.preventDefault()
+      ev.target.classList.add('selected')
+
+      const TralbumData = this.state.TralbumData
+      const url = TralbumData.url
+
+      if (!confirm(`Delete album "${TralbumData.current.title}" by ${TralbumData.artist}?`)) {
+        ev.target.classList.remove('selected')
+        return
+      }
+
+      window.setTimeout(() => {
+        runHooks('deletePermanentTralbum', url).then(function () {
+          ev.target.classList.remove('selected')
+          ev.target.style.visibility = 'hidden'
+        })
+      }, 1)
+    }
+
     render () {
       return (
-        <div className={`albumListItem ${this.props.index % 2 ? 'albumListItemOdd' : ''}`} onClick={this.handleAlbumClick} title='Click to play' style={this.props.style}>
+        <div
+          className={`albumListItem ${this.props.index % 2 ? 'albumListItemOdd' : ''}`}
+          onClick={this.handleAlbumClick}
+          onContextMenu={this.handleContextMenu}
+          title='Click to play'
+          style={this.props.style}
+        >
           {this.state.TralbumData.artist} - {this.state.TralbumData.current.title}
         </div>
       )
@@ -89,9 +115,8 @@ export default function Explorer (root, hooks) {
   }
 
   this.render = function () {
-    ReactDOM.render(
+    ReactDOM.createRoot(root).render(
       <AlbumList getKey='tralbumlibrary' />,
-      root
     )
   }
 }

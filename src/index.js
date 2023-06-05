@@ -2474,19 +2474,7 @@ async function storeTralbumDataPermanently (TralbumData) {
   if (!storeTralbumDataPermanentlySwitch) {
     return
   }
-  let library
-  try {
-    library = JSON.parse(await GM.getValue('tralbumlibrary', '{}'))
-  } catch (e) {
-    if (e instanceof DOMException && e.code === DOMException.INVALID_CHARACTER_ERR) {
-      console.error("Could not read GM.getValue('tralbumlibrary')", e)
-      await GM.setValue('tralbumlibrary', '{}')
-      library = {}
-    } else {
-      throw e
-    }
-  }
-
+  const library = JSON.parse(await GM.getValue('tralbumlibrary', '{}'))
   const key = albumKey(TralbumData.url)
   if (key in library) {
     library[key] = Object.assign(library[key], TralbumData)
@@ -2494,6 +2482,18 @@ async function storeTralbumDataPermanently (TralbumData) {
     library[key] = TralbumData
   }
   await GM.setValue('tralbumlibrary', JSON.stringify(library))
+}
+
+async function deletePermanentTralbum (url) {
+  const library = JSON.parse(await GM.getValue('tralbumlibrary', '{}'))
+
+  const key = albumKey(url)
+  if (key in library) {
+    delete library[key]
+    await GM.setValue('tralbumlibrary', JSON.stringify(library))
+    return key
+  }
+  return null
 }
 
 function playAlbumFromCover (ev, url) {
@@ -5800,10 +5800,15 @@ async function showExplorer () {
   background:greenyellow
 }
 
+#expRoot .albumListItem.selected{
+  background:#aaa;
+}
+
   `)
 
   new Explorer(document.getElementById('expRoot'), {
-    playAlbumFromUrl
+    playAlbumFromUrl,
+    deletePermanentTralbum,
   }).render()
 }
 
