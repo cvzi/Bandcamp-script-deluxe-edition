@@ -33,6 +33,8 @@ Features:
 
 Discography player:
 
+ *   The discography can also be opend from any album page: hover the mouse over the top right corner of the album art and a play button appears.
+
 ![Screenshot of discography page](screenshots/screenshotDiscographyPage.webp)
 
 Album page:

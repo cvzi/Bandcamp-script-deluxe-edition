@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.28.0](../../tree/v1.28.0) *(2023-06-06)*
+*   Open discography player by hovering over right corner of album art on album page [#292](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/292)
 ## [1.27.0](../../tree/v1.27.0) *(2023-06-05)*
 *   Delete album with right-click in library/explorer [#293](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/293)
 ## [1.26.1](../../tree/v1.26.1) *(2023-05-26)*

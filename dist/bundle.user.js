@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.27.0
+// @version         1.28.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -5994,6 +5994,89 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       }
     }
   }
+  function addOpenDiscographyPlayerFromAlbumPage() {
+    // Open discrography player by clicking on top right corner of album art
+    // Shows the usual play button on hover
+    const xRatio = 0.7;
+    const yRatio = 0.3;
+    let rect = null;
+    const isInRatio = function isInRatio(ev) {
+      rect = rect || ev.target.getBoundingClientRect();
+      const x = ev.clientX - rect.left;
+      const y = ev.clientY - rect.top;
+      return x > rect.width * xRatio && y < rect.height * yRatio;
+    };
+    const a = document.querySelector('#tralbumArt a.popupImage');
+    if (!a) {
+      return;
+    }
+    const div = a.appendChild(document.createElement('div'));
+    div.classList.add('art-play');
+    div.innerHTML = '<div class="art-play-bg"></div><div class="art-play-icon"></div>';
+    a.classList.add('playFromAlbumPage');
+    addStyle(`
+  .playFromAlbumPage .art-play {
+    position: absolute;
+    width: 74px;
+    height: 54px;
+    right: 7%;
+    top: 15%;
+    margin-left: -36px;
+    margin-top: -27px;
+    opacity: 0.0;
+    transition: opacity 0.2s;
+  }
+  .playFromAlbumPage .art-play-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: #000;
+    border-radius: 4px;
+  }
+  .playFromAlbumPage .art-play-icon {
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: 28px;
+    top: 17px;
+    border-width: 10px 0 10px 17px;
+    border-color: transparent transparent transparent #fff;
+    border-style: dashed dashed dashed solid;
+  }
+  `);
+    a.addEventListener('click', function onAlbumArtClick(ev) {
+      if (isInRatio(ev)) {
+        // Open player
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (unsafeWindow.TralbumData) {
+          addAlbumToPlaylist(unsafeWindow.TralbumData);
+        } else {
+          playAlbumFromUrl(document.location.href);
+        }
+      }
+    }, true);
+    a.addEventListener('mouseover', function onAlbumArtOver(ev) {
+      if (isInRatio(ev)) {
+        a.querySelector('.art-play').style.opacity = 0.7;
+      } else {
+        a.querySelector('.art-play').style.opacity = 0.0;
+      }
+    });
+    a.addEventListener('mousemove', function onAlbumArtOver(ev) {
+      if (isInRatio(ev)) {
+        a.querySelector('.art-play').style.opacity = 0.7;
+      } else {
+        a.querySelector('.art-play').style.opacity = 0.0;
+      }
+    });
+    a.addEventListener('mouseleave', function onAlbumArtOver(ev) {
+      rect = null;
+      a.querySelector('.art-play').style.opacity = 0.0;
+    });
+  }
   function addLyricsToAlbumPage() {
     // Load lyrics from html into TralbumData
     const TralbumData = unsafeWindow.TralbumData;
@@ -6831,6 +6914,9 @@ If this is a malicious website, running the userscript may leak personal data (e
         }
         if (allFeatures.albumPageLyrics.enabled) {
           window.setTimeout(addLyricsToAlbumPage, 500);
+        }
+        if (allFeatures.discographyplayer.enabled) {
+          addOpenDiscographyPlayerFromAlbumPage();
         }
       }
       if (document.location.pathname.startsWith('/tag/')) {
