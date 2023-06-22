@@ -466,7 +466,7 @@ function customDateFormatter (format, date) {
       try {
         format = format.replace(field, fields[field]())
       } catch (e) {
-        console.log('customDateFormatter: Could not format replace "' + field + '": ' + e)
+        console.error('customDateFormatter: Could not format replace "' + field + '": ' + e)
       }
     }
   }
@@ -633,7 +633,7 @@ function loadCrossSiteImage (url) {
           img1.src = dataurl
         },
         onerror: function (response) {
-          console.log('loadCrossSiteImage("' + url + '") Error: ' + response.status + '\n' + ('error' in response ? response.error : ''))
+          console.error('loadCrossSiteImage("' + url + '") Error: ' + response.status + '\n' + ('error' in response ? response.error : ''))
           reject(new Error('error' in response ? response.error : 'loadCrossSiteImage failed'))
         }
       })
@@ -730,10 +730,9 @@ function getGPSLocation () {
         longitude: position.coords.longitude
       })
     }, function onError (err) {
-      console.log('getGPSLocation Error:')
-      console.log(err)
+      console.error('getGPSLocation Error:', err)
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-      console.log('getGPSLocation: Timezone: ' + tz)
+      console.debug('getGPSLocation: Timezone: ' + tz)
       GM.xmlHttpRequest({
         method: 'GET',
         url: 'https://raw.githubusercontent.com/iospirit/NSTimeZone-ISCLLocation/master/zone.tab',
@@ -1056,7 +1055,7 @@ function musicPlayerPlaySong (next, startTime) {
     try {
       navigator.mediaSession.setActionHandler('stop', _ => musicPlayerClose())
     } catch (error) {
-      console.log('Warning! The "stop" media session action is not supported.')
+      console.warn('Warning! The "stop" media session action is not supported.')
     }
 
     try {
@@ -1069,7 +1068,7 @@ function musicPlayerPlaySong (next, startTime) {
         musicPlayerUpdatePositionState()
       })
     } catch (error) {
-      console.log('Warning! The "seekto" media session action is not supported.')
+      console.warn('Warning! The "seekto" media session action is not supported.')
     }
   }
 
@@ -1723,7 +1722,6 @@ async function musicPlayerCollectListenedClick (ev) {
 
 function musicPlayerUpdatePositionState () {
   if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
-    console.log('Updating position state...')
     navigator.mediaSession.setPositionState({
       duration: audio.duration || currentDuration || 180,
       playbackRate: audio.playbackRate,
@@ -2186,7 +2184,6 @@ function addToPlaylist (startPlayback, data) {
 }
 
 function addAlbumToPlaylist (TralbumData, startPlaybackIndex = 0) {
-  console.log(TralbumData)
   let i = 0
   const artist = TralbumData.artist
   const album = TralbumData.current.title
@@ -2323,12 +2320,12 @@ function getTralbumData (url, cb, retry = true) {
         } else {
           const msg = 'Could not parse TralbumData from url=' + url
           window.alert(msg)
-          console.debug(response.responseText)
+          console.error(response.responseText)
           reject(new Error(msg))
         }
       },
       onerror: function getTralbumDataOnError (response) {
-        console.log('getTralbumData(' + url + ') in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
+        console.error('getTralbumData(' + url + ') in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
         reject(new Error('error' in response ? response.error : 'getTralbumData failed with GM.xmlHttpRequest.onerror'))
       }
     })
@@ -2537,7 +2534,7 @@ function playAlbumFromUrl (url, startPlaybackIndex = 0) {
     return addAlbumToPlaylist(TralbumData, startPlaybackIndex)
   }).catch(function onGetTralbumDataError (e) {
     window.alert('Could not play and load album data from url:\n' + url + '\n' + ('error' in e ? e.error : e))
-    console.log(e)
+    console.error(e)
   })
 }
 
@@ -2574,7 +2571,7 @@ async function myAlbumsNewFromUrl (url, fallback) {
     try {
       TralbumData = await getTralbumData(document.location.protocol + '//' + url)
     } catch (e) {
-      console.log('myAlbumsNewFromUrl() Could not load album data from url:\n' + url)
+      console.error('myAlbumsNewFromUrl() Could not load album data from url:\n' + url)
     }
     if (TralbumData) {
       storeTralbumData(TralbumData)
@@ -2973,7 +2970,7 @@ function makeCarouselPlayerGreatAgain () {
       return
     }
     if (!url) {
-      console.log('No url found in carousel player: `#carousel-player a[href]`')
+      console.error('No url found in carousel player: `#carousel-player a[href]`')
       return
     }
     addListenedButtonToCarouselPlayerLast = url
@@ -3115,7 +3112,7 @@ function makeCarouselPlayerGreatAgain () {
             navigator.mediaSession.playbackState = 'paused'
           })
         } catch (error) {
-          console.log('Warning! The "stop" media session action is not supported.')
+          console.warn('Warning! The "stop" media session action is not supported.')
         }
 
         try {
@@ -3128,7 +3125,7 @@ function makeCarouselPlayerGreatAgain () {
             updateChromePositionState()
           })
         } catch (error) {
-          console.log('Warning! The "seekto" media session action is not supported.')
+          console.warn('Warning! The "seekto" media session action is not supported.')
         }
       }
     }
@@ -3774,7 +3771,7 @@ function addVolumeBarToAlbumPage () {
             navigator.mediaSession.playbackState = 'paused'
           })
         } catch (error) {
-          console.log('Warning! The "stop" media session action is not supported.')
+          console.warn('Warning! The "stop" media session action is not supported.')
         }
 
         try {
@@ -3787,7 +3784,7 @@ function addVolumeBarToAlbumPage () {
             updateChromePositionState()
           })
         } catch (error) {
-          console.log('Warning! The "seekto" media session action is not supported.')
+          console.warn('Warning! The "seekto" media session action is not supported.')
         }
       }
     }
@@ -4741,7 +4738,7 @@ function developerMenu () {
       input.value = Object.keys(tralbumlibrary).length.toString()
       input.readOnly = true
       input.style.width = '200px'
-      console.log(3)
+
       tr = table.appendChild(document.createElement('tr'))
       td = tr.appendChild(document.createElement('td'))
       td.appendChild(document.createTextNode('"tralbumlibraryStr" string length'))
@@ -4872,7 +4869,7 @@ function exportMenu (showClearButton) {
           try {
             format = format.replace(field, fields[field]())
           } catch (e) {
-            console.log('Could not format replace "' + field + '": ' + e)
+            console.error('Could not format replace "' + field + '": ' + e)
           }
         }
       }
@@ -4979,7 +4976,7 @@ function exportMenu (showClearButton) {
     }
     const handleFiles = async function handleFilesAsync (fileList) {
       if (fileList.length === 0) {
-        console.log('fileList is empty')
+        console.debug('fileList is empty')
         return
       }
 
@@ -5271,7 +5268,7 @@ function downloadMp3FromLink (ev, a, addSpinner, removeSpinner, noGM) {
   const url = a.href
   if (GM_download && !noGM) {
     // Use Tampermonkey GM_download function
-    console.log('Using GM_download function')
+    console.debug('Using GM_download function')
     ev.preventDefault()
     addSpinner(a)
     let GMdownloadStatus = 0
@@ -5279,14 +5276,14 @@ function downloadMp3FromLink (ev, a, addSpinner, removeSpinner, noGM) {
       url,
       name: a.download || 'default.mp3',
       onerror: function downloadMp3FromLinkOnError (e) {
-        console.log('GM_download onerror:', e)
+        console.debug('GM_download onerror:', e)
         window.setTimeout(function () {
           if (GMdownloadStatus !== 1) {
             if (url.startsWith('data')) {
-              console.log('GM_download failed with data url')
+              console.debug('GM_download failed with data url')
               document.location.href = url
             } else {
-              console.log('Trying again with GM_download disabled')
+              console.debug('Trying again with GM_download disabled')
               downloadMp3FromLink(ev, a, addSpinner, removeSpinner, true)
             }
           }
@@ -5297,7 +5294,7 @@ function downloadMp3FromLink (ev, a, addSpinner, removeSpinner, noGM) {
         document.location.href = url
       },
       onload: function downloadMp3FromLinkOnLoad () {
-        console.log('Successfully downloaded via GM_download')
+        console.debug('Successfully downloaded via GM_download')
         GMdownloadStatus = 1
         window.setTimeout(() => removeSpinner(a), 500)
       }
@@ -5314,14 +5311,14 @@ function downloadMp3FromLink (ev, a, addSpinner, removeSpinner, noGM) {
 
   // Use GM.xmlHttpRequest to download and offer data uri
   ev.preventDefault()
-  console.log('Using GM.xmlHttpRequest to download and then offer data uri')
+  console.debug('Using GM.xmlHttpRequest to download and then offer data uri')
   addSpinner(a)
   GM.xmlHttpRequest({
     method: 'GET',
     overrideMimeType: 'text/plain; charset=x-user-defined',
     url,
     onload: function onMp3Load (response) {
-      console.log('Successfully received data via GM.xmlHttpRequest, starting download')
+      console.debug('Successfully received data via GM.xmlHttpRequest, starting download')
       a.href = 'data:audio/mpeg;base64,' + base64encode(response.responseText)
       window.setTimeout(() => a.click(), 10)
     },
@@ -5803,7 +5800,7 @@ function loadGeniusLyrics (trackNum) {
       return
     } else if (geniusTrackNum === trackNum) {
       // Lyrics currently loading
-      console.log('loadGeniusLyrics already loading trackNum=' + trackNum)
+      console.debug('loadGeniusLyrics already loading trackNum=' + trackNum)
       return
     }
   }
@@ -5979,7 +5976,6 @@ function appendMainMenuButtonLeftTo (leftOf) {
   // Wait for the design to load images
   window.setTimeout(() => {
     const rect = leftOf.getBoundingClientRect()
-    console.log(rect)
     const ul = document.createElement('ul')
     ul.className = 'bcsde_settingsbar'
     appendMainMenuButtonTo(document.body.appendChild(ul))
@@ -6090,7 +6086,7 @@ function showDownloadLinkOnAlbumPage () {
       // TODO if no match was found, load the next batch of download links, see https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/288
     },
     onerror: function loadPurchasesError (response) {
-      console.log('showDownloadLinkOnAlbumPage() in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
+      console.error('showDownloadLinkOnAlbumPage() in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
     }
   })
 }
@@ -6154,7 +6150,7 @@ function darkMode () {
       propOpenWrapperBackgroundColor = `rgba(0, 0, 0, ${alpha})`
     }
   } catch (e) {
-    console.log('Could not access window.localStorage: ' + e)
+    console.error('Could not access window.localStorage: ' + e)
   }
 
   addStyle(`
@@ -6189,7 +6185,7 @@ async function darkModeOnLoad () {
         shouldUpdate = false
       }
     } catch (e) {
-      console.log('Could not read from window.localStorage: ' + e)
+      console.error('Could not read from window.localStorage: ' + e)
     }
   }
   if (shouldUpdate) {
@@ -6208,12 +6204,11 @@ async function darkModeOnLoad () {
     const brightness = sum / div
     const alpha = (brightness - 50) / 255
     document.querySelector('#propOpenWrapper').style.backgroundColor = `rgba(0, 0, 0, ${alpha})`
-    console.log(`Brightness updated: ${brightness}, alpha: ${alpha}`)
     try {
       window.localStorage.setItem('bcsde_bgimage_brightness', brightness)
       window.localStorage.setItem('bcsde_bgimage_brightness_time', Date.now())
     } catch (e) {
-      console.log('Could not write to window.localStorage: ' + e)
+      console.error('Could not write to window.localStorage: ' + e)
     }
   }
 
