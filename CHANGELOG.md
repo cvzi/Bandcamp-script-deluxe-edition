@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.28.1](../../tree/v1.28.1) *(2023-06-23)*
+*   Improve logging
 ## [1.28.0](../../tree/v1.28.0) *(2023-06-06)*
 *   Open discography player by hovering over right corner of album art on album page [#292](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/292)
 ## [1.27.0](../../tree/v1.27.0) *(2023-06-05)*
