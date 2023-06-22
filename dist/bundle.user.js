@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.28.0
+// @version         1.28.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -1351,7 +1351,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
         try {
           format = format.replace(field, fields[field]());
         } catch (e) {
-          console.log('customDateFormatter: Could not format replace "' + field + '": ' + e);
+          console.error('customDateFormatter: Could not format replace "' + field + '": ' + e);
         }
       }
     }
@@ -1509,7 +1509,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
             img1.src = dataurl;
           },
           onerror: function (response) {
-            console.log('loadCrossSiteImage("' + url + '") Error: ' + response.status + '\n' + ('error' in response ? response.error : ''));
+            console.error('loadCrossSiteImage("' + url + '") Error: ' + response.status + '\n' + ('error' in response ? response.error : ''));
             reject(new Error('error' in response ? response.error : 'loadCrossSiteImage failed'));
           }
         });
@@ -1604,10 +1604,9 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
           longitude: position.coords.longitude
         });
       }, function onError(err) {
-        console.log('getGPSLocation Error:');
-        console.log(err);
+        console.error('getGPSLocation Error:', err);
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        console.log('getGPSLocation: Timezone: ' + tz);
+        console.debug('getGPSLocation: Timezone: ' + tz);
         GM.xmlHttpRequest({
           method: 'GET',
           url: 'https://raw.githubusercontent.com/iospirit/NSTimeZone-ISCLLocation/master/zone.tab',
@@ -1940,7 +1939,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       try {
         navigator.mediaSession.setActionHandler('stop', _ => musicPlayerClose());
       } catch (error) {
-        console.log('Warning! The "stop" media session action is not supported.');
+        console.warn('Warning! The "stop" media session action is not supported.');
       }
       try {
         navigator.mediaSession.setActionHandler('seekto', function (event) {
@@ -1952,7 +1951,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
           musicPlayerUpdatePositionState();
         });
       } catch (error) {
-        console.log('Warning! The "seekto" media session action is not supported.');
+        console.warn('Warning! The "seekto" media session action is not supported.');
       }
     }
 
@@ -2572,7 +2571,6 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
   }
   function musicPlayerUpdatePositionState() {
     if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
-      console.log('Updating position state...');
       navigator.mediaSession.setPositionState({
         duration: audio.duration || currentDuration || 180,
         playbackRate: audio.playbackRate,
@@ -3010,7 +3008,6 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     }
   }
   function addAlbumToPlaylist(TralbumData, startPlaybackIndex = 0) {
-    console.log(TralbumData);
     let i = 0;
     const artist = TralbumData.artist;
     const album = TralbumData.current.title;
@@ -3144,12 +3141,12 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
           } else {
             const msg = 'Could not parse TralbumData from url=' + url;
             window.alert(msg);
-            console.debug(response.responseText);
+            console.error(response.responseText);
             reject(new Error(msg));
           }
         },
         onerror: function getTralbumDataOnError(response) {
-          console.log('getTralbumData(' + url + ') in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''));
+          console.error('getTralbumData(' + url + ') in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''));
           reject(new Error('error' in response ? response.error : 'getTralbumData failed with GM.xmlHttpRequest.onerror'));
         }
       });
@@ -3349,7 +3346,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       return addAlbumToPlaylist(TralbumData, startPlaybackIndex);
     }).catch(function onGetTralbumDataError(e) {
       window.alert('Could not play and load album data from url:\n' + url + '\n' + ('error' in e ? e.error : e));
-      console.log(e);
+      console.error(e);
     });
   }
   async function myAlbumsGetAlbum(url) {
@@ -3380,7 +3377,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       try {
         TralbumData = await getTralbumData(document.location.protocol + '//' + url);
       } catch (e) {
-        console.log('myAlbumsNewFromUrl() Could not load album data from url:\n' + url);
+        console.error('myAlbumsNewFromUrl() Could not load album data from url:\n' + url);
       }
       if (TralbumData) {
         storeTralbumData(TralbumData);
@@ -3760,7 +3757,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         return;
       }
       if (!url) {
-        console.log('No url found in carousel player: `#carousel-player a[href]`');
+        console.error('No url found in carousel player: `#carousel-player a[href]`');
         return;
       }
       addListenedButtonToCarouselPlayerLast = url;
@@ -3894,7 +3891,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
               navigator.mediaSession.playbackState = 'paused';
             });
           } catch (error) {
-            console.log('Warning! The "stop" media session action is not supported.');
+            console.warn('Warning! The "stop" media session action is not supported.');
           }
           try {
             navigator.mediaSession.setActionHandler('seekto', function (event) {
@@ -3906,7 +3903,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
               updateChromePositionState();
             });
           } catch (error) {
-            console.log('Warning! The "seekto" media session action is not supported.');
+            console.warn('Warning! The "seekto" media session action is not supported.');
           }
         }
       }
@@ -4496,7 +4493,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
               navigator.mediaSession.playbackState = 'paused';
             });
           } catch (error) {
-            console.log('Warning! The "stop" media session action is not supported.');
+            console.warn('Warning! The "stop" media session action is not supported.');
           }
           try {
             navigator.mediaSession.setActionHandler('seekto', function (event) {
@@ -4508,7 +4505,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
               updateChromePositionState();
             });
           } catch (error) {
-            console.log('Warning! The "seekto" media session action is not supported.');
+            console.warn('Warning! The "seekto" media session action is not supported.');
           }
         }
       }
@@ -5362,7 +5359,6 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         input.value = Object.keys(tralbumlibrary).length.toString();
         input.readOnly = true;
         input.style.width = '200px';
-        console.log(3);
         tr = table.appendChild(document.createElement('tr'));
         td = tr.appendChild(document.createElement('td'));
         td.appendChild(document.createTextNode('"tralbumlibraryStr" string length'));
@@ -5495,7 +5491,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
             try {
               format = format.replace(field, fields[field]());
             } catch (e) {
-              console.log('Could not format replace "' + field + '": ' + e);
+              console.error('Could not format replace "' + field + '": ' + e);
             }
           }
         }
@@ -5592,7 +5588,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       };
       const handleFiles = async function handleFilesAsync(fileList) {
         if (fileList.length === 0) {
-          console.log('fileList is empty');
+          console.debug('fileList is empty');
           return;
         }
         let data;
@@ -5858,7 +5854,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     const url = a.href;
     if (GM_download && !noGM) {
       // Use Tampermonkey GM_download function
-      console.log('Using GM_download function');
+      console.debug('Using GM_download function');
       ev.preventDefault();
       addSpinner(a);
       let GMdownloadStatus = 0;
@@ -5866,14 +5862,14 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         url,
         name: a.download || 'default.mp3',
         onerror: function downloadMp3FromLinkOnError(e) {
-          console.log('GM_download onerror:', e);
+          console.debug('GM_download onerror:', e);
           window.setTimeout(function () {
             if (GMdownloadStatus !== 1) {
               if (url.startsWith('data')) {
-                console.log('GM_download failed with data url');
+                console.debug('GM_download failed with data url');
                 document.location.href = url;
               } else {
-                console.log('Trying again with GM_download disabled');
+                console.debug('Trying again with GM_download disabled');
                 downloadMp3FromLink(ev, a, addSpinner, removeSpinner, true);
               }
             }
@@ -5884,7 +5880,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
           document.location.href = url;
         },
         onload: function downloadMp3FromLinkOnLoad() {
-          console.log('Successfully downloaded via GM_download');
+          console.debug('Successfully downloaded via GM_download');
           GMdownloadStatus = 1;
           window.setTimeout(() => removeSpinner(a), 500);
         }
@@ -5900,14 +5896,14 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
 
     // Use GM.xmlHttpRequest to download and offer data uri
     ev.preventDefault();
-    console.log('Using GM.xmlHttpRequest to download and then offer data uri');
+    console.debug('Using GM.xmlHttpRequest to download and then offer data uri');
     addSpinner(a);
     GM.xmlHttpRequest({
       method: 'GET',
       overrideMimeType: 'text/plain; charset=x-user-defined',
       url,
       onload: function onMp3Load(response) {
-        console.log('Successfully received data via GM.xmlHttpRequest, starting download');
+        console.debug('Successfully received data via GM.xmlHttpRequest, starting download');
         a.href = 'data:audio/mpeg;base64,' + base64encode(response.responseText);
         window.setTimeout(() => a.click(), 10);
       },
@@ -6360,7 +6356,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         return;
       } else if (geniusTrackNum === trackNum) {
         // Lyrics currently loading
-        console.log('loadGeniusLyrics already loading trackNum=' + trackNum);
+        console.debug('loadGeniusLyrics already loading trackNum=' + trackNum);
         return;
       }
     }
@@ -6504,7 +6500,6 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     // Wait for the design to load images
     window.setTimeout(() => {
       const rect = leftOf.getBoundingClientRect();
-      console.log(rect);
       const ul = document.createElement('ul');
       ul.className = 'bcsde_settingsbar';
       appendMainMenuButtonTo(document.body.appendChild(ul));
@@ -6605,7 +6600,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       },
 
       onerror: function loadPurchasesError(response) {
-        console.log('showDownloadLinkOnAlbumPage() in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''));
+        console.error('showDownloadLinkOnAlbumPage() in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''));
       }
     });
   }
@@ -6664,7 +6659,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
         propOpenWrapperBackgroundColor = `rgba(0, 0, 0, ${alpha})`;
       }
     } catch (e) {
-      console.log('Could not access window.localStorage: ' + e);
+      console.error('Could not access window.localStorage: ' + e);
     }
     addStyle(`
 :root {
@@ -6696,7 +6691,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
           shouldUpdate = false;
         }
       } catch (e) {
-        console.log('Could not read from window.localStorage: ' + e);
+        console.error('Could not read from window.localStorage: ' + e);
       }
     }
     if (shouldUpdate) {
@@ -6715,12 +6710,11 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       const brightness = sum / div;
       const alpha = (brightness - 50) / 255;
       document.querySelector('#propOpenWrapper').style.backgroundColor = `rgba(0, 0, 0, ${alpha})`;
-      console.log(`Brightness updated: ${brightness}, alpha: ${alpha}`);
       try {
         window.localStorage.setItem('bcsde_bgimage_brightness', brightness);
         window.localStorage.setItem('bcsde_bgimage_brightness_time', Date.now());
       } catch (e) {
-        console.log('Could not write to window.localStorage: ' + e);
+        console.error('Could not write to window.localStorage: ' + e);
       }
     }
     if (!hasBackgroundImage) {
