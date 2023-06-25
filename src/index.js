@@ -30,6 +30,7 @@ const DEFAULTSKIPTIME = 10 /* Seek time to skip in seconds by default */
 const SCRIPT_NAME = 'Bandcamp script (Deluxe Edition)'
 const LYRICS_EMPTY_PATH = '/robots.txt'
 const PLAYER_URL = 'https://bandcamp.com/robots.txt?player'
+const ONEHOUR = 3600000
 let darkModeInjected = false
 let storeTralbumDataPermanentlySwitch = true
 const allFeatures = {
@@ -2435,8 +2436,41 @@ function albumPath (url) {
   return a.pathname
 }
 
+async function cacheSet (gmKey, expires, key, value) {
+  const cache = JSON.parse(await GM.getValue(gmKey, '{}'))
+  const now = (new Date()).getTime()
+  for (const prop in cache) {
+    // Delete cached values, that are older than `expires`
+    if ((now - (new Date(cache[prop].time)).getTime()) > expires) {
+      delete cache[prop]
+    }
+  }
+  const data = {
+    value,
+    time: (new Date()).toJSON()
+  }
+  cache[key] = data
+  await GM.setValue(gmKey, JSON.stringify(cache))
+}
+
+async function cacheGet (gmKey, expires, key, defaultsTo = null) {
+  const cache = JSON.parse(await GM.getValue(gmKey, '{}'))
+  const now = (new Date()).getTime()
+  for (const prop in cache) {
+    // Delete cached values, that are older than `expires`
+    if ((now - (new Date(cache[prop].time)).getTime()) > expires) {
+      delete cache[prop]
+      continue
+    }
+    if (prop === key) {
+      return cache[prop].value
+    }
+  }
+  return defaultsTo
+}
+
 async function storeTralbumData (TralbumData) {
-  const expires = TRALBUM_CACHE_HOURS * 3600000
+  const expires = TRALBUM_CACHE_HOURS * ONEHOUR
   const cache = JSON.parse(await GM.getValue('tralbumdata', '{}'))
   for (const prop in cache) {
     // Delete cached values, that are older than 2 hours
@@ -2451,7 +2485,7 @@ async function storeTralbumData (TralbumData) {
 }
 
 async function cachedTralbumData (url) {
-  const expires = TRALBUM_CACHE_HOURS * 3600000
+  const expires = TRALBUM_CACHE_HOURS * ONEHOUR
   const key = albumKey(url)
   const cache = JSON.parse(await GM.getValue('tralbumdata', '{}'))
   for (const prop in cache) {
@@ -6059,6 +6093,13 @@ function showDownloadLinkOnAlbumPage () {
   }
   const purchasesUrl = document.querySelector('a[href*="purchases?from=menubar"]').href
   const itemUrl = document.location.href.split('#')[0]
+
+  const showDownloadLinkForUrl = function (downloadUrl) {
+    const purchasedMsgA = document.querySelector('#purchased-msg a')
+    purchasedMsgA.href = downloadUrl
+    purchasedMsgA.textContent = 'Download'
+  }
+
   GM.xmlHttpRequest({
     method: 'GET',
     url: purchasesUrl,
@@ -6077,16 +6118,68 @@ function showDownloadLinkOnAlbumPage () {
         if (!downloadLink && !downloadLink.href) {
           continue
         }
-        const purchasedMsgA = document.querySelector('#purchased-msg a')
-        purchasedMsgA.href = downloadLink.href
-        purchasedMsgA.textContent = 'Download'
-        return
+        return showDownloadLinkForUrl(downloadLink.href)
       }
 
-      // TODO if no match was found, load the next batch of download links, see https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/288
+      if (doc.querySelector('#js-crumbs-data') && doc.querySelector('#pagedata')) {
+        try {
+          const crumb = JSON.parse(doc.querySelector('#js-crumbs-data').dataset.crumbs)['api/orderhistory/1/get_items']
+          const orderhistory = JSON.parse(doc.querySelector('#pagedata').dataset.blob).orderhistory
+          nextOrderHistoryPage(itemUrl, {
+            username: orderhistory.username,
+            last_token: orderhistory.last_token,
+            platform: orderhistory.platform,
+            crumb
+          }, showDownloadLinkForUrl)
+        } catch (e) {
+          console.error('Error in showDownloadLinkOnAlbumPage, failed to launch nextOrderHistoryPage:', e)
+        }
+      }
     },
     onerror: function loadPurchasesError (response) {
       console.error('showDownloadLinkOnAlbumPage() in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
+    }
+  })
+}
+
+async function nextOrderHistoryPage (itemUrl, data, cbFoundDownloadLink) {
+  // Load download links from api (same as clicking on "more" at the bototm of purchases page)
+  const handleResponse = function (result) {
+    for (const item of result.items) {
+      if (item.item_url === itemUrl) {
+        return cbFoundDownloadLink(item.download_url)
+      }
+    }
+
+    if ('last_token' in result && result.last_token) {
+      data.last_token = result.last_token
+      return nextOrderHistoryPage(itemUrl, data, cbFoundDownloadLink)
+    }
+  }
+
+  const cacheKey = data.last_token
+  const cached = await cacheGet('orderhistory', ONEHOUR, cacheKey, null)
+  if (cached) {
+    return handleResponse(JSON.parse(cached))
+  }
+  GM.xmlHttpRequest({
+    method: 'POST',
+    url: 'https://bandcamp.com/api/orderhistory/1/get_items',
+    headers: {
+      ' Content-Type': 'application/json'
+    },
+    data: JSON.stringify(data),
+    onload: function loadPurchases (response) {
+      try {
+        const result = JSON.parse(response.responseText)
+        cacheSet('orderhistory', ONEHOUR, cacheKey, response.responseText)
+        handleResponse(result)
+      } catch (e) {
+        console.error('Error in nextOrderHistoryPage:', e)
+      }
+    },
+    onerror: function loadPurchasesError (response) {
+      console.error('nextOrderHistoryPage () in onerror() Error: ' + response.status + '\nResponse:\n' + response.responseText + '\n' + ('error' in response ? response.error : ''))
     }
   })
 }
