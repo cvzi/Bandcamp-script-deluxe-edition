@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.29.0](../../tree/v1.29.0) *(2023-06-25)*
+*   Download links for all albums on album page [#288](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/288)
 ## [1.28.1](../../tree/v1.28.1) *(2023-06-23)*
 *   Improve logging
 ## [1.28.0](../../tree/v1.28.0) *(2023-06-06)*
@@ -11,7 +13,7 @@
 ## [1.26.0](../../tree/v1.26.0) *(2023-05-25)*
 *   Add tracks to whishlist from player [#285](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/285)
 *   Format album release date [#284](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/284)
-*   Download links for the most recently bought albums [#288](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/288)
+*   Download links for the most recently bought albums on album page [#288](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/288)
 ## [1.25.1](../../tree/v1.25.1) *(2023-04-11)*
 *   Fix lyrics provided by bandcamp
 ## [1.25.0](../../tree/v1.25.0) *(2023-01-07)*
