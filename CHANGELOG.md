@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.30.0](../../tree/v1.30.0) *(2023-07-12)*
+*   Link to play albums in feed with discography player
+*   Play next item in feed when track ends [#311](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/311)
 ## [1.29.0](../../tree/v1.29.0) *(2023-06-25)*
 *   Download links for all albums on album page [#288](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/288)
 ## [1.28.1](../../tree/v1.28.1) *(2023-06-23)*

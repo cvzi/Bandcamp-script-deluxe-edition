@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.29.0
+// @version         1.30.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -1291,6 +1291,9 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
         }
       });
     }
+  }
+  function sleep(t) {
+    return new Promise(resolve => setTimeout(resolve, t));
   }
   function randomIndex(max) {
     // Random int from interval [0,max)
@@ -6714,7 +6717,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     const makeAudioVisible = function () {
       this.removeEventListener('timeupdate', makeAudioVisible);
       this.controls = true;
-      this.loop = true;
+      this.loop = false;
       this.style = `
       width: 20%;
       min-width: 200px;
@@ -6729,6 +6732,59 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     if (audio) {
       audio.addEventListener('timeupdate', makeAudioVisible);
     }
+  }
+  function feedEnablePlayNextItem() {
+    // Play next item in feed when current item ends
+    let currentItem = null;
+    const onItemStart = async function () {
+      // Save item that is currently playing (play button is showing Pause-symbol)
+      sleep(2000);
+      currentItem = currentItem || document.querySelector('.collection-item-container.playing');
+    };
+    const onItemEnded = function () {
+      if (currentItem) {
+        // Find next item and click play button
+        let isNext = false;
+        for (const item of document.querySelectorAll('.collection-item-container')) {
+          if (isNext && item.querySelector('.play-button')) {
+            item.querySelector('.play-button').click();
+            currentItem = null;
+            break;
+          } else if (item === currentItem) {
+            isNext = true;
+          }
+        }
+      }
+    };
+    const audio = document.querySelector('body>audio');
+    if (audio) {
+      audio.addEventListener('play', onItemStart);
+      audio.addEventListener('ended', onItemEnded);
+    }
+  }
+  function feedAddDiscographyPlayerButtons() {
+    const play = function (ev) {
+      ev.preventDefault();
+      playAlbumFromUrl(this.dataset.url);
+    };
+    document.querySelectorAll('.collect-item ul').forEach(ul => {
+      if (ul.querySelector('li.discographyplayerbutton') || !ul.querySelector('li.buy-now')) {
+        return;
+      }
+      const li = ul.appendChild(ul.querySelector('li.buy-now').cloneNode(true));
+      li.classList.remove('buy-now');
+      li.classList.add('discographyplayerbutton');
+      const a = li.querySelector('a');
+      a.dataset.url = a.href;
+      a.href = '#';
+      a.textContent = 'Play album';
+      a.addEventListener('click', play);
+      const img = li.insertBefore(document.createElement('img'), li.querySelector('a'));
+      img.src = 'https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png';
+      img.style = 'width: 14px; vertical-align: sub;padding:0px 3px 0px 0px;';
+      img.alt = 'Play in discography player';
+    });
+    window.setTimeout(feedAddDiscographyPlayerButtons, 10000);
   }
   function darkMode() {
     // CSS taken from https://userstyles.org/styles/171538/bandcamp-in-dark by Simonus (Version from January 24, 2020)
@@ -7071,6 +7127,8 @@ If this is a malicious website, running the userscript may leak personal data (e
       if (allFeatures.feedShowAudioControls.enabled && document.querySelector('#stories li.story')) {
         feedShowAudioControls();
       }
+      feedEnablePlayNextItem();
+      feedAddDiscographyPlayerButtons();
       if (CAMPEXPLORER) {
         let lastTagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : '';
         window.setInterval(function () {
