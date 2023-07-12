@@ -6246,7 +6246,7 @@ function feedEnablePlayNextItem () {
     if (currentItem) {
       // Find next item and click play button
       let isNext = false
-      for(const item of document.querySelectorAll('.collection-item-container')) {
+      for (const item of document.querySelectorAll('.collection-item-container')) {
         if (isNext && item.querySelector('.play-button')) {
           item.querySelector('.play-button').click()
           currentItem = null
@@ -6263,6 +6263,34 @@ function feedEnablePlayNextItem () {
     audio.addEventListener('play', onItemStart)
     audio.addEventListener('ended', onItemEnded)
   }
+}
+
+function feedAddDiscographyPlayerButtons () {
+  const play = function (ev) {
+    ev.preventDefault()
+    playAlbumFromUrl(this.dataset.url)
+  }
+
+  document.querySelectorAll('.collect-item ul').forEach((ul) => {
+    if (ul.querySelector('li.discographyplayerbutton') || !ul.querySelector('li.buy-now')) {
+      return
+    }
+    const li = ul.appendChild(ul.querySelector('li.buy-now').cloneNode(true))
+    li.classList.remove('buy-now')
+    li.classList.add('discographyplayerbutton')
+    const a = li.querySelector('a')
+    a.dataset.url = a.href
+    a.href = '#'
+    a.textContent = 'Play album'
+    a.addEventListener('click', play)
+
+    const img = li.insertBefore(document.createElement('img'), li.querySelector('a'))
+    img.src = 'https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png'
+    img.style = 'width: 14px; vertical-align: sub;padding:0px 3px 0px 0px;'
+    img.alt = 'Play in discography player'
+  })
+
+  window.setTimeout(feedAddDiscographyPlayerButtons, 10000)
 }
 
 function darkMode () {
@@ -6645,6 +6673,7 @@ function onLoaded () {
     }
 
     feedEnablePlayNextItem()
+    feedAddDiscographyPlayerButtons()
 
     if (CAMPEXPLORER) {
       let lastTagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : ''
