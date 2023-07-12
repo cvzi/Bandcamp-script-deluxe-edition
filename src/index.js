@@ -409,6 +409,10 @@ function addLogVolume (mediaElement) {
   }
 }
 
+function sleep (t) {
+  return new Promise(resolve => setTimeout(resolve, t))
+}
+
 function randomIndex (max) {
   // Random int from interval [0,max)
   return Math.floor(Math.random() * Math.floor(max))
@@ -6213,7 +6217,7 @@ function feedShowAudioControls () {
   const makeAudioVisible = function () {
     this.removeEventListener('timeupdate', makeAudioVisible)
     this.controls = true
-    this.loop = true
+    this.loop = false
     this.style = `
       width: 20%;
       min-width: 200px;
@@ -6227,6 +6231,37 @@ function feedShowAudioControls () {
   const audio = document.querySelector('body>audio')
   if (audio) {
     audio.addEventListener('timeupdate', makeAudioVisible)
+  }
+}
+
+function feedEnablePlayNextItem () {
+  // Play next item in feed when current item ends
+  let currentItem = null
+  const onItemStart = async function () {
+    // Save item that is currently playing (play button is showing Pause-symbol)
+    sleep(2000)
+    currentItem = currentItem || document.querySelector('.collection-item-container.playing')
+  }
+  const onItemEnded = function () {
+    if (currentItem) {
+      // Find next item and click play button
+      let isNext = false
+      for(const item of document.querySelectorAll('.collection-item-container')) {
+        if (isNext && item.querySelector('.play-button')) {
+          item.querySelector('.play-button').click()
+          currentItem = null
+          break
+        } else if (item === currentItem) {
+          isNext = true
+        }
+      }
+    }
+  }
+
+  const audio = document.querySelector('body>audio')
+  if (audio) {
+    audio.addEventListener('play', onItemStart)
+    audio.addEventListener('ended', onItemEnded)
   }
 }
 
@@ -6608,6 +6643,8 @@ function onLoaded () {
     if (allFeatures.feedShowAudioControls.enabled && document.querySelector('#stories li.story')) {
       feedShowAudioControls()
     }
+
+    feedEnablePlayNextItem()
 
     if (CAMPEXPLORER) {
       let lastTagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : ''
