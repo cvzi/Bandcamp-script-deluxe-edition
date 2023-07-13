@@ -2265,7 +2265,7 @@ function addAllAlbumsAsHeadings () {
 }
 
 let getTralbumDataDelay = 0
-function getTralbumData (url, cb, retry = true) {
+function getTralbumData (url, retry = true) {
   return new Promise(function getTralbumDataPromise (resolve, reject) {
     GM.xmlHttpRequest({
       method: 'GET',
@@ -2308,6 +2308,31 @@ function getTralbumData (url, cb, retry = true) {
           } else if (response.responseText.indexOf('data-tralbum="') !== -1) {
             const str = decodeHTMLentities(response.responseText.split('data-tralbum="')[1].split('"')[0])
             TralbumData = JSON.parse(str)
+
+            if (retry && TralbumData && 'url' in TralbumData && Object.keys(TralbumData).length === 1) {
+              retry = false
+              // Discography page -> try to get first album
+              console.debug('getTralbumDataPromise(), Not a album page, try to find first album')
+              const firstAlbumM = response.responseText.split('id="music-grid"')[1].match(/<a.*?href="(.*?(album|track)\/.+?)"/)
+              if (firstAlbumM && firstAlbumM[1]) {
+                let firstAlbumUrl = firstAlbumM[1]
+                if (!firstAlbumUrl.startsWith('http')) {
+                  const hostname = (new window.URL(response.finalUrl)).hostname
+                  if (firstAlbumUrl.startsWith('/')) {
+                    firstAlbumUrl = `https://${hostname}${firstAlbumUrl}`
+                  } else {
+                    firstAlbumUrl = `https://${hostname}/${firstAlbumUrl}`
+                  }
+                }
+                if (url !== firstAlbumUrl) {
+                  url = firstAlbumUrl
+                  console.debug('getTralbumDataPromise(), Not a album page, new url=', url)
+                  window.setTimeout(() => getTralbumDataPromise(resolve, reject), 500)
+                  return
+                }
+              }
+            }
+
             // Try to add tralbum_collect_info / TralbumCollectInfo
             if (TralbumData && response.responseText.indexOf('data-tralbum-collect-info="') !== -1) {
               const collectInfoStr = decodeHTMLentities(response.responseText.split('data-tralbum-collect-info="')[1].split('"')[0])
@@ -2688,8 +2713,8 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     document.querySelectorAll('ul.albums li.album').forEach(e => e.classList.add('music-grid-item'))
   }
 
-  // Albums and single tracks
-  const imgs = document.querySelectorAll('.music-grid .music-grid-item a[href*="/album/"] img,.music-grid .music-grid-item a[href*="/track/"] img')
+  // Albums, single tracks, artists, label etc
+  const imgs = document.querySelectorAll('.music-grid .music-grid-item a[href] img')
   for (let i = 0; i < imgs.length; i++) {
     if (imgs[i].parentNode.getElementsByClassName('art-play').length) {
       continue
@@ -6556,7 +6581,12 @@ function onLoaded () {
     if (document.querySelector('.search .result-items .searchresult img')) {
       // Search result pages. To make them compatible, let's add the class names from the discography page
       document.querySelector('.search .result-items').classList.add('music-grid')
-      document.querySelectorAll(".search .result-items .searchresult[data-search*='\"type\":\"a\"'],.search .result-items .searchresult[data-search*='\"type\":\"t\"']").forEach(cell => cell.classList.add('music-grid-item'))
+      // Add class name to albums, tracks, labels and artists
+      document.querySelectorAll(`
+        .search .result-items .searchresult[data-search*='"type":"a"'],
+        .search .result-items .searchresult[data-search*='"type":"t"'],
+        .search .result-items .searchresult[data-search*='"type":"b"']
+        `).forEach(cell => cell.classList.add('music-grid-item'))
     }
 
     if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href*="/album/"] img,.music-grid .music-grid-item a[href*="/track/"] img')) {
