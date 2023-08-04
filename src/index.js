@@ -307,12 +307,9 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`
         const input = this
         document.getElementById('bcsde_custom_release_date_format_str').classList.remove('errorblink')
 
-        let format = defaultFormat
         const customFormat = document.getElementById('bcsde_custom_release_date_format_str').value
         if (customFormat && customFormat.trim()) {
-          format = customFormat.trim()
-
-          await GM.setValue('custom_release_date_format_str', format)
+          await GM.setValue('custom_release_date_format_str', customFormat.trim())
           input.style.boxShadow = '2px 2px 5px #0a0f'
           window.setTimeout(function resetBoxShadowTimeout () {
             input.style.boxShadow = ''
@@ -323,12 +320,10 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`
       }
 
       const onKeyUp = function () {
-        let format = ''
         const customFormat = document.getElementById('bcsde_custom_release_date_format_str').value
         const preview = document.getElementById('bcsde_custom_release_date_preview')
         if (customFormat && customFormat.trim()) {
-          format = customFormat.trim()
-          preview.textContent = 'Preview: ' + customDateFormatter(format, new Date(981154800000))
+          preview.textContent = 'Preview: ' + customDateFormatter(customFormat.trim(), new Date(981154800000))
         } else {
           preview.textContent = 'Preview:'
         }
