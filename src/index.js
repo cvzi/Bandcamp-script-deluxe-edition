@@ -6239,19 +6239,106 @@ function feedShowOnlyNewReleases () {
 }
 
 function feedShowAudioControls () {
+  const colors = {
+    chrome: {
+      light: {
+        button_bg: 'white',
+        audio_bg: '',
+        audio_opacity: 1.0,
+        div_bg: '#f1f3f4',
+        div_border: '1px solid black'
+      },
+      dark: {
+        button_bg: '#797a7a',
+        audio_bg: 'black',
+        audio_opacity: 0.5,
+        div_bg: 'black',
+        div_border: 'none'
+      }
+    },
+    firefox: {
+      light: {
+        button_bg: 'white',
+        audio_bg: '#FFFF',
+        audio_opacity: 1.0,
+        div_bg: '#474747',
+        div_border: '3px solid white'
+      },
+      dark: {
+        button_bg: '#797a7a',
+        audio_bg: 'black',
+        audio_opacity: 1.0,
+        div_bg: '#151515',
+        div_border: 'none'
+      }
+    }
+
+  }
+
+  const play = function (ev) {
+    ev.preventDefault()
+    playAlbumFromUrl(document.querySelector('.story-list .collection-item-container.playing a.item-link').href)
+  }
+  const goTo = function (ev) {
+    ev.preventDefault()
+    document.querySelector('.story-list .collection-item-container.playing').scrollIntoView()
+  }
+  const open = function (ev) {
+    ev.preventDefault()
+    document.querySelector('.story-list .collection-item-container.playing a.item-link').click()
+  }
   const makeAudioVisible = function () {
-    this.removeEventListener('timeupdate', makeAudioVisible)
-    this.controls = true
-    this.loop = false
-    this.style = `
+    const currentStyle = (CHROME ? colors.chrome : colors.firefox)[darkModeModeCurrent === true ? 'dark' : 'light']
+    const audio = this
+    audio.removeEventListener('timeupdate', makeAudioVisible)
+    audio.controls = true
+    audio.loop = false
+
+    const aStyle = `display:inline-block; background:${currentStyle.button_bg}; margin: 1px 1em; padding: 2px; border-radius: 4px;`
+
+    const div = audio.parentNode.appendChild(document.createElement('div'))
+    const div2 = div.appendChild(document.createElement('div'))
+
+    const aPlay = div2.appendChild(document.createElement('a'))
+    aPlay.href = '#'
+    aPlay.addEventListener('click', play)
+    aPlay.style = aStyle
+    const img = aPlay.appendChild(document.createElement('img'))
+    img.src = 'https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png'
+    img.style = 'width: 14px; vertical-align: sub;padding:0px 3px 0px 0px;'
+    img.alt = 'Play in discography player'
+    aPlay.appendChild(document.createTextNode('Play album'))
+
+    const aGoto = div2.appendChild(document.createElement('a'))
+    aGoto.style = aStyle
+    aGoto.href = '#'
+    aGoto.addEventListener('click', goTo)
+    aGoto.appendChild(document.createTextNode('🔝 Scroll to album'))
+
+    const aOpen = div2.appendChild(document.createElement('a'))
+    aOpen.style = aStyle
+    aOpen.href = '#'
+    aOpen.addEventListener('click', open)
+    aOpen.appendChild(document.createTextNode('📂 Open album'))
+
+    div.appendChild(audio)
+    audio.style = `
+      width: 100%;
+      height: 40px;
+      display: block;
+      opacity: ${currentStyle.audio_opacity};
+      background-color:${currentStyle.audio_bg}`
+    div.style = `
       width: 20%;
       min-width: 200px;
-      height: 40px;
+      height: 60px;
       position: fixed;
       right: 0px;
       bottom: 0px;
       display: block;
-      opacity: 1;`
+      border:${currentStyle.div_border};
+      border-radius: 5px;
+      background-color:${currentStyle.div_bg}`
   }
   const audio = document.querySelector('body>audio')
   if (audio) {
@@ -6262,16 +6349,17 @@ function feedShowAudioControls () {
 function feedEnablePlayNextItem () {
   // Play next item in feed when current item ends
   let currentItem = null
-  const onItemStart = async function () {
+  const onItemStart = function () {
     // Save item that is currently playing (play button is showing Pause-symbol)
-    sleep(2000)
-    currentItem = currentItem || document.querySelector('.collection-item-container.playing')
+    sleep(2000).then(() => {
+      currentItem = currentItem || document.querySelector('.story-list .collection-item-container.playing')
+    })
   }
   const onItemEnded = function () {
     if (currentItem) {
       // Find next item and click play button
       let isNext = false
-      for (const item of document.querySelectorAll('.collection-item-container')) {
+      for (const item of document.querySelectorAll('.story-list .collection-item-container')) {
         if (isNext && item.querySelector('.play-button')) {
           item.querySelector('.play-button').click()
           currentItem = null
