@@ -1,6 +1,8 @@
 # Changelog
 
-## [1.30.1](../../tree/v1.31.0) *(2023-07-13)*
+## [1.30.2](../../tree/v1.30.2) *(2023-08-04)*
+*   Improve player in feed
+## [1.30.1](../../tree/v1.30.1) *(2023-07-13)*
 *   Discography player: Play first album from label/artist on search results
 ## [1.30.0](../../tree/v1.30.0) *(2023-07-12)*
 *   Link to play albums in feed with discography player
