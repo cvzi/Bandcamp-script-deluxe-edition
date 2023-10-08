@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.30.3
+// @version         1.31.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -6733,7 +6733,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       window.setTimeout(feedShowOnlyNewReleases, 1500);
     }
   }
-  function feedShowAudioControls() {
+  function feedAddAudioControls() {
     const colors = {
       chrome: {
         light: {
@@ -6780,6 +6780,14 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       ev.preventDefault();
       document.querySelector('.story-list .collection-item-container.playing a.item-link').click();
     };
+    const next = function (ev) {
+      ev.preventDefault();
+      feedPlayNextItem();
+    };
+    const wishList = function (ev) {
+      ev.preventDefault();
+      window.open(document.querySelector('.story-list .collection-item-container.playing a.item-link').href + '#collect-wishlist');
+    };
     const makeAudioVisible = function () {
       const currentStyle = (CHROME ? colors.chrome : colors.firefox)[darkModeModeCurrent === true ? 'dark' : 'light'];
       const audio = this;
@@ -6797,17 +6805,27 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       img.src = 'https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png';
       img.style = 'width: 14px; vertical-align: sub;padding:0px 3px 0px 0px;';
       img.alt = 'Play in discography player';
-      aPlay.appendChild(document.createTextNode('Play album'));
+      aPlay.appendChild(document.createTextNode('play album'));
       const aGoto = div2.appendChild(document.createElement('a'));
       aGoto.style = aStyle;
       aGoto.href = '#';
       aGoto.addEventListener('click', goTo);
-      aGoto.appendChild(document.createTextNode('🔝 Scroll to album'));
+      aGoto.appendChild(document.createTextNode('🔝 scroll to album'));
       const aOpen = div2.appendChild(document.createElement('a'));
       aOpen.style = aStyle;
       aOpen.href = '#';
       aOpen.addEventListener('click', open);
-      aOpen.appendChild(document.createTextNode('📂 Open album'));
+      aOpen.appendChild(document.createTextNode('📂 open album'));
+      const aNext = div2.appendChild(document.createElement('a'));
+      aNext.style = aStyle;
+      aNext.href = '#';
+      aNext.addEventListener('click', next);
+      aNext.appendChild(document.createTextNode('⏭️ next'));
+      const aWish = div2.appendChild(document.createElement('a'));
+      aWish.style = aStyle;
+      aWish.href = '#';
+      aWish.addEventListener('click', wishList);
+      aWish.appendChild(document.createTextNode('🤍 wishlist'));
       div.appendChild(audio);
       audio.style = `
       width: 100%;
@@ -6818,7 +6836,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       div.style = `
       width: 20%;
       min-width: 200px;
-      height: 60px;
+      height: 75px;
       position: fixed;
       right: 0px;
       bottom: 0px;
@@ -6826,41 +6844,47 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       border:${currentStyle.div_border};
       border-radius: 5px;
       background-color:${currentStyle.div_bg}`;
+      div2.style = `
+      text-align: center;`;
     };
     const audio = document.querySelector('body>audio');
     if (audio) {
       audio.addEventListener('timeupdate', makeAudioVisible);
     }
   }
+  let feedCurrentItem = null;
   function feedEnablePlayNextItem() {
     // Play next item in feed when current item ends
-    let currentItem = null;
     const onItemStart = function () {
       // Save item that is currently playing (play button is showing Pause-symbol)
       sleep(2000).then(() => {
-        currentItem = currentItem || document.querySelector('.story-list .collection-item-container.playing');
+        feedCurrentItem = feedCurrentItem || document.querySelector('.story-list .collection-item-container.playing');
       });
     };
     const onItemEnded = function () {
-      if (currentItem) {
-        // Find next item and click play button
-        let isNext = false;
-        for (const item of document.querySelectorAll('.story-list .collection-item-container')) {
-          if (isNext && item.querySelector('.play-button')) {
-            item.querySelector('.play-button').click();
-            currentItem = null;
-            break;
-          } else if (item === currentItem) {
-            isNext = true;
-          }
-        }
-      }
+      feedPlayNextItem();
     };
     const audio = document.querySelector('body>audio');
     if (audio) {
       audio.addEventListener('play', onItemStart);
       audio.addEventListener('ended', onItemEnded);
     }
+  }
+  function feedPlayNextItem() {
+    if (feedCurrentItem) {
+      // Find next item and click play button
+      let isNext = false;
+      for (const item of document.querySelectorAll('.story-list .collection-item-container')) {
+        if (isNext && item.querySelector('.play-button')) {
+          item.querySelector('.play-button').click();
+          feedCurrentItem = null;
+          return true;
+        } else if (item === feedCurrentItem) {
+          isNext = true;
+        }
+      }
+    }
+    return false;
   }
   function feedAddDiscographyPlayerButtons() {
     const play = function (ev) {
@@ -6877,7 +6901,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       const a = li.querySelector('a');
       a.dataset.url = a.href;
       a.href = '#';
-      a.textContent = 'Play album';
+      a.textContent = 'play album';
       a.addEventListener('click', play);
       const img = li.insertBefore(document.createElement('img'), li.querySelector('a'));
       img.src = 'https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png';
@@ -7230,7 +7254,7 @@ If this is a malicious website, running the userscript may leak personal data (e
         feedShowOnlyNewReleases();
       }
       if (allFeatures.feedShowAudioControls.enabled && document.querySelector('#stories li.story')) {
-        feedShowAudioControls();
+        feedAddAudioControls();
       }
       feedEnablePlayNextItem();
       feedAddDiscographyPlayerButtons();

@@ -1,7 +1,7 @@
 # Changelog
 
-## [1.30.3](../../tree/v1.30.3) *(2023-08-27)*
-*   Version bump to force update of [GeniusLyrics.js](https://github.com/cvzi/genius-lyrics-userscript)
+## [1.31.0](../../tree/v1.31.0) *(2023-10-08)*
+*   Improve player in feed
 ## [1.30.2](../../tree/v1.30.2) *(2023-08-04)*
 *   Improve player in feed
 ## [1.30.1](../../tree/v1.30.1) *(2023-07-13)*
