@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.31.1](../../tree/v1.31.1) *(2023-11-09)*
+*   Fix release reminder sometimes broke the script on un-released albums
 ## [1.31.0](../../tree/v1.31.0) *(2023-10-08)*
 *   Improve player in feed
 ## [1.30.2](../../tree/v1.30.2) *(2023-08-04)*

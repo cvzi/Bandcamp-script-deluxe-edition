@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.31.0
+// @version         1.31.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -4581,7 +4581,8 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       window.setTimeout(window.close, 1000);
     }
   }
-  function addReleaseDateButton() {
+  async function addReleaseDateButton() {
+    await sleep(1000); // Wait a second for share-collect-controls to load (it is slow sometimes)
     const TralbumData = unsafeWindow.TralbumData;
     const now = new Date();
     const releaseDate = new Date(TralbumData.current.release_date);
@@ -4607,7 +4608,15 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     text-decoration:underline
   }
   `);
-    const div = document.querySelector('.share-collect-controls').appendChild(document.createElement('div'));
+    let parent = document.querySelector('.share-collect-controls');
+    if (!parent) {
+      parent = document.querySelector('.middleColumn');
+    }
+    if (!parent) {
+      // Try again in a second
+      return window.setTimeout(addReleaseDateButton, 1000);
+    }
+    const div = parent.appendChild(document.createElement('div'));
     div.style = 'margin-top:4px';
     const span = div.appendChild(document.createElement('span'));
     span.className = 'custom-link-color releaseReminderButton';
