@@ -5,7 +5,7 @@
 // @supportURL      https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues
 // @icon            https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png
 // @contributionURL https://github.com/cvzi/Bandcamp-script-deluxe-edition#donate
-// @require         https://unpkg.com/json5@2.1.0/dist/index.min.js
+// @require         https://unpkg.com/json5@2.2.3/dist/index.min.js
 // @require         https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
 // @require         https://unpkg.com/react@18/umd/react.development.js
 // @require         https://unpkg.com/react-dom@18/umd/react-dom.development.js
@@ -410,7 +410,7 @@ SOFTWARE.
             scrollOffset = Math.max(0, Math.min(scrollOffset, scrollWidth - clientWidth));
             return {
               isScrolling: true,
-              scrollDirection: prevState.scrollOffset < scrollLeft ? 'forward' : 'backward',
+              scrollDirection: prevState.scrollOffset < scrollOffset ? 'forward' : 'backward',
               scrollOffset: scrollOffset,
               scrollUpdateWasRequested: false
             };

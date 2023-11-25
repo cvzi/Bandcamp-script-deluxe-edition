@@ -5,7 +5,7 @@
 // @supportURL      https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues
 // @icon            https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png
 // @contributionURL https://github.com/cvzi/Bandcamp-script-deluxe-edition#donate
-// @require         https://unpkg.com/json5@2.1.0/dist/index.min.js
+// @require         https://unpkg.com/json5@2.2.3/dist/index.min.js
 // @require         https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
 // @require         https://unpkg.com/react@18/umd/react.development.js
 // @require         https://unpkg.com/react-dom@18/umd/react-dom.development.js
@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.31.0
+// @version         1.31.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
