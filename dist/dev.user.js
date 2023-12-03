@@ -10,8 +10,7 @@
 // @require         https://unpkg.com/react@18/umd/react.development.js
 // @require         https://unpkg.com/react-dom@18/umd/react-dom.development.js
 // @run-at          document-start
-// @match           https://*/*
-// @match           https://bandcamp.com/*
+// @match           https://*.bandcamp.com/*
 // @exclude         https://bandcamp.com/videoframe*
 // @exclude         https://bandcamp.com/EmbeddedPlayer*
 // @connect         bandcamp.com
