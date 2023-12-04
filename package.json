@@ -52,7 +52,7 @@
         "@rollup/plugin-commonjs": "^25.0.7",
         "@rollup/plugin-node-resolve": "^15.2.3",
         "@rollup/plugin-replace": "^5.0.5",
-        "clean-css": "^5.3.2",
+        "clean-css": "^5.3.3",
         "colorette": "^2.0.20",
         "eslint": "^8.54.0",
         "esm": "^3.2.25",
