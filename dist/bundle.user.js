@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.31.1
+// @version         1.32.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -653,7 +653,6 @@ SOFTWARE.
       // We maintain this cache, and pass a style prop rather than index,
       // So that List can clear cached styles and force item re-render if necessary.
       ;
-
       _proto._getRangeToRender = function _getRangeToRender() {
         var _this$props6 = this.props,
           itemCount = _this$props6.itemCount,
@@ -780,7 +779,6 @@ SOFTWARE.
       return Math.max(0, Math.min(itemCount - 1, startIndex + numVisibleItems - 1 // -1 is because stop index is inclusive
       ));
     },
-
     initInstanceProps: function initInstanceProps(props) {// Noop
     },
     shouldResetStyleCacheOnItemSizeChange: true,
@@ -4590,7 +4588,6 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     if (releaseDate < now) {
       return; // Release date is in the past
     }
-
     const key = albumKey(TralbumData.url);
     addStyle(`
   .releaseReminderButton {
@@ -6542,7 +6539,6 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       //   openExplorer()
       // })
     }
-
     const liSearch = ul.insertBefore(document.createElement('li'), ul.firstChild);
     liSearch.className = 'menubar-item hoverable menubar-item-tag-search';
     liSearch.title = 'tag search - ' + SCRIPT_NAME;
@@ -6919,6 +6915,37 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     });
     window.setTimeout(feedAddDiscographyPlayerButtons, 10000);
   }
+  function profileAddDiscographyPlayerButtons() {
+    const play = function (ev) {
+      ev.preventDefault();
+      playAlbumFromUrl(this.dataset.url);
+    };
+    document.querySelectorAll('.collection-item-container').forEach(li => {
+      if (li.querySelector('div.discographyplayerbutton') || !li.querySelector('.collection-title-details a[href]')) {
+        return;
+      }
+      const div = document.createElement('div');
+      div.classList.add('discographyplayerbutton');
+      const collectionItemActions = li.querySelector('.collection-item-details-container .collection-item-actions');
+      if (collectionItemActions && collectionItemActions.nextElementSibling) {
+        collectionItemActions.parentNode.insertBefore(div, collectionItemActions.nextElementSibling);
+      } else if (collectionItemActions) {
+        collectionItemActions.parentNode.insertBefore(div, collectionItemActions);
+      } else {
+        li.appendChild(div);
+      }
+      const a = div.appendChild(document.createElement('a'));
+      a.dataset.url = li.querySelector('.collection-title-details a[href]').href;
+      a.href = '#';
+      a.addEventListener('click', play);
+      const img = a.appendChild(document.createElement('img'));
+      img.src = 'https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png';
+      img.style = 'width: 14px; vertical-align: sub;padding:0px 3px 0px 0px;';
+      img.alt = 'Play in discography player';
+      a.appendChild(document.createTextNode(' play album'));
+    });
+    window.setTimeout(profileAddDiscographyPlayerButtons, 10000);
+  }
   function darkMode() {
     // CSS taken from https://userstyles.org/styles/171538/bandcamp-in-dark by Simonus (Version from January 24, 2020)
     // https://userstyles.org/api/v1/styles/css/171538
@@ -7267,6 +7294,7 @@ If this is a malicious website, running the userscript may leak personal data (e
       }
       feedEnablePlayNextItem();
       feedAddDiscographyPlayerButtons();
+      profileAddDiscographyPlayerButtons();
       if (CAMPEXPLORER) {
         let lastTagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : '';
         window.setInterval(function () {
