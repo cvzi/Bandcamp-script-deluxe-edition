@@ -6440,6 +6440,43 @@ function feedAddDiscographyPlayerButtons () {
   window.setTimeout(feedAddDiscographyPlayerButtons, 10000)
 }
 
+
+function profileAddDiscographyPlayerButtons () {
+  const play = function (ev) {
+    ev.preventDefault()
+    playAlbumFromUrl(this.dataset.url)
+  }
+
+  document.querySelectorAll('.collection-item-container').forEach((li) => {
+    if (li.querySelector('div.discographyplayerbutton') || !li.querySelector('.collection-title-details a[href]')) {
+      return
+    }
+
+    const div = document.createElement('div')
+    div.classList.add('discographyplayerbutton')
+    const collectionItemActions = li.querySelector('.collection-item-details-container .collection-item-actions')
+    if (collectionItemActions && collectionItemActions.nextElementSibling) {
+      collectionItemActions.parentNode.insertBefore(div, collectionItemActions.nextElementSibling)
+    } else if(collectionItemActions) {
+      collectionItemActions.parentNode.insertBefore(div, collectionItemActions)
+    } else {
+      li.appendChild(div)
+    }
+
+    const a = div.appendChild(document.createElement('a'))
+    a.dataset.url = li.querySelector('.collection-title-details a[href]').href
+    a.href = '#'
+    a.addEventListener('click', play)
+    const img = a.appendChild(document.createElement('img'))
+    img.src = 'https://raw.githubusercontent.com/cvzi/Bandcamp-script-deluxe-edition/master/images/icon.png'
+    img.style = 'width: 14px; vertical-align: sub;padding:0px 3px 0px 0px;'
+    img.alt = 'Play in discography player'
+    a.appendChild(document.createTextNode(' play album'))
+  })
+
+  window.setTimeout(profileAddDiscographyPlayerButtons, 10000)
+}
+
 function darkMode () {
   // CSS taken from https://userstyles.org/styles/171538/bandcamp-in-dark by Simonus (Version from January 24, 2020)
   // https://userstyles.org/api/v1/styles/css/171538
@@ -6826,6 +6863,8 @@ function onLoaded () {
 
     feedEnablePlayNextItem()
     feedAddDiscographyPlayerButtons()
+
+    profileAddDiscographyPlayerButtons()
 
     if (CAMPEXPLORER) {
       let lastTagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : ''
