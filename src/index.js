@@ -6440,7 +6440,6 @@ function feedAddDiscographyPlayerButtons () {
   window.setTimeout(feedAddDiscographyPlayerButtons, 10000)
 }
 
-
 function profileAddDiscographyPlayerButtons () {
   const play = function (ev) {
     ev.preventDefault()
@@ -6457,7 +6456,7 @@ function profileAddDiscographyPlayerButtons () {
     const collectionItemActions = li.querySelector('.collection-item-details-container .collection-item-actions')
     if (collectionItemActions && collectionItemActions.nextElementSibling) {
       collectionItemActions.parentNode.insertBefore(div, collectionItemActions.nextElementSibling)
-    } else if(collectionItemActions) {
+    } else if (collectionItemActions) {
       collectionItemActions.parentNode.insertBefore(div, collectionItemActions)
     } else {
       li.appendChild(div)
