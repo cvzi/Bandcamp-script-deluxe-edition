@@ -1,6 +1,8 @@
 # Changelog
 
-## [1.32.0(../../tree/v1.32.0) *(2023-12-09)*
+## [1.32.1](../../tree/v1.32.1) *(2024-02-08)*
+*   Fix crash on album page if dark mode is enabled [#358](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/358)
+## [1.32.0](../../tree/v1.32.0) *(2023-12-09)*
 *   Link to play albums in profiles/collections with discography player
 ## [1.31.2](../../tree/v1.31.2) *(2023-11-25)*
 *   Bump version to force update of GeniusLyrics.js

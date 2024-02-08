@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.32.0
+// @version         1.32.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -100,6 +100,20 @@ SOFTWARE.
     }
   }
 
+  function _toPrimitive(t, r) {
+    if ("object" != typeof t || !t) return t;
+    var e = t[Symbol.toPrimitive];
+    if (void 0 !== e) {
+      var i = e.call(t, r || "default");
+      if ("object" != typeof i) return i;
+      throw new TypeError("@@toPrimitive must return a primitive value.");
+    }
+    return ("string" === r ? String : Number)(t);
+  }
+  function _toPropertyKey(t) {
+    var i = _toPrimitive(t, "string");
+    return "symbol" == typeof i ? i : String(i);
+  }
   function _defineProperty(obj, key, value) {
     key = _toPropertyKey(key);
     if (key in obj) {
@@ -113,20 +127,6 @@ SOFTWARE.
       obj[key] = value;
     }
     return obj;
-  }
-  function _toPrimitive(input, hint) {
-    if (typeof input !== "object" || input === null) return input;
-    var prim = input[Symbol.toPrimitive];
-    if (prim !== undefined) {
-      var res = prim.call(input, hint || "default");
-      if (typeof res !== "object") return res;
-      throw new TypeError("@@toPrimitive must return a primitive value.");
-    }
-    return (hint === "string" ? String : Number)(input);
-  }
-  function _toPropertyKey(arg) {
-    var key = _toPrimitive(arg, "string");
-    return typeof key === "symbol" ? key : String(key);
   }
 
   function _extends() {
@@ -6995,6 +6995,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       }
     }
     if (shouldUpdate) {
+      console.debug('Updateing background image brightness for:', imageURL);
       const canvas = await loadCrossSiteImage(imageURL);
       const ctx = canvas.getContext('2d');
       const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -7002,7 +7003,8 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       let div = 0;
       const stepSize = canvas.width * canvas.height / 1000;
       const len = data.length - 4;
-      for (let i = 0; i < len; i += 4 * parseInt(stepSize * Math.random())) {
+      const inc = 4 * Math.max(1, Math.ceil(stepSize * Math.random()));
+      for (let i = 0; i < len; i += inc) {
         const v = Math.max(Math.max(data[i], data[i + 1]), data[i + 2]);
         sum += v;
         div++;
@@ -7013,6 +7015,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       try {
         window.localStorage.setItem('bcsde_bgimage_brightness', brightness);
         window.localStorage.setItem('bcsde_bgimage_brightness_time', Date.now());
+        console.debug('New brightness:', brightness);
       } catch (e) {
         console.error('Could not write to window.localStorage: ' + e);
       }
