@@ -6529,6 +6529,7 @@ async function darkModeOnLoad () {
     }
   }
   if (shouldUpdate) {
+    console.debug('Updateing background image brightness for:', imageURL)
     const canvas = await loadCrossSiteImage(imageURL)
     const ctx = canvas.getContext('2d')
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data
@@ -6536,7 +6537,8 @@ async function darkModeOnLoad () {
     let div = 0
     const stepSize = canvas.width * canvas.height / 1000
     const len = data.length - 4
-    for (let i = 0; i < len; i += 4 * parseInt(stepSize * Math.random())) {
+    const inc = 4 * Math.max(1, Math.ceil(stepSize * Math.random()))
+    for (let i = 0; i < len; i += inc) {
       const v = Math.max(Math.max(data[i], data[i + 1]), data[i + 2])
       sum += v
       div++
@@ -6547,6 +6549,7 @@ async function darkModeOnLoad () {
     try {
       window.localStorage.setItem('bcsde_bgimage_brightness', brightness)
       window.localStorage.setItem('bcsde_bgimage_brightness_time', Date.now())
+      console.debug('New brightness:', brightness)
     } catch (e) {
       console.error('Could not write to window.localStorage: ' + e)
     }
