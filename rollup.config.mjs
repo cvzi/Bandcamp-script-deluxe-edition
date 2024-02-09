@@ -55,7 +55,8 @@ const banner = `\
 /*
 ${fs.readFileSync('./LICENSE', 'utf8')}*/
 
-/* globals React, ReactDOM */`
+/* globals React, ReactDOM */
+/* jshint esversion: 8 */`
 
 export default {
   input: 'src/index.js',
