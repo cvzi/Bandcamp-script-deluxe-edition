@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.33.0](../../tree/v1.33.0) *(2024-02-10)*
+*   Discography player for features albums on artist pages [#357](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/357)
 ## [1.32.1](../../tree/v1.32.1) *(2024-02-08)*
 *   Fix crash on album page if dark mode is enabled [#358](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/358)
 ## [1.32.0](../../tree/v1.32.0) *(2023-12-09)*

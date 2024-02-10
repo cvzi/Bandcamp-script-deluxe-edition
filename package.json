@@ -1,6 +1,6 @@
 {
     "name": "bandcamp-script-deluxe-edition",
-    "version": "1.32.1",
+    "version": "1.33.0",
     "description": "A discography player for bandcamp.com and manager for your played albums",
     "keywords": [
         "userscript",
@@ -56,7 +56,7 @@
         "colorette": "^2.0.20",
         "eslint": "^8.56.0",
         "esm": "^3.2.25",
-        "rollup": "^4.9.6",
+        "rollup": "^4.10.0",
         "rollup-plugin-string": "^3.0.0",
         "rollup-plugin-userscript-metablock": "^0.3.3",
         "serve": "^14.2.1",

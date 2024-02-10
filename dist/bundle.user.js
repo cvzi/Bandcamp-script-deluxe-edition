@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.32.1
+// @version         1.33.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -65,6 +65,7 @@ SOFTWARE.
 */
 
 /* globals React, ReactDOM */
+/* jshint esversion: 8 */
 (function (React, ReactDOM) {
   'use strict';
 
@@ -7198,6 +7199,12 @@ If this is a malicious website, running the userscript may leak personal data (e
         .search .result-items .searchresult[data-search*='"type":"t"'],
         .search .result-items .searchresult[data-search*='"type":"b"']
         `).forEach(cell => cell.classList.add('music-grid-item'));
+      }
+      if (allFeatures.discographyplayer.enabled && document.querySelector('.featured-grid.featured-items .featured-item')) {
+        // Discography page (featured albums)
+        // To make them compatible, let's add the class names from the regular music-grid
+        document.querySelectorAll('.featured-grid.featured-items').forEach(e => e.classList.add('music-grid'));
+        document.querySelectorAll('.featured-grid.featured-items .featured-item').forEach(e => e.classList.add('music-grid-item'));
       }
       if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href*="/album/"] img,.music-grid .music-grid-item a[href*="/track/"] img')) {
         // Discography page
