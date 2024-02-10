@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.34.0](../../tree/v1.34.0) *(2024-02-10)*
+*   Discography player on user collections [##334](https://github.com/cvzi/Bandcamp-script-deluxe-edition/discussions/334) [#355](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/355)
 ## [1.33.0](../../tree/v1.33.0) *(2024-02-10)*
 *   Discography player for features albums on artist pages [#357](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/357)
 ## [1.32.1](../../tree/v1.32.1) *(2024-02-08)*

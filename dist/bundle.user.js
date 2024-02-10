@@ -20,7 +20,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.33.0
+// @version         1.34.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -945,6 +945,10 @@ SOFTWARE.
     },
     tagSearchPlayer: {
       name: 'Enable custom player on tag search page',
+      default: true
+    },
+    userProfilePlayer: {
+      name: 'Enable custom player on collections/wishlists on user profile',
       default: true
     },
     albumPageVolumeBar: {
@@ -3057,7 +3061,12 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     const as = document.querySelectorAll('.music-grid .music-grid-item a[href*="/album/"],.music-grid .music-grid-item a[href*="/track/"]');
     const lis = player.querySelectorAll('.playlist .playlistentry');
     const unloadedAs = player.querySelectorAll('.playlist .playlistheading.notloaded a');
+    const alreadyAddedAlbums = {};
     const isAlreadyInPlaylist = function (url) {
+      if (url in alreadyAddedAlbums) {
+        return true;
+      }
+      alreadyAddedAlbums[url] = true;
       for (let i = 0; i < lis.length; i++) {
         if (albumKey(lis[i].dataset.albumUrl) === albumKey(url)) {
           return true;
@@ -3071,10 +3080,27 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       return false;
     };
     for (let i = 0; i < as.length; i++) {
-      const url = as[i].href;
+      let url = as[i].href;
+      url = url.split('?')[0];
       // Check if already in playlist
       if (!isAlreadyInPlaylist(url)) {
-        const title = ('textContent' in as[i].dataset ? as[i].dataset.textContent : as[i].querySelector('.title').textContent).trim();
+        let title = url.replace('https://', '').replace('http://', '').replace(BANDCAMPDOMAIN, '').replace('bandcamp.com', '').replace('bandcamp.', '').replace('www.', '').replace(/\/$/, ''); // This is just a fallback title
+
+        if ('textContent' in as[i].dataset) {
+          title = as[i].dataset.textContent;
+        } else if (as[i].querySelector('.title')) {
+          title = as[i].querySelector('.title').textContent.trim();
+        } else if (as[i].parentNode.parentNode.querySelector('.item-link')) {
+          // User profile collection:
+          const itemLink = as[i].parentNode.parentNode.querySelector('.item-link');
+          if ('textContent' in itemLink.dataset) {
+            title = itemLink.dataset.textContent;
+          } else if (itemLink.querySelector('.title')) {
+            title = as[i].querySelector('.title').textContent.trim();
+          } else if (itemLink.querySelector('.collection-item-title')) {
+            title = as[i].querySelector('.collection-item-title').textContent.trim();
+          }
+        }
         addHeadingToPlaylist(title, url, false);
       }
     }
@@ -3521,6 +3547,47 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       clone.addEventListener('click', onclick);
       imgs[i].parentNode.appendChild(clone);
     }
+  }
+  function makeUserProfileCollectionGreat() {
+    // User profile collections pages are almost like discography page. To make them compatible, let's add the class names from the discography page
+    document.querySelectorAll('.collection-grid').forEach(grid => grid.classList.add('music-grid'));
+    document.querySelectorAll('.collection-grid .collection-item-container').forEach(cell => cell.classList.add('music-grid-item'));
+
+    // Remove play art
+    document.querySelectorAll('.collection-grid .collection-item-container .item_link_play').forEach(linkPlay => linkPlay.remove());
+
+    // Add href to <a>
+    document.querySelectorAll('.collection-grid .collection-item-container').forEach(container => {
+      container.querySelector('a.track_play_auxiliary').href = container.querySelector('a.item-link[href]').href;
+    });
+
+    // Remove link to album art gallery
+    document.querySelectorAll('.collection-grid .collection-item-container .package-details').forEach(packageDetails => packageDetails.remove());
+
+    // Stop event listeners for bandcamp's own player
+    const stopEvent = ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+    };
+    document.querySelectorAll('.collection-grid .collection-item-container .collection-item-art-container').forEach(artContainer => {
+      artContainer.addEventListener('click', stopEvent);
+    });
+
+    // Move art-icon a bit to the top (50%->30%)
+    addStyle(`
+      .collection-item-container.music-grid-item .art-play { top:30%; }
+      .collection-item-container.music-grid-item .albumIsCurrentlyPlayingIndicator { top:30%; }
+      `);
+
+    // Make the page reload when clicking on the grid tabs (switching between wishlist and collection) to force the script to re-run
+    const currentPathName = document.location.pathname;
+    document.querySelectorAll('#grid-tabs').forEach(gridTab => {
+      gridTab.addEventListener('click', () => {
+        if (document.location.pathname !== currentPathName) {
+          document.location.reload();
+        }
+      });
+    });
   }
   function makeTagSearchCoversGreat() {
     const onclick = function onclick(ev) {
@@ -7199,6 +7266,12 @@ If this is a malicious website, running the userscript may leak personal data (e
         .search .result-items .searchresult[data-search*='"type":"t"'],
         .search .result-items .searchresult[data-search*='"type":"b"']
         `).forEach(cell => cell.classList.add('music-grid-item'));
+      }
+      if (allFeatures.userProfilePlayer.enabled && document.querySelector('.collection-grid .collection-item-container')) {
+        makeUserProfileCollectionGreat();
+        if (!allFeatures.discographyplayer.enabled) {
+          makeAlbumCoversGreat();
+        }
       }
       if (allFeatures.discographyplayer.enabled && document.querySelector('.featured-grid.featured-items .featured-item')) {
         // Discography page (featured albums)
