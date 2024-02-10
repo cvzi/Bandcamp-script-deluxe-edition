@@ -6750,6 +6750,13 @@ function onLoaded () {
         `).forEach(cell => cell.classList.add('music-grid-item'))
     }
 
+    if (allFeatures.discographyplayer.enabled && document.querySelector('.featured-grid.featured-items .featured-item')) {
+      // Discography page (featured albums)
+      // To make them compatible, let's add the class names from the regular music-grid
+      document.querySelectorAll('.featured-grid.featured-items').forEach(e => e.classList.add('music-grid'))
+      document.querySelectorAll('.featured-grid.featured-items .featured-item').forEach(e => e.classList.add('music-grid-item'))
+    }
+
     if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href*="/album/"] img,.music-grid .music-grid-item a[href*="/track/"] img')) {
       // Discography page
       makeAlbumCoversGreat()
