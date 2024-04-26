@@ -9,6 +9,7 @@
 // @require         https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
 // @require         https://unpkg.com/react@18/umd/react.development.js
 // @require         https://unpkg.com/react-dom@18/umd/react-dom.development.js
+// @require         https://unpkg.com/lz-string@1.5.0/libs/lz-string.min.js
 // @run-at          document-start
 // @match           https://*/*
 // @match           https://bandcamp.com/*
@@ -20,7 +21,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.34.0
+// @version         1.34.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT

@@ -9,6 +9,7 @@
 // @require         https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
 // @require         https://unpkg.com/react@18/umd/react.development.js
 // @require         https://unpkg.com/react-dom@18/umd/react-dom.development.js
+// @require         https://unpkg.com/lz-string@1.5.0/libs/lz-string.min.js
 // @run-at          document-start
 // @match           https://*/*
 // @match           https://bandcamp.com/*
@@ -20,7 +21,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.34.0
+// @version         1.34.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -64,7 +65,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* globals React, ReactDOM */
+/* globals React, ReactDOM, LZString */
 /* jshint esversion: 8 */
 (function (React, ReactDOM) {
   'use strict';
@@ -113,7 +114,7 @@ SOFTWARE.
   }
   function _toPropertyKey(t) {
     var i = _toPrimitive(t, "string");
-    return "symbol" == typeof i ? i : String(i);
+    return "symbol" == typeof i ? i : i + "";
   }
   function _defineProperty(obj, key, value) {
     key = _toPropertyKey(key);
