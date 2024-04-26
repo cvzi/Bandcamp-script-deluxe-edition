@@ -55,7 +55,7 @@ const banner = `\
 /*
 ${fs.readFileSync('./LICENSE', 'utf8')}*/
 
-/* globals React, ReactDOM */
+/* globals React, ReactDOM, LZString */
 /* jshint esversion: 8 */`
 
 export default {
@@ -68,7 +68,8 @@ export default {
     sourcemap: true,
     globals: {
       react: 'React',
-      'react-dom': 'ReactDOM'
+      'react-dom': 'ReactDOM',
+      'lz-string': 'LZString'
     }
   },
   plugins: [
