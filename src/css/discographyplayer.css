@@ -15,7 +15,11 @@
   color:#505958;
   border-top: 1px solid rgba(0,0,0,0.15);
   font: 13px/1.231 "Helvetica Neue",Helvetica,Arial,sans-serif;
-  transition: bottom 500ms
+  transition: bottom 500ms;
+  box-sizing: initial;
+}
+#discographyplayer * {
+  box-sizing: initial;
 }
 #discographyplayer a:link,#discographyplayer a:visited{
   color: #0687f5;

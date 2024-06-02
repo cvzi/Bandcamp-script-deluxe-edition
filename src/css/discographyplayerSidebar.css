@@ -2,6 +2,10 @@
   #menubar-wrapper:hover {
     z-index:1100;
   }
+  #menubar:hover {
+    z-index:1100;
+    position:relative;
+  }
   #discographyplayer {
     display: block;
     bottom: 0px;
