@@ -2793,18 +2793,90 @@ function makeUserProfileCollectionGreat () {
   })
 }
 
-function makeTagSearchCoversGreat () {
-  const onclick = function onclick (ev) {
-    ev.preventDefault()
-    const a = this.parentNode.querySelector('.info a[href]')
+function makeDiscoverSearchCoversGreatCss () {
+  addStyle(`
+  .results-grid-item {
+    position: relative
+  }
+  .results-grid-item .art-play {
+    margin-top: -50px;
+  }
+  .results-grid-item .art-play {
+    position: absolute;
+    width: 74px;
+    height: 54px;
+    left: 50%;
+    top: 50%;
+    margin-left: -36px;
+    margin-top: -27px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .results-grid-item .art-play-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: #000;
+    border-radius: 4px;
+  }
+  .results-grid-item .art-play-icon {
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: 28px;
+    top: 17px;
+    border-width: 10px 0 10px 17px;
+    border-color: transparent transparent transparent #fff;
+    border-style: dashed dashed dashed solid;
+  }
+  .results-grid-item:hover .art-play {
+    opacity: 0.6;
+    cursor:pointer;
+  }
+  `)
+}
+
+function discoverSearchCoverClick (ev) {
+  // Block click events on the cover
+  // but still allow clicking the small play button in the corner and the arrows for the slideshow
+  let clickIsOnButton = false
+  let p
+  for (p = ev.target; !p.classList.contains('results-grid-item'); p = p.parentNode) {
+    if (p.classList.contains('g-button')) {
+      clickIsOnButton = true
+      break
+    }
+  }
+  if (!clickIsOnButton) {
+    // Block click and use custom action
+    ev.stopPropagation()
+    const a = p.querySelector('.meta a[href]')
     playAlbumFromCover.call(this, ev, a.href)
   }
+}
 
-  document.querySelectorAll('.dig-deeper-item').forEach(function (div) {
-    const artDiv = div.querySelector('div.art')
-    const dumbArtCopy = artDiv.cloneNode(true)
-    artDiv.parentNode.replaceChild(dumbArtCopy, artDiv)
-    dumbArtCopy.addEventListener('click', onclick)
+function makeDiscoverSearchCoversGreat () {
+  let artPlay = false
+  document.querySelectorAll('.results-grid-item').forEach(function (div) {
+    if ('makeDiscoverSearchCoversGreat' in div.dataset) {
+      return
+    }
+    div.dataset.makeDiscoverSearchCoversGreat = true
+
+    const imageCarousel = div.querySelector('.image-carousel')
+    imageCarousel.addEventListener('click', discoverSearchCoverClick, true)
+
+    // Add play overlay
+    if (!artPlay) {
+      artPlay = document.createElement('div')
+      artPlay.className = 'art-play'
+      artPlay.innerHTML = '<div class="art-play-bg"></div><div class="art-play-icon"></div>'
+    }
+    const clone = artPlay.cloneNode(true)
+    clone.addEventListener('click', discoverSearchCoverClick)
+    imageCarousel.appendChild(clone)
   })
 }
 
@@ -6790,7 +6862,7 @@ function onLoaded () {
   } else {
     if (NOEMOJI) {
       addStyle('@font-face{font-family:Symbola;src:local("Symbola Regular"),local("Symbola"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format("woff2"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format("woff"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format("truetype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format("opentype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format("svg")}' +
-        '.sharepanelchecksymbol,.bdp_check_onlinkhover_symbol,.bdp_check_onchecked_symbol,.volumeSymbol,.downloaddisk,.downloadlink,#user-nav .menubar-symbol,.listened-symbol,.mark-listened-symbol,.minimizebutton{font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif}' +
+        '.sharepanelchecksymbol,.bdp_check_onlinkhover_symbol,.bdp_check_onchecked_symbol,.volumeSymbol,.downloaddisk,.downloadlink,.user-nav .menubar-symbol,.listened-symbol,.mark-listened-symbol,.minimizebutton{font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif}' +
         '.downloaddisk,.downloadlink{font-weight: bolder}')
     }
 
@@ -6858,10 +6930,11 @@ function onLoaded () {
       }
     }
 
-    if (document.location.pathname.startsWith('/tag/')) {
-      // Tag search page
+    if (document.location.pathname.startsWith('/discover')) {
+      // Discover search page
+      makeDiscoverSearchCoversGreatCss()
       if (allFeatures.tagSearchPlayer.enabled) {
-        makeTagSearchCoversGreat()
+        window.setInterval(makeDiscoverSearchCoversGreat, 1000)
       }
     }
 
@@ -6886,8 +6959,10 @@ function onLoaded () {
     }
 
     GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu)
-    if (document.getElementById('user-nav')) {
-      appendMainMenuButtonTo(document.getElementById('user-nav'))
+    if (document.querySelector('.user-nav')) {
+      appendMainMenuButtonTo(document.querySelector('.user-nav'))
+    } else if (document.querySelector('#user-nav')) {
+      appendMainMenuButtonTo(document.querySelector('#user-nav'))
     } else if (document.getElementById('customHeaderWrapper')) {
       appendMainMenuButtonLeftTo(document.getElementById('customHeaderWrapper'))
     } else if (document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav')) {
