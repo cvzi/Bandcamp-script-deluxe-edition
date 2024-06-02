@@ -1,7 +1,7 @@
 import metablock from 'rollup-plugin-userscript-metablock'
 import config from './rollupRelease.config.mjs'
-import pkg from './package.json' assert { type: 'json' }
-import meta from './meta.json' assert { type: 'json' }
+import pkg from './package.json' with { type: 'json' }
+import meta from './meta.json' with { type: 'json' }
 
 config.output.file = 'dist/release-bandcamp.com-only.user.js'
 

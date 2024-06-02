@@ -7,7 +7,7 @@ import CleanCSS from 'clean-css'
 import { createFilter } from 'rollup-pluginutils'
 import path from 'path'
 import fs from 'fs'
-import pkg from './package.json' assert { type: 'json' }
+import pkg from './package.json' with { type: 'json' }
 const port = pkg.config.port
 
 export function importText (options = {}) {

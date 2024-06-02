@@ -1,5 +1,5 @@
 import config, { importText, importTextOptions } from './rollup.config.mjs'
-import pkg from './package.json' assert { type: 'json' }
+import pkg from './package.json' with { type: 'json' }
 
 // Replace importText plugin
 for (let i = 0; i < config.plugins.length; i++) {
