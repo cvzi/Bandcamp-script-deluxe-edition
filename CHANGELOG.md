@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.35.1](../../tree/v1.35.1) *(2024-06-02)*
+*   Minor CSS fixes for discography player
 ## [1.35.0](../../tree/v1.35.0) *(2024-06-02)*
 *   Discography player on "Discover" page [#359](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/359) [#360](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/360)
 ## [1.34.1](../../tree/v1.34.1) *(2024-04-26)*
