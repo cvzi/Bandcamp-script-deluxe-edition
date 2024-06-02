@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.35.0](../../tree/v1.35.0) *(2024-06-02)*
+*   Discography player on "Discover" page [#359](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/359) [#360](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/360)
 ## [1.34.1](../../tree/v1.34.1) *(2024-04-26)*
 *   Compress cached lyrics [genius-lyrics-userscript#73](https://github.com/cvzi/genius-lyrics-userscript/pull/73)
 ## [1.34.0](../../tree/v1.34.0) *(2024-02-10)*
