@@ -1276,7 +1276,7 @@ function musicPlayerToggleShuffle () {
     if (n > 0) {
       const queueLoadingIndicator = document.body.appendChild(document.createElement('div'))
       queueLoadingIndicator.setAttribute('id', 'queueloadingindicator')
-      queueLoadingIndicator.style = 'position:fixed;top:1%;left:10px;background:#d5dce4;color:#033162;font-size:10pt;border:1px solid #033162;z-index:200;'
+      queueLoadingIndicator.style = 'position:fixed;top:1%;left:10px;background:#d5dce4;color:#033162;font-size:10pt;border:1px solid #033162;z-index:3000;'
     }
 
     const updateLoadingIndicator = function () {
@@ -2236,7 +2236,12 @@ function addAlbumToPlaylist (TralbumData, startPlaybackIndex = 0) {
 }
 
 function addAllAlbumsAsHeadings () {
-  const as = document.querySelectorAll('.music-grid .music-grid-item a[href*="/album/"],.music-grid .music-grid-item a[href*="/track/"]')
+  const as = Array.from(document.querySelectorAll('.music-grid .music-grid-item a[href*="/album/"],.music-grid .music-grid-item a[href*="/track/"]'))
+  // "Discover"-page
+  as.push(...document.querySelectorAll('.results-grid-item a[href*="/album/"],.results-grid-item a[href*="/track/"]'))
+  // Profile "Feed"
+  as.push(...document.querySelectorAll('.collect-item ul li.buy-now a[href*="/album/"], .collect-item ul li.buy-now a[href*="/track/"]'))
+
   const lis = player.querySelectorAll('.playlist .playlistentry')
   const unloadedAs = player.querySelectorAll('.playlist .playlistheading.notloaded a')
   const alreadyAddedAlbums = {}
