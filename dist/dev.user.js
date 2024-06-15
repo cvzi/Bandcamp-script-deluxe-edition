@@ -21,10 +21,11 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.35.0
+// @version         1.35.2
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
+// @sandbox         JavaScript
 // @grant           GM.xmlHttpRequest
 // @grant           GM.setValue
 // @grant           GM.getValue
@@ -36,6 +37,7 @@
 // @grant           GM_setClipboard
 // @grant           unsafeWindow
 // ==/UserScript==
+
 /*  globals GM */
 
 'use strict';
