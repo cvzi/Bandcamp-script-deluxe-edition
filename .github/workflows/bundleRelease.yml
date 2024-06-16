@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
   push:
     branches: [ master ]
-    paths:
-    - 'src/**'
+    paths-ignore:
+    - 'dist/**'
   pull_request:
     branches: [ master ]
-    paths:
-    - 'src/**'
+    paths-ignore:
+    - 'dist/**'
 jobs:
   singleDomain:
     runs-on: ubuntu-latest
