@@ -1,6 +1,8 @@
 # Changelog
 
-## [1.36.0](../../tree/v1.35.1) *(2024-06-15)*
+## [1.36.1](../../tree/v1.36.1) *(2024-06-16)*
+*   Shuffle all albums on feed and "Discover" page
+## [1.36.0](../../tree/v1.36.0) *(2024-06-15)*
 *   Shuffle all albums on feed and "Discover" page
 ## [1.35.1](../../tree/v1.35.1) *(2024-06-02)*
 *   Minor CSS fixes for discography player
