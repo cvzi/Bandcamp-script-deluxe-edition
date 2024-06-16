@@ -6,7 +6,7 @@ import meta from './meta.json' with { type: 'json' }
 config.output.file = 'dist/release-bandcamp.com-only.user.js'
 
 for (let i = 0; i < config.plugins.length; i++) {
-  if ('renderChunk' in config.plugins[i] && !('name' in config.plugins[i])) {
+  if (config.plugins[i] instanceof Promise) {
     config.plugins[i] = metablock({
       file: './meta.json',
       override: {
