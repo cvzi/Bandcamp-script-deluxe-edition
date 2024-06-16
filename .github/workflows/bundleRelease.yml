@@ -30,7 +30,7 @@ jobs:
         npm run build:singledomain
     - name: check singledomain build
       run: |
-        grep -F "Bandcamp script (bandcamp.comonly)" dist/release-bandcamp.com-only.user.js
+        grep -F "Bandcamp script (bandcamp.com only)" dist/release-bandcamp.com-only.user.js
         grep -F "https://*.bandcamp.com/*" dist/release-bandcamp.com-only.user.js
     - name: commit & push
       run: |
