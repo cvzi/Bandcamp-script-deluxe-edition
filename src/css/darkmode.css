@@ -503,7 +503,13 @@ input[type=text],input[type=password],textarea {
   color:#869593 !important;
 }
 #discographyplayer .playlist {
-  background: #26423b !important;
+  background-color: #26423b !important;
+}
+#discographyplayer .playlist.dropbox {
+  background-color: #497e49 !important;
+}
+#discographyplayer .playlist.dropbox.processing{
+  background-color:#1a957e!important;
 }
 #discographyplayer .playlist .playing {
   background: #619aa9db !important;

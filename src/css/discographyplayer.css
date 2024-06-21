@@ -222,7 +222,14 @@
   margin:0px;
   padding: 0px 5px 0px 5px;
   scrollbar-color: rgba(50,50,50,0.4) white;
-  background:white;
+  background-color:white;
+  transition: background-color 300ms;
+}
+#discographyplayer .playlist.dropbox{
+  background-color:#86c786;
+}
+#discographyplayer .playlist.dropbox.processing{
+  background-color:#45d1b1;
 }
 #discographyplayer_contextmenu {
   position:absolute;
