@@ -1938,14 +1938,14 @@ function musicPlayerPlaylistOnDrop (ev) {
         }
       }
       const urls = [...urlMap.keys()]
-      if (urls.length === 0 ) {
+      if (urls.length === 0) {
         player.querySelector('.playlist').classList.remove('dropbox', 'processing')
         return
       }
       player.querySelector('.playlist').classList.add('processing')
       for (let i = 0; i < urls.length; i++) {
         window.setTimeout(async function () {
-          const x = await addAlbumFromUrlIfNotInPlaylist(urls[i], null)
+          await addAlbumFromUrlIfNotInPlaylist(urls[i], null)
           player.querySelector('.playlist').classList.remove('dropbox', 'processing')
         }, i * 100)
       }
