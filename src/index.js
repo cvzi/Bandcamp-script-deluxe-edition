@@ -365,6 +365,22 @@ let onPlayHead = false
 
 const spriteRepeatShuffle = "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAABgCAMAAACt1UvuAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAA2UExURQAAAP////39/Tw8PP///////w4ODv////7+/v7+/k5OTktLS35+fiAgIJSUlAAAABAQECoqKpxAnVsAAAAPdFJOUwAxQ05UJGkKBRchgWiOOufd5UcAAAKrSURBVEjH7ZfrkqQgDIUbFLmphPd/2T2EgNqNzlTt7o+p3dR0d5V+JOGEYzkvZ63nsNY6517XCPIrjIDvXF7qL24ao5QynesIllDKE1MpJdom1UDBQIQlE+HmEipVIk+6cqVqQYivlq/loBJFDa6WnaitbbnMtFHnOF1niDJJX14pPa+cOm0l3Vohyuus8xpkj9ih1nPke6iaO6KV323XqwhRON4tQ3GedakNYYQqslaO+yv9xs64Lh2rX8sWeSISzVWTk8ROJmmU9MTl1PvEnHBmzXRSzvhhuqJAzjlJY9eJCVWljKwcESbL+fbTYK0NWx0IGodyvKCACqp6VqMNlguhktbxMqHdI5k7ps1SsiTxPO0YDgojkZPIysl+617cy8rUkIfPflMY4IaKLZfHhSoPn782iQJC5tIX2nfNQseGG4eoe3T1+kXh7j1j/H6W9TbC65ZxR2S0frKePUWYlhbY/hTkvL6aiKPApCRTeoxNTvUTI16r1DqPAqrGVR0UT/ojwGByJ6qO8S32HQ6wJ8r4TwFdyGnx7kzVM8l/nZpwRwkm1GAKC+5oKflMzY3aUm4rBpSsd17pVv2Bsn739ivqFWK2bhD2TE0wwTKM3Knu2puo1PJ8blqu7TEXVY1wgvGQwYN6HKJR0WGjYqxheN/lCpOzd/GlHX+gHyEe/SE/qpyV+sKPfqdEhzVv/OjwwC3zlefnnR+9YW+5Zz86fzjw3o+f1NCP9oMa+fGeOvnR2brH/378B/xI9A0/UjUjSfyOH2GzCDOuKavyUUM/eryMFjNOIMrHD/1o4di0GlCkp8IP/RjwglRSCKX9yI845VGXqwc18KOtWq3mSr35EQVnHbnzC3X144I3d7Wj6xuq+hH7gwz4PvY48GP9p8i2Vzus/dt+pB/nx18MUmsLM2EHrwAAAABJRU5ErkJggg==')"
 
+async function getGMValues (o) {
+  // GM.getValues will be soon avaible in TM & VM due to MV3 (TM issue #2045), tally with chrome.storage
+  const entries = Object.entries(o)
+  const values = await Promise.all(entries.map(entry => GM.getValue(entry[0], entry[1])))
+  return Object.fromEntries(values.map((val, idx) => [entries[idx][0], val]))
+}
+function setGMValues (o) {
+  const entries = Object.entries(o)
+  return Promise.all(entries.map(([key, value]) => GM.setValue(key, value)))
+}
+
+function stopPropagationDefault (ev) {
+  ev.stopPropagation()
+  ev.preventDefault()
+}
+
 function humanDuration (duration) {
   let hours = parseInt(duration / 3600)
   if (!hours) {
@@ -415,6 +431,10 @@ function sleep (t) {
 function randomIndex (max) {
   // Random int from interval [0,max)
   return Math.floor(Math.random() * Math.floor(max))
+}
+
+function shuffleIterable (arr) {
+  return [...arr].map(x => [Math.random(), x]).sort(([x], [y]) => y - x).map(([x, y]) => y)
 }
 
 function padd (n, width, filler) {
@@ -1119,8 +1139,7 @@ function musicPlayerPlaySong (next, startTime) {
       const indicator = img.parentNode.appendChild(document.createElement('div'))
       indicator.classList.add('albumIsCurrentlyPlayingIndicator')
       indicator.addEventListener('click', function (ev) {
-        ev.preventDefault()
-        ev.stopPropagation()
+        stopPropagationDefault(ev)
         if (!musicPlayerPlay()) {
           // Album is now paused -> Remove indicators
           document.querySelectorAll('img.albumIsCurrentlyPlaying').forEach(img => img.classList.remove('albumIsCurrentlyPlaying'))
@@ -1790,15 +1809,51 @@ function musicPlayerSaveState () {
       break
     }
   }
+  const sessionID = player.dataset.sessionID || crypto.randomUUID()
+  const sessionName = player.dataset.sessionName || ''
   const startPlaybackTime = audio.currentTime
-  return GM.setValue('musicPlayerState', JSON.stringify({
+  const musicPlayerState = {
+    sessionID,
+    sessionName,
     time: (new Date().getTime()),
     htmlPlaylist: player.querySelector('.playlist').innerHTML,
     startPlayback: !audio.paused,
     startPlaybackIndex,
     startPlaybackTime,
     shuffleActive: player.querySelector('.shufflebutton').classList.contains('active')
-  }))
+  }
+  GM.setValue('musicPlayerState', JSON.stringify(musicPlayerState))
+
+  // Also store data in the sessions
+  const lastSong = player.querySelector('.currentlyPlaying .info').innerText.split('\n').join(' ')
+  const lastCover = player.querySelector('.currentlyPlaying .cover img[src').src
+  const fiveArtists = shuffleIterable(new Set([...document.querySelectorAll('.playlist .playlistentry[data-artist]')].map(e => e.dataset.artist))).slice(0, 5)
+  const initUrl = player.dataset.initUrl
+  const initTime = player.dataset.initTime
+
+  const sessionJSON = JSON.stringify({
+    sessionName,
+    lastSong,
+    lastCover,
+    fiveArtists,
+    initUrl,
+    initTime,
+    lastTime: new Date().getTime()
+  })
+
+  getGMValues({
+    musicPlayerSessionsMetas: '{}',
+    musicPlayerSessionsStates: '{}'
+  }).then(stringData => {
+    const metas = JSON.parse(stringData.musicPlayerSessionsMetas)
+    const states = JSON.parse(stringData.musicPlayerSessionsStates)
+    metas[sessionID] = sessionJSON
+    states[sessionID] = musicPlayerState
+    setGMValues({
+      musicPlayerSessionsMetas: JSON.stringify(metas),
+      musicPlayerSessionsStates: JSON.stringify(states)
+    })
+  })
 }
 
 function musicPlayerRestoreState (state) {
@@ -1812,6 +1867,13 @@ function musicPlayerRestoreState (state) {
 
   // Re-create music player
   musicPlayerCreate()
+  if ('sessionID' in state) {
+    player.dataset.sessionID = state.sessionID
+  }
+  if ('sessionName' in state) {
+    player.dataset.sessionName = state.sessionName
+  }
+
   player.querySelector('.playlist').innerHTML = state.htmlPlaylist
   const playlistEntries = player.querySelectorAll('.playlist .playlistentry')
   playlistEntries.forEach(function addPlaylistEntryOnClick (li) {
@@ -1835,6 +1897,61 @@ function musicPlayerRestoreState (state) {
   }
   if ('shuffleActive' in state && state.shuffleActive) {
     player.querySelector('.shufflebutton').classList.add('active')
+  }
+}
+
+function musicPlayerPlaylistOnDragEnter (ev) {
+  player.querySelector('.playlist').classList.add('dropbox')
+  if (allFeatures.discographyplayerFullHeightPlaylist.enabled && !allFeatures.discographyplayerSidebar.enabled) {
+    musicPlayerPlaylistFullHeight.apply(player.querySelector('.playlist'))
+  }
+}
+function musicPlayerPlaylistOnDragLeave (ev) {
+  if (ev && !ev.target.classList.contains('playlist')) {
+    player.querySelector('.playlist').classList.remove('dropbox')
+  }
+}
+
+function musicPlayerPlaylistOnDrop (ev) {
+  stopPropagationDefault(ev)
+
+  // Extract urls from dragged content and add each /album or /track url to the playlist
+
+  const getStringAsPromise = dataTransferItem => new Promise((resolve) => dataTransferItem.getAsString(resolve))
+  const getItemsAsStrings = dataTransferItemList => {
+    const promises = []
+    for (const item of dataTransferItemList) {
+      promises.push(getStringAsPromise(item))
+    }
+    return Promise.all(promises)
+  }
+
+  if (ev.dataTransfer.items) {
+    const urlMap = new Map() // Remembers insertion order
+    getItemsAsStrings(ev.dataTransfer.items).then(strings => {
+      for (const s of strings) {
+        for (const m of `\n${s}\n`.matchAll(/(https?:\/\/.+?)[\s"'<$]/gim)) {
+          const url = m[1].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+          if (url.indexOf('/album/') !== -1 || url.indexOf('/track/') !== -1) {
+            urlMap.set(url, true)
+          }
+        }
+      }
+      const urls = [...urlMap.keys()]
+      if (urls.length === 0 ) {
+        player.querySelector('.playlist').classList.remove('dropbox', 'processing')
+        return
+      }
+      player.querySelector('.playlist').classList.add('processing')
+      for (let i = 0; i < urls.length; i++) {
+        window.setTimeout(async function () {
+          const x = await addAlbumFromUrlIfNotInPlaylist(urls[i], null)
+          player.querySelector('.playlist').classList.remove('dropbox', 'processing')
+        }, i * 100)
+      }
+    })
+  } else {
+    player.querySelector('.playlist').classList.remove('dropbox', 'processing')
   }
 }
 
@@ -1918,6 +2035,10 @@ function musicPlayerCreate () {
   player = document.createElement('div')
   document.body.appendChild(player)
   player.id = 'discographyplayer'
+  player.dataset.sessionID = crypto.randomUUID()
+  player.dataset.initUrl = document.location.href
+  player.dataset.initTime = new Date().getTime()
+
   player.innerHTML = `
 <div class="col col25 nowPlaying">
   <div class="currentlyPlaying">
@@ -2103,10 +2224,17 @@ function musicPlayerCreate () {
     downloadMp3FromLink(ev, this, addSpinner, removeSpinner)
   })
 
+  const playlist = player.querySelector('.playlist')
   if (allFeatures.discographyplayerFullHeightPlaylist.enabled && !allFeatures.discographyplayerSidebar.enabled) {
-    player.querySelector('.playlist').addEventListener('mouseover', musicPlayerPlaylistFullHeight)
-    player.querySelector('.playlist').addEventListener('mouseout', musicPlayerPlaylistNormalHeight)
+    playlist.addEventListener('mouseover', musicPlayerPlaylistFullHeight)
+    playlist.addEventListener('mouseout', musicPlayerPlaylistNormalHeight)
   }
+
+  // Drag'n'drop zone
+  playlist.addEventListener('dragenter', musicPlayerPlaylistOnDragEnter)
+  playlist.addEventListener('dragleave', musicPlayerPlaylistOnDragLeave)
+  playlist.addEventListener('dragover', stopPropagationDefault)
+  playlist.addEventListener('drop', musicPlayerPlaylistOnDrop)
 
   if (NOEMOJI) {
     player.querySelector('.downloadlink').innerHTML = '↓'
@@ -2616,6 +2744,19 @@ function playAlbumFromCover (ev, url) {
   })
 }
 
+function addAlbumFromUrlIfNotInPlaylist (url) {
+  // Check if already in playlist
+  if (player && player.querySelectorAll('.playlist .playlistentry')) {
+    const lis = player.querySelectorAll('.playlist .playlistentry')
+    for (let i = 0; i < lis.length; i++) {
+      if (albumKey(lis[i].dataset.albumUrl) === albumKey(url)) {
+        return
+      }
+    }
+  }
+  return playAlbumFromUrl(url, null)
+}
+
 function playAlbumFromUrl (url, startPlaybackIndex = 0) {
   if (!url.startsWith('http')) {
     url = document.location.protocol + '//' + url
@@ -2773,12 +2914,8 @@ function makeUserProfileCollectionGreat () {
   document.querySelectorAll('.collection-grid .collection-item-container .package-details').forEach(packageDetails => packageDetails.remove())
 
   // Stop event listeners for bandcamp's own player
-  const stopEvent = (ev) => {
-    ev.preventDefault()
-    ev.stopPropagation()
-  }
   document.querySelectorAll('.collection-grid .collection-item-container .collection-item-art-container').forEach(artContainer => {
-    artContainer.addEventListener('click', stopEvent)
+    artContainer.addEventListener('click', stopPropagationDefault)
   })
 
   // Move art-icon a bit to the top (50%->30%)
@@ -3728,8 +3865,7 @@ function addVolumeBarToAlbumPage () {
     if (ev.button !== 0) {
       return
     }
-    ev.preventDefault()
-    ev.stopPropagation()
+    stopPropagationDefault(ev)
 
     if (!dragging) {
       // Click on volume bar without dragging:
@@ -3743,15 +3879,13 @@ function addVolumeBarToAlbumPage () {
   document.addEventListener('mouseup', function documentMouseUp (ev) {
     if (ev.button === 0 && dragging) {
       dragging = false
-      ev.preventDefault()
-      ev.stopPropagation()
+      stopPropagationDefault(ev)
       GM.setValue('volume', audioAlbumPage.logVolume)
     }
   })
   document.addEventListener('mousemove', function documentMouseMove (ev) {
     if (ev.button === 0 && dragging) {
-      ev.preventDefault()
-      ev.stopPropagation()
+      stopPropagationDefault(ev)
       audioAlbumPage.muted = false
       audioAlbumPage.logVolume = Math.max(0.0, Math.min(1.0, ((ev.pageX - volumeBarPos) - dragPos) / width100))
       displayVolume()
@@ -5324,8 +5458,7 @@ function exportMenu (showClearButton) {
       handleFiles(this.files)
     }, false)
     main.addEventListener('dragenter', function dragenter (ev) {
-      ev.stopPropagation()
-      ev.preventDefault()
+      stopPropagationDefault(ev)
       main.style.backgroundColor = '#c6daf9'
       drophint.style.left = (main.clientWidth / 2 - drophint.clientWidth / 2) + 'px'
       drophint.style.display = 'block'
@@ -5335,14 +5468,12 @@ function exportMenu (showClearButton) {
       drophint.style.display = 'none'
     }, false)
     main.addEventListener('dragover', function dragover (ev) {
-      ev.stopPropagation()
-      ev.preventDefault()
+      stopPropagationDefault(ev)
       main.style.backgroundColor = '#c6daf9'
       drophint.style.display = 'block'
     }, false)
     main.addEventListener('drop', function drop (ev) {
-      ev.stopPropagation()
-      ev.preventDefault()
+      stopPropagationDefault(ev)
       main.style.backgroundColor = 'white'
       drophint.style.display = 'none'
       handleFiles(ev.dataTransfer.files)
@@ -5683,8 +5814,7 @@ function addOpenDiscographyPlayerFromAlbumPage () {
   a.addEventListener('click', function onAlbumArtClick (ev) {
     if (isInRatio(ev)) {
       // Open player
-      ev.preventDefault()
-      ev.stopPropagation()
+      stopPropagationDefault(ev)
       if (unsafeWindow.TralbumData) {
         addAlbumToPlaylist(unsafeWindow.TralbumData)
       } else {
@@ -6196,7 +6326,7 @@ function appendMainMenuButtonLeftTo (leftOf) {
     appendMainMenuButtonTo(document.body.appendChild(ul))
     addStyle(`
     .bcsde_settingsbar {position:absolute; top:-15px; left:${rect.right}px; list-style-type: none; padding:0; margin:0; opacity:0.6; transition:top 300ms}
-    .bcsde_settingsbar:hover {top:${rect.top}px}
+    .bcsde_settingsbar:hover {top:${Math.max(rect.top, 0)}px}
     .bcsde_settingsbar a:hover {text-decoration:none}
     .bcsde_settingsbar li {float:left; padding:0; margin:0}`)
     window.addEventListener('resize', function () {
