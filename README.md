@@ -40,6 +40,7 @@ Other features:
  *   Feed: Show only new album releases in the feed (disabled by default, enable in  script settings)
  *   Discography player: Show at the page bottom like bandcamp's player or as side bar
  *   Discography player: Add track or album to wishlist
+ *   Discography player: Drag'n'Drop album links or urls into the playlist (e.g. from the url bar from another tab/window)
  *   Tag search: Search multiple tags with the 🔍 search in the navigation bar
  *   Tag search: Play albums in "Discography player"
  *   Search: Play search results in "Discography player"

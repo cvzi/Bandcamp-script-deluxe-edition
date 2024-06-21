@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.37.0](../../tree/v1.37.0) *(2024-06-21)*
+*   Allow drag'n'drop of links into the playlist
 ## [1.36.1](../../tree/v1.36.1) *(2024-06-16)*
 *   Shuffle all albums on feed and "Discover" page
 ## [1.36.0](../../tree/v1.36.0) *(2024-06-15)*

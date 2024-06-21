@@ -1,6 +1,6 @@
 {
     "name": "bandcamp-script-deluxe-edition",
-    "version": "1.36.1",
+    "version": "1.37.0",
     "description": "A discography player for bandcamp.com and manager for your played albums",
     "keywords": [
         "userscript",
@@ -38,7 +38,8 @@
         ],
         "globals": [
             "GM",
-            "GM_registerMenuCommand"
+            "GM_registerMenuCommand",
+            "crypto"
         ]
     },
     "devDependencies": {
