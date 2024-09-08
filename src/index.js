@@ -3051,6 +3051,7 @@ async function makeAlbumLinksGreat (parentElement) {
   const excluded = [...document.querySelectorAll('#carousel-player .now-playing a')]
   excluded.push(...document.querySelectorAll('#discographyplayer a'))
   excluded.push(...document.querySelectorAll('#pastreleases a'))
+  excluded.push(...document.querySelectorAll('a[href*="/download/album/"],a[href*="/download//track/"]'))
 
   /*
   <div class="bdp_check_container bdp_check_onlinkhover_container"><span class="bdp_check_onlinkhover_symbol">\u2610</span> <span class="bdp_check_onlinkhover_text">Check</span></div>
