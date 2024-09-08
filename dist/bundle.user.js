@@ -21,7 +21,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.37.0
+// @version         1.37.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -888,7 +888,7 @@ SOFTWARE.
       }
     }
     this.render = function () {
-      ReactDOM__namespace.createRoot(root).render( /*#__PURE__*/React__namespace.createElement(AlbumList, {
+      ReactDOM__namespace.createRoot(root).render(/*#__PURE__*/React__namespace.createElement(AlbumList, {
         getKey: "tralbumlibrary"
       }));
     };
@@ -1322,7 +1322,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       return String(n);
     }
     k = k || 1000;
-    const dm = decimals ;
+    const dm = decimals;
     const sizes = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'];
     const i = Math.floor(Math.log(n) / Math.log(k));
     return parseFloat((n / Math.pow(k, i)).toFixed(dm)) + sizes[i];
@@ -3825,6 +3825,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     const excluded = [...document.querySelectorAll('#carousel-player .now-playing a')];
     excluded.push(...document.querySelectorAll('#discographyplayer a'));
     excluded.push(...document.querySelectorAll('#pastreleases a'));
+    excluded.push(...document.querySelectorAll('a[href*="/download/album/"],a[href*="/download//track/"]'));
 
     /*
     <div class="bdp_check_container bdp_check_onlinkhover_container"><span class="bdp_check_onlinkhover_symbol">\u2610</span> <span class="bdp_check_onlinkhover_text">Check</span></div>
