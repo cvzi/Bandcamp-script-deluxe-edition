@@ -6,10 +6,6 @@ on:
     branches: [ master ]
     paths-ignore:
     - 'dist/**'
-  pull_request:
-    branches: [ master ]
-    paths-ignore:
-    - 'dist/**'
 jobs:
   singleDomain:
     runs-on: ubuntu-latest
