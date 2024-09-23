@@ -51,7 +51,7 @@
         "@babel/preset-react": "^7.24.7",
         "@rollup/plugin-babel": "^6.0.4",
         "@rollup/plugin-commonjs": "^26.0.1",
-        "@rollup/plugin-node-resolve": "^15.2.3",
+        "@rollup/plugin-node-resolve": "^15.2.4",
         "@rollup/plugin-replace": "^5.0.7",
         "clean-css": "^5.3.3",
         "colorette": "^2.0.20",
