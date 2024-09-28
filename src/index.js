@@ -1931,7 +1931,7 @@ function musicPlayerPlaylistOnDrop (ev) {
     getItemsAsStrings(ev.dataTransfer.items).then(strings => {
       for (const s of strings) {
         for (const m of `\n${s}\n`.matchAll(/(https?:\/\/.+?)[\s"'<$]/gim)) {
-          const url = m[1].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+          const url = m[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
           if (url.indexOf('/album/') !== -1 || url.indexOf('/track/') !== -1) {
             urlMap.set(url, true)
           }
