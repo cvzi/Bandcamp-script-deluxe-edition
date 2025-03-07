@@ -6242,15 +6242,28 @@ async function showExplorer () {
   }).render()
 }
 
-function appendMainMenuButtonTo (ul) {
+function appendMainMenuButtonTo (ul, before) {
+  before = before ? before : ul.firstChild
   addStyle(`
+    .menubar-item {
+      display: flex;
+      align-items: center;
+      height: var(--bc-menubar-height);
+    }
     .menubar-item .menubar-symbol {
       display:flex;
       font-size:24px !important;
-      transition:transform 1s ease-out
+      transition:transform 1s ease-out;
+      padding:0 8px;
+    }
+    .menubar-item .menubar-symbol:link {
+      text-decoration:none
     }
     .menubar-item .menubar-symbol:hover {
-      text-decoration:none
+      text-decoration:none;
+    }
+    .menubar-item:hover {
+      background:rgba(20, 20, 20, 0.08);
     }
     .menubar-item:hover .menubar-symbol-settings {
       transform:rotate(1turn)
@@ -6263,7 +6276,7 @@ function appendMainMenuButtonTo (ul) {
     }
   `)
 
-  const liSettings = ul.insertBefore(document.createElement('li'), ul.firstChild)
+  const liSettings = ul.insertBefore(document.createElement('li'), before)
   liSettings.className = 'menubar-item hoverable'
   liSettings.title = 'userscript settings - ' + SCRIPT_NAME
   const aSettings = liSettings.appendChild(document.createElement('a'))
@@ -6279,7 +6292,7 @@ function appendMainMenuButtonTo (ul) {
   liSettings.addEventListener('click', () => mainMenu())
 
   if (allFeatures.keepLibrary.enabled) {
-    const liExplorer = ul.insertBefore(document.createElement('li'), ul.firstChild)
+    const liExplorer = ul.insertBefore(document.createElement('li'), before)
     liExplorer.className = 'menubar-item hoverable'
     liExplorer.title = 'library - ' + SCRIPT_NAME
     const aExplorer = liExplorer.appendChild(document.createElement('a'))
@@ -6300,7 +6313,7 @@ function appendMainMenuButtonTo (ul) {
     // })
   }
 
-  const liSearch = ul.insertBefore(document.createElement('li'), ul.firstChild)
+  const liSearch = ul.insertBefore(document.createElement('li'), before)
   liSearch.className = 'menubar-item hoverable menubar-item-tag-search'
   liSearch.title = 'tag search - ' + SCRIPT_NAME
   const aSearch = liSearch.appendChild(document.createElement('a'))
@@ -7095,7 +7108,13 @@ function onLoaded () {
     }
 
     GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu)
-    if (document.querySelector('.user-nav')) {
+
+    if (document.querySelector('.menu-items .search')) {
+      // Discover
+      const searchLi = document.querySelector('.menu-items .search')
+      const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
+      appendMainMenuButtonTo(insertBefore.parentNode, insertBefore)
+    } else if (document.querySelector('.user-nav')) {
       appendMainMenuButtonTo(document.querySelector('.user-nav'))
     } else if (document.querySelector('#user-nav')) {
       appendMainMenuButtonTo(document.querySelector('#user-nav'))
@@ -7105,6 +7124,7 @@ function onLoaded () {
       // Homepage and not logged in
       appendMainMenuButtonTo(document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav'))
     }
+
     if (document.querySelector('.hd-banner-2018')) {
       // Move the "we are hiring" banner (not loggin in)
       document.querySelector('.hd-banner-2018').style.left = '-500px'
