@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.37.2](../../tree/v1.37.2) *(2025-03-07)*
+*   Fix main menu when logged in (adapt to new bandcamp menu design)
 ## [1.37.1](../../tree/v1.37.1) *(2024-09-08)*
 *   Exclude download links from "✔ Mark as played"
 ## [1.37.0](../../tree/v1.37.0) *(2024-06-21)*

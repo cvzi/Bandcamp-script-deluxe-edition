@@ -21,7 +21,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.37.1
+// @version         1.37.2
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -106,16 +106,16 @@ SOFTWARE.
   function _defineProperty(e, r, t) {
     return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
       value: t,
-      enumerable: !0,
-      configurable: !0,
-      writable: !0
+      enumerable: true,
+      configurable: true,
+      writable: true
     }) : e[r] = t, e;
   }
   function _toPrimitive(t, r) {
     if ("object" != typeof t || !t) return t;
     var e = t[Symbol.toPrimitive];
     if (void 0 !== e) {
-      var i = e.call(t, r || "default");
+      var i = e.call(t, r);
       if ("object" != typeof i) return i;
       throw new TypeError("@@toPrimitive must return a primitive value.");
     }
@@ -2278,7 +2278,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
   }
   function musicPlayerOnVolumeWheel(ev) {
     ev.preventDefault();
-    const direction = Math.min(Math.max(-1.0, ev.deltaY), 1.0);
+    const direction = Math.min(Math.max(-1, ev.deltaY), 1.0);
     audio.logVolume = Math.min(Math.max(0.0, audio.logVolume - 0.05 * direction), 1.0);
     GM.setValue('volume', audio.logVolume);
   }
@@ -4587,7 +4587,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     });
     const onWheel = function onMouseWheel(ev) {
       ev.preventDefault();
-      const direction = Math.min(Math.max(-1.0, ev.deltaY), 1.0);
+      const direction = Math.min(Math.max(-1, ev.deltaY), 1.0);
       audioAlbumPage.logVolume = Math.min(Math.max(0.0, audioAlbumPage.logVolume - 0.05 * direction), 1.0);
       displayVolume();
       GM.setValue('volume', audioAlbumPage.logVolume);
@@ -6731,15 +6731,28 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       deletePermanentTralbum
     }).render();
   }
-  function appendMainMenuButtonTo(ul) {
+  function appendMainMenuButtonTo(ul, before) {
+    before = before ? before : ul.firstChild;
     addStyle(`
+    .menubar-item {
+      display: flex;
+      align-items: center;
+      height: var(--bc-menubar-height);
+    }
     .menubar-item .menubar-symbol {
       display:flex;
       font-size:24px !important;
-      transition:transform 1s ease-out
+      transition:transform 1s ease-out;
+      padding:0 8px;
+    }
+    .menubar-item .menubar-symbol:link {
+      text-decoration:none
     }
     .menubar-item .menubar-symbol:hover {
-      text-decoration:none
+      text-decoration:none;
+    }
+    .menubar-item:hover {
+      background:rgba(20, 20, 20, 0.08);
     }
     .menubar-item:hover .menubar-symbol-settings {
       transform:rotate(1turn)
@@ -6751,7 +6764,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       transform:scale(1.3)
     }
   `);
-    const liSettings = ul.insertBefore(document.createElement('li'), ul.firstChild);
+    const liSettings = ul.insertBefore(document.createElement('li'), before);
     liSettings.className = 'menubar-item hoverable';
     liSettings.title = 'userscript settings - ' + SCRIPT_NAME;
     const aSettings = liSettings.appendChild(document.createElement('a'));
@@ -6766,7 +6779,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     }
     liSettings.addEventListener('click', () => mainMenu());
     if (allFeatures.keepLibrary.enabled) {
-      const liExplorer = ul.insertBefore(document.createElement('li'), ul.firstChild);
+      const liExplorer = ul.insertBefore(document.createElement('li'), before);
       liExplorer.className = 'menubar-item hoverable';
       liExplorer.title = 'library - ' + SCRIPT_NAME;
       const aExplorer = liExplorer.appendChild(document.createElement('a'));
@@ -6786,7 +6799,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       //   openExplorer()
       // })
     }
-    const liSearch = ul.insertBefore(document.createElement('li'), ul.firstChild);
+    const liSearch = ul.insertBefore(document.createElement('li'), before);
     liSearch.className = 'menubar-item hoverable menubar-item-tag-search';
     liSearch.title = 'tag search - ' + SCRIPT_NAME;
     const aSearch = liSearch.appendChild(document.createElement('a'));
@@ -7504,7 +7517,12 @@ If this is a malicious website, running the userscript may leak personal data (e
         showDownloadLinkOnAlbumPage();
       }
       GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu);
-      if (document.querySelector('.user-nav')) {
+      if (document.querySelector('.menu-items .search')) {
+        // Discover
+        const searchLi = document.querySelector('.menu-items .search');
+        const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi;
+        appendMainMenuButtonTo(insertBefore.parentNode, insertBefore);
+      } else if (document.querySelector('.user-nav')) {
         appendMainMenuButtonTo(document.querySelector('.user-nav'));
       } else if (document.querySelector('#user-nav')) {
         appendMainMenuButtonTo(document.querySelector('#user-nav'));
