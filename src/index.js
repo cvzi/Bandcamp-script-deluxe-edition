@@ -1,4 +1,6 @@
 import './violentmonkey.js'
+import genresList from './genres.js'
+import subGenresList from './subtags.js'
 import Explorer from './explorer.jsx'
 
 import discographyplayerCSS from './css/discographyplayer.css'
@@ -900,6 +902,55 @@ const shufflePlayed = []
 function musicPlayerNextSong (next) {
   const current = player.querySelector('.playlist .playing')
   if (!next) {
+    if (document.getElementById('discover_shuffle_start') &&
+    document.getElementById('discover_shuffle_start').classList.contains('active')) {
+      // TODO the next value should already be stored in the html
+
+      console.error('musicPlayerNextSong: implement me')
+
+      const nextAlbumrUrl = document.getElementById('discover_shuffle_next_song').dataset.nextAlbumUrl
+      const nextSong = document.getElementById('discover_shuffle_next_song').dataset.nextSong
+
+      const shuffleAfterOption = document.getElementById('discover_shuffle_shuffle_after').value
+
+      console.log('musicPlayerNextSong: shuffleAfterOption', shuffleAfterOption)
+      console.log('musicPlayerNextSong: nextAlbumrUrl', nextAlbumrUrl)
+      console.log('musicPlayerNextSong: nextSong', nextSong)
+
+      if (shuffleAfterOption === 'album') { // TODO we can't know here if the album is already played, need to handle this in the music player
+      // Check if the current album is finished. if yes, then load next album and return
+      // TODO if this is active, we need to disable shuffle, so that the album plays in normal order, and we can detect the last song.
+      // TODO return if handled, otherwise just let the function continue
+
+        const nextSong = current.nextElementSibling
+        console.log(nextSong)
+        if (nextSong && true) { // TODO and nextSong is part of this album
+          // Do nothing, let the logic below handle the next song
+        } else {
+          // TODO load next album and play it
+        }
+      }
+
+      if (nextSong.startsWith('#')) {
+        // play song at track position
+        const trackPos = parseInt(nextSong.substring(1))
+        playAlbumFromUrl(nextAlbumrUrl, trackPos)
+        console.log('playAlbumFromUrl at track', nextAlbumrUrl, trackPos)
+      } else {
+        // Choose to play featured track
+        const songId = parseInt(nextSong)
+        playAlbumFromUrl(nextAlbumrUrl, null, songId)
+        console.log('playAlbumFromUrl with track id', nextAlbumrUrl, null, songId)
+      }
+
+      if (shuffleAfterOption === 'song') {
+        // Now that the next song is playing, load the next song
+        updateShuffleNextTag(null, 'next')
+      }
+
+      return
+    }
+
     if (player.querySelector('.shufflebutton').classList.contains('active')) {
       // Shuffle mode
       const allLoadedSongs = document.querySelectorAll('.playlist .playlistentry')
@@ -2315,7 +2366,8 @@ function addToPlaylist (startPlayback, data) {
   }
 }
 
-function addAlbumToPlaylist (TralbumData, startPlaybackIndex = 0) {
+function addAlbumToPlaylist (TralbumData, startPlaybackIndex = 0, startPlaybackSongId = null) {
+  console.log('TralbumData', TralbumData)
   let i = 0
   const artist = TralbumData.artist
   const album = TralbumData.current.title
@@ -2336,7 +2388,10 @@ function addAlbumToPlaylist (TralbumData, startPlaybackIndex = 0) {
     const inWishlist = 'tralbum_collect_info' in TralbumData && 'is_collected' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_collected
     const isDownloadable = track.is_downloadable === true
     const isPurchased = 'tralbum_collect_info' in TralbumData && 'is_purchased' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_purchased
-    addToPlaylist(startPlaybackIndex === i++, {
+
+    const startPlayback = (startPlaybackSongId !== null && startPlaybackSongId === track.id) || startPlaybackIndex === i++
+
+    addToPlaylist(startPlayback, {
       file,
       title,
       trackNumber,
@@ -2757,13 +2812,13 @@ function addAlbumFromUrlIfNotInPlaylist (url) {
   return playAlbumFromUrl(url, null)
 }
 
-function playAlbumFromUrl (url, startPlaybackIndex = 0) {
+function playAlbumFromUrl (url, startPlaybackIndex = 0, startPlaybackSongId = null) {
   if (!url.startsWith('http')) {
     url = document.location.protocol + '//' + url
   }
   return getTralbumData(url).then(function onGetTralbumDataLoaded (TralbumData) {
     storeTralbumData(TralbumData)
-    return addAlbumToPlaylist(TralbumData, startPlaybackIndex)
+    return addAlbumToPlaylist(TralbumData, startPlaybackIndex, startPlaybackSongId)
   }).catch(function onGetTralbumDataError (e) {
     window.alert('Could not play and load album data from url:\n' + url + '\n' + ('error' in e ? e.error : e))
     console.error(e)
@@ -3123,7 +3178,7 @@ async function makeAlbumLinksGreat (parentElement) {
         div.classList.remove('bdp_check_onlinkhover_container_shown')
         div.dataset.iv = a.dataset.iv
       }
-    }, 1000)
+    }, 2000)
   }
   const mouseMoveLink = function onMouseLoveLink (ev) {
     if ('iv' in this.dataset) {
@@ -3210,6 +3265,278 @@ async function makeAlbumLinksGreat (parentElement) {
     lastKey = key
   }
 }
+
+function addShuffleTagsButton () {
+  console.debug('addShuffleTagsButton')
+
+  const parent = document.querySelector('.tag-search-desktop-container')
+
+  const inputGenres = parent.appendChild(document.createElement('input'))
+  inputGenres.setAttribute('id', 'discover_shuffle_genres')
+  inputGenres.setAttribute('type', 'text')
+  inputGenres.setAttribute('title', 'Genres to shuffle, separated by + ')
+
+  const inputSubTag = parent.appendChild(document.createElement('input'))
+  inputSubTag.setAttribute('id', 'discover_shuffle_subtag')
+  inputSubTag.setAttribute('type', 'text')
+  inputSubTag.setAttribute('title', 'Current sub-tag')
+
+  const inputNextSong = parent.appendChild(document.createElement('input'))
+  inputNextSong.setAttribute('id', 'discover_shuffle_next_song')
+  inputNextSong.setAttribute('type', 'text')
+  inputNextSong.setAttribute('title', 'Next song to play')
+  inputNextSong.setAttribute('readonly', 'readonly')
+
+  const button = parent.appendChild(document.createElement('button'))
+  button.setAttribute('id', 'discover_shuffle_start')
+  button.innerHTML = 'Shuffle tags' // TODO "Shuffle subtags of {Electronic}"
+  // Shuffle related tags of Genre & Sub tag
+  button.addEventListener('click', startShuffleTags)
+
+  // dropdown option to shuffle after each song, or after each album
+  const label = parent.appendChild(document.createElement('label'))
+  label.innerHTML = 'Shuffle after:'
+  label.for = 'discover_shuffle_shuffle_after'
+  const select = parent.appendChild(document.createElement('select'))
+  select.setAttribute('id', 'discover_shuffle_shuffle_after')
+  select.innerHTML = '<option value="song">each song</option><option value="album">each album</option>'
+  select.addEventListener('change', updateShuffleNextTag)
+
+  // dropdown option for next sub-tag: Random OR avoid same subgenre
+  const label2 = parent.appendChild(document.createElement('label'))
+  label2.appendChild(document.createTextNode('Next genre: '))
+  const spanNextGenre = label2.appendChild(document.createElement('span'))
+  spanNextGenre.setAttribute('id', 'discover_shuffle_next_value')
+  label2.for = 'discover_shuffle_next_subtag'
+  const select2 = parent.appendChild(document.createElement('select'))
+  select2.setAttribute('id', 'discover_shuffle_next_subtag')
+  select2.innerHTML = '<option value="random_sub_tag">Random sub-tag</option><option value="current_sub_tag">dive deeper into sub tag</option><option value="avoid_current_sub_tag">Avoid same subgenre</option><option value="random_genre">Random genre</option>'
+  select.addEventListener('change', updateShuffleNextTag)
+
+  // button to skip to next song/album
+  // TODO always show the next album/tag on the button
+  const button2 = parent.appendChild(document.createElement('button'))
+  button2.innerHTML = 'Next'
+  button2.addEventListener('click', function (ev) {
+    updateShuffleNextTag(ev, 'next')
+  })
+
+  // button to choose a random tag for the next (in case the next is not good)
+  // TODO this should change the next album/tag on the above button
+  const button3 = parent.appendChild(document.createElement('button'))
+  button3.innerHTML = 'Shuffle'
+  button3.addEventListener('click', function (ev) {
+    updateShuffleNextTag(ev, 'shuffle')
+  })
+
+  // window.setTimeout(startShuffleTags, 500)
+}
+
+async function updateShuffleNextTag (ev, action) {
+  console.log('updateShuffleNextTag', action)
+
+  let currentGenres = ''
+  const genresElement = document.getElementById('discover_shuffle_genres')
+  if (genresElement && genresElement.value) {
+    currentGenres = genresElement.value.split(/\+|%20/)
+  } else if (document.location.pathname.substring(10)) {
+    if (genresElement) {
+      genresElement.value = document.location.pathname.substring(10)
+    }
+    currentGenres = document.location.pathname.substring(10).split(/\+|%20/)
+  } else {
+    window.alert('No genres specified') // TODO handle this
+    return
+  }
+
+  console.log('Current genres', currentGenres)
+
+  const currentSubTag = document.getElementById('discover_shuffle_subtag').value
+
+  const shuffleAfterOption = document.getElementById('discover_shuffle_shuffle_after').value
+  const nextSubTagOption = document.getElementById('discover_shuffle_next_subtag').value
+
+  console.log('currentSubTag', currentSubTag)
+  console.log('shuffleAfterOption', shuffleAfterOption)
+  console.log('nextSubTagOption', nextSubTagOption)
+
+  const tags = [...currentGenres]
+  let nextGenres = [...currentGenres]
+  let nextSubTags = []
+
+  console.log('nextSubTagOption:', nextSubTagOption)
+  if (nextSubTagOption === 'random_sub_tag' || nextSubTagOption === 'avoid_current_sub_tag') {
+    const result = await getRelatedTags(tags)
+    console.log('related tags result:', result)
+    const relatedTags = result.single_results[0].related_tags
+    // select random tag from related tags
+    let randomTag = relatedTags[Math.floor(Math.random() * relatedTags.length)]
+    console.log(('random tag', randomTag))
+    if (nextSubTagOption === 'avoid_current_sub_tag') {
+      while (randomTag.norm_name === currentSubTag) {
+        randomTag = relatedTags[Math.floor(Math.random() * relatedTags.length)]
+      }
+    }
+    nextSubTags = [randomTag.norm_name]
+  } else if (nextSubTagOption === 'random_genre') {
+    // Get a random major genre
+    nextGenres = genresList[Math.floor(Math.random() * genresList.length)]
+    // TODO what about the subtag?
+  } else if (nextSubTagOption === 'current_sub_tag') {
+  // TODO what if no currentSubTag is defined? -> choose random subtag
+    nextSubTags = [currentSubTag]
+  } else {
+    alert('invalid next option') // TODO handle this
+    return
+  }
+
+  console.log('nextSubTags', nextSubTags)
+
+  document.getElementById('discover_shuffle_next_value').textContent = nextSubTags.join(' + ')
+
+  // Load the next tag and display it on the button
+
+  // TODO Load the next song/album and display it in #discover_shuffle_next_song
+  const randomAlbums = await getRandomAlbumsFromTags(...nextGenres, ...nextSubTags)
+
+  // Select randomAlbum from randomAlbums
+  const randomAlbum = randomAlbums[Math.floor(Math.random() * randomAlbums.length)]
+
+  console.log('next album:\n' + randomAlbum.title + ' by ' + randomAlbum.band_name + '\n' + randomAlbum.item_url)
+
+  let nextSongTitle = null
+  const discoverShuffleNextSongNode = document.getElementById('discover_shuffle_next_song')
+
+  discoverShuffleNextSongNode.dataset.nextAlbumUrl = document.location.protocol + '//' + albumKey(randomAlbum.item_url)
+
+  if (shuffleAfterOption === 'song' &&
+    'featured_track' in randomAlbum && randomAlbum.featured_track &&
+    'stream_url' in randomAlbum.featured_track && randomAlbum.featured_track.stream_url) {
+    discoverShuffleNextSongNode.dataset.nextSong = randomAlbum.featured_track.id
+    nextSongTitle = `${randomAlbum.featured_track.title} by ${randomAlbum.featured_track.band_name} (from ${randomAlbum.title})`
+  } else {
+    discoverShuffleNextSongNode.dataset.nextSong = '#1'
+    nextSongTitle = `${randomAlbum.title} by ${randomAlbum.album_artist || randomAlbum.band_name}`
+  }
+  discoverShuffleNextSongNode.value = nextSongTitle
+}
+
+function getRelatedTags (tags) {
+  /* TODO Scrape these results for the major genres, so that we get a list of subtags per genre */
+
+  return new Promise((resolve, reject) => {
+    GM.xmlHttpRequest({
+      url: 'https://bandcamp.com/api/tag_search/2/related_tags',
+      method: 'POST',
+      data: JSON.stringify({
+        tag_names: tags,
+        size: 1000, /* 1000 seems to be the limit, higher throws an error */
+        combo: true
+      }),
+      onerror: function (response) {
+        reject(response)
+      },
+      onload: async function (response) {
+        const data = JSON.parse(response.responseText)
+        console.log('Related tags result:')
+        console.log(data)
+        resolve(data)
+      }
+    })
+  })
+}
+
+function getRandomAlbumsFromTags (tags) {
+  return new Promise((resolve, reject) => {
+    GM.xmlHttpRequest({
+      url: 'https://bandcamp.com/api/discover/1/discover_web',
+      method: 'POST',
+      data: JSON.stringify({
+        category_id: 0,
+        tag_norm_names: tags,
+        geoname_id: 0,
+        slice: 'rand',
+        time_facet_id: null,
+        cursor: '*',
+        size: 60,
+        include_result_types: ['a', 's']
+      }),
+      onerror: function (response) {
+        reject(response)
+      },
+      onload: async function (response) {
+        const data = JSON.parse(response.responseText)
+        resolve(data.results)
+      }
+    })
+  })
+}
+
+async function startShuffleTags () {
+  console.debug('shartShuffleTags()')
+  const genre = 'electronic' // TODO detect this from current page selection
+  const subtag = 'goachill'
+
+  let currentGenres = ''
+  const genresElement = document.getElementById('discover_shuffle_genres')
+  if (genresElement && genresElement.value) {
+    currentGenres = genresElement.value.split(/\+|%20/)
+  } else if (document.location.pathname.substring(10)) {
+    if (genresElement) {
+      genresElement.value = document.location.pathname.substring(10)
+    }
+    currentGenres = document.location.pathname.substring(10).split(/\+|%20/)
+  } else {
+    alert('No genres specified') // TODO handle this
+    return
+  }
+
+  const randomAlbums = await getRandomAlbumsFromTags(currentGenres)
+
+  if (!randomAlbums) {
+    alert('error 845') // TODO handle error, pick different genre
+    console.error('Response from /api/discover/1/discover_web for genres=' + currentGenres + ' is empty:')
+
+    return
+  }
+
+  // Pick a random album
+  const album = randomAlbums[Math.floor(Math.random() * randomAlbums.length)]
+  console.debug('random album:', album)
+
+  // Play album or song
+  const playSong = false
+
+  if (playSong) {
+    console.log('playAlbumFromUrl whole album', album.item_url)
+    playAlbumFromUrl(album.item_url)
+  } else {
+    if ('featured_track' in album && album.featured_track && 'id' in album.featured_track) {
+      // Choose to play featured track
+      playAlbumFromUrl(album.item_url, null, album.featured_track.id)
+      console.log('playAlbumFromUrl featured track', album.item_url, null, album.featured_track.id)
+    } else {
+      // choose a random track
+      const randomPosition = Math.floor(Math.random() * album.track_count)
+      playAlbumFromUrl(album.item_url, randomPosition)
+      console.log('playAlbumFromUrl random track', album.item_url, randomPosition)
+    }
+  }
+
+  document.querySelector('#discover_shuffle_start').classList.add('active')
+
+  updateShuffleNextTag()
+
+  // In Discography player:
+  // - add a switch that enables tag shuffling from currently playing album, or maybe better just redirect to /discover and autostart with a new player
+  // - dropdown option to shuffle after each song, or after each album (remember this selection)
+  // - dropdown option for next sub-tag: Random OR avoid same subgenre (remember this selection)
+  // - button to skip to next tag (show the next tag on the button) and button to choose a random tag for the next (in case the next is not good)
+  // - add an option to blacklist a sub-tag for shuffling
+  // - manage blacklist GUI
+  // - keep a list of played albums in the current session to avoid playing the same track twice
+}
+
 function removeTheTimeHasComeToOpenThyHeartWallet () {
   if ('theTimeHasComeToOpenThyHeartWallet' in document.head.dataset) {
     return
@@ -4378,7 +4705,7 @@ async function showPastReleases (ev, forceShow) {
 }
 
 function showTagSearchForm () {
-  const menuA = document.querySelector('#bcsde_tagsearchbutton')
+  const menuA = this // document.querySelector('#bcsde_tagsearchbutton')
   menuA.style.display = 'none'
 
   if (!document.getElementById('bcsde_tagsearchform')) {
@@ -6242,9 +6569,9 @@ async function showExplorer () {
   }).render()
 }
 
-function appendMainMenuButtonTo (ul, before) {
-  before = before ? before : ul.firstChild
-  addStyle(`
+function appendMainMenuButtonTo (ul, before, shadowRoot) {
+  before = before || ul.firstChild
+  const cssStr = `
     .menubar-item {
       display: flex;
       align-items: center;
@@ -6274,7 +6601,13 @@ function appendMainMenuButtonTo (ul, before) {
     .menubar-item:hover .menubar-symbol-tag-search {
       transform:scale(1.3)
     }
-  `)
+  `
+
+  if (shadowRoot) {
+    GM_addElement(shadowRoot, 'style', { textContent: cssStr })
+  } else {
+    addStyle(cssStr)
+  }
 
   const liSettings = ul.insertBefore(document.createElement('li'), before)
   liSettings.className = 'menubar-item hoverable'
@@ -6313,22 +6646,24 @@ function appendMainMenuButtonTo (ul, before) {
     // })
   }
 
-  const liSearch = ul.insertBefore(document.createElement('li'), before)
-  liSearch.className = 'menubar-item hoverable menubar-item-tag-search'
-  liSearch.title = 'tag search - ' + SCRIPT_NAME
-  const aSearch = liSearch.appendChild(document.createElement('a'))
-  aSearch.className = 'menubar-symbol menubar-symbol-tag-search'
-  aSearch.href = '#'
-  if (NOEMOJI) {
-    aSearch.innerHTML = `
-    <svg width="22" height="22" viewBox="0 0 15 16" class="svg-icon" style="border: 2px solid #000000c4;border-radius: 30%;padding: 3px;">
-        <use xlink:href="#menubar-search-input-icon">
-    </svg>`
-  } else {
-    aSearch.appendChild(document.createTextNode('\uD83D\uDD0D'))
+  if (false) { // Do not show the search button in the menu bar for now
+    const liSearch = ul.insertBefore(document.createElement('li'), before)
+    liSearch.className = 'menubar-item hoverable menubar-item-tag-search'
+    liSearch.title = 'tag search - ' + SCRIPT_NAME
+    const aSearch = liSearch.appendChild(document.createElement('a'))
+    aSearch.className = 'menubar-symbol menubar-symbol-tag-search'
+    aSearch.href = '#'
+    if (NOEMOJI) {
+      aSearch.innerHTML = `
+      <svg width="22" height="22" viewBox="0 0 15 16" class="svg-icon" style="border: 2px solid #000000c4;border-radius: 30%;padding: 3px;">
+          <use xlink:href="#menubar-search-input-icon">
+      </svg>`
+    } else {
+      aSearch.appendChild(document.createTextNode('\uD83D\uDD0D'))
+    }
+    aSearch.setAttribute('id', 'bcsde_tagsearchbutton')
+    aSearch.addEventListener('click', showTagSearchForm)
   }
-  aSearch.setAttribute('id', 'bcsde_tagsearchbutton')
-  aSearch.addEventListener('click', showTagSearchForm)
 }
 
 function appendMainMenuButtonLeftTo (leftOf) {
@@ -7085,6 +7420,8 @@ function onLoaded () {
       if (allFeatures.tagSearchPlayer.enabled) {
         window.setInterval(makeDiscoverSearchCoversGreat, 1000)
       }
+
+      addShuffleTagsButton()
     }
 
     if (document.querySelector('.share-panel-wrapper-desktop')) {
@@ -7109,7 +7446,13 @@ function onLoaded () {
 
     GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu)
 
-    if (document.querySelector('.menu-items .search')) {
+    if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot) {
+      const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot
+
+      const searchLi = shadowRoot.querySelector('.menu-items .search')
+      const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
+      appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot)
+    } else if (document.querySelector('.menu-items .search')) {
       // Discover
       const searchLi = document.querySelector('.menu-items .search')
       const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
@@ -7147,6 +7490,12 @@ function onLoaded () {
           listenedTabLink.classList.add('active')
           listenedTabLink.click()
         }, 500)
+      }
+      if (allFeatures.markasplayedEverywhere.enabled) {
+        // If you click the more button on the wishlist/user profile, bandcamp continues to load more albums. Need to update the listened links then as well:
+        document.querySelectorAll('.show-button .show-more').forEach(button => button.addEventListener('click', () => {
+          window.setInterval(makeAlbumLinksGreat, 2000)
+        }))
       }
     }
 

@@ -1,4 +1,8 @@
 @media (min-width: 1600px) {
+  /* Move the grids to the left, so that no albums are behind the discography player e.g. on user profiles */
+  .grids .grid {
+    margin: 0 calc((100vw - 915px - 35px) / 2) 0 auto;
+  }
   #menubar-wrapper:hover {
     z-index:1100;
   }
