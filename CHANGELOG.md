@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.37.3](../../tree/v1.37.3) *(2025-10-27)*
+*   Fix listened status in wishlist/collection when scrolling down to dynmically loaded item
 ## [1.37.2](../../tree/v1.37.2) *(2025-03-07)*
 *   Fix main menu when logged in (adapt to new bandcamp menu design)
 ## [1.37.1](../../tree/v1.37.1) *(2024-09-08)*

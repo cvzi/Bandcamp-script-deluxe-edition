@@ -21,7 +21,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.37.2
+// @version         1.37.3
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -102,6 +102,8 @@ SOFTWARE.
       console.warn('Neither GM.registerMenuCommand nor GM_registerMenuCommand are available');
     }
   }
+
+  const genresList = ['rock', 'metal', 'alternative', 'hip-hop/rap', 'experimental', 'punk', 'folk', 'pop', 'ambient', 'soundtrack', 'world', 'jazz', 'acoustic', 'funk', 'r&b/soul', 'devotional', 'classical', 'reggae', 'podcasts', 'country', 'spoken word', 'comedy', 'blues', 'kids', 'audiobooks', 'latin'];
 
   function _defineProperty(e, r, t) {
     return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
@@ -885,7 +887,7 @@ SOFTWARE.
 
   var discographyplayerCSS = ".cll{clear:left}.clb{clear:both}#discographyplayer{z-index:1010;position:fixed;bottom:0;height:83px;width:100%;padding-top:3px;background:#fff;color:#505958;border-top:1px solid rgba(0,0,0,.15);font:13px/1.231 \"Helvetica Neue\",Helvetica,Arial,sans-serif;transition:bottom .5s;box-sizing:initial}#discographyplayer *{box-sizing:initial}#discographyplayer a:link,#discographyplayer a:visited{color:#0687f5;text-decoration:none;cursor:pointer}#discographyplayer a:hover{color:#0687f5;text-decoration:underline;cursor:pointer}#discographyplayer .nowPlaying .cover,#discographyplayer .nowPlaying .info{display:inline-block;vertical-align:top}#discographyplayer .nowPlaying img{width:60px;height:60px;margin-top:4px;margin-left:4px;margin-bottom:4px}#discographyplayer .nowPlaying .info{line-height:18px;margin-left:8px;margin-top:8px;max-width:calc(100% - 76px);border:0 solid #000;padding:0;width:auto;max-height:auto;overflow-y:hidden}#discographyplayer .nowPlaying .info .album,#discographyplayer .nowPlaying .info .title{font-size:13px;font-weight:400;color:#0687f5;margin:0;padding:0}#discographyplayer .currentlyPlaying{display:inline-block;vertical-align:top;overflow:hidden;transition:margin-left 3s ease-in-out;width:99%}#discographyplayer .nextInRow{display:inline-block;vertical-align:top;width:0%;overflow:hidden;transition:width 6s ease-in-out}#discographyplayer .durationDisplay{margin-top:24px;float:left}#discographyplayer .downloadlink:link{display:block;float:right;margin-top:22px;font-size:15px;padding:0 3px;color:#0687f5;border:1px solid #0687f5;transition:color .3s ease-in-out,border-color .3s ease-in-out}#discographyplayer .downloadlink:hover{text-decoration:none;background-color:#0687f5;color:#fff;border:1px solid #fff}#discographyplayer .downloadlink.downloading{color:#f0f;border-color:#f0f;animation:downloadrotation 3s infinite linear;cursor:wait}@keyframes downloadrotation{from{transform:rotate(0)}to{transform:rotate(359deg)}}#discographyplayer .controls{margin-top:10px;width:auto;float:left}#discographyplayer .controls>*{display:inline-block;cursor:pointer;border:1px solid #d9d9d9;padding:11px;margin-right:4px;height:18px;width:17px;transition:background-color .1s}#discographyplayer .controls>:hover{background-color:#0687f52b}#discographyplayer .playpause .play{width:0;height:0;border-top:9px inset transparent;border-bottom:9px inset transparent;border-left:15px solid #222;cursor:pointer;margin-left:2px}#discographyplayer .playpause .pause{border:0;border-left:5px solid #2d2d2d;border-right:5px solid #2d2d2d;height:18px;width:4px;margin-right:2px;margin-left:1px}#discographyplayer .playpause .busy{background-image:url(https://bandcamp.com/img/playerbusy-noborder.gif);background-position:50% 50%;background-repeat:no-repeat;border:none;height:30px;margin:0 0 0 -3px;width:25px;overflow:hidden;background-size:contain}#discographyplayer .shuffleswitch .shufflebutton{background-size:cover;background-position-y:0px;filter:drop-shadow(#FFFF 0px 0px 0px);transition:filter .5s;border:0;height:13px;width:20px;margin-top:4px}#discographyplayer .shuffleswitch .shufflebutton.active{filter:drop-shadow(#0060F2 1px 1px 2px)}#discographyplayer .arrowbutton{border:0;height:13px;width:20px;margin-top:4px;background:url(https://bandcamp.com/img/nextprev.png) 0 0/40px 12px no-repeat transparent;background-position-x:0px;cursor:pointer}#discographyplayer .arrowbutton.next-icon{background-position:100% 0}#discographyplayer .arrowbutton.prevalbum-icon{border-right:3px solid #2d2d2d}#discographyplayer .arrowbutton.nextalbum-icon{background-position:100% 0;border-left:3px solid #2d2d2d}#timeline{width:100%;background:rgba(50,50,50,.4);margin-top:5px;border-left:1px solid #000;border-right:1px solid #000}#playhead{width:10px;height:10px;border-radius:50%;background:#323232;cursor:pointer}.bufferbaranimation{transition:width 1s}#bufferbar{position:absolute;width:0;height:10px;background:rgba(0,0,0,.1)}#discographyplayer .playlist{position:relative;width:100%;display:inline-block;max-height:80px;overflow:auto;list-style:none;margin:0;padding:0 5px 0 5px;scrollbar-color:rgba(50,50,50,0.4) white;background-color:#fff;transition:background-color .3s}#discographyplayer .playlist.dropbox{background-color:#86c786}#discographyplayer .playlist.dropbox.processing{background-color:#45d1b1}#discographyplayer_contextmenu{position:absolute;box-shadow:#000000b0 2px 2px 2px;background-color:#fff;border:#619aa9 2px solid;z-index:1011}#discographyplayer_contextmenu .contextmenu_submenu{cursor:pointer;padding:2px;border:1px solid #619aa9}#discographyplayer_contextmenu .contextmenu_submenu:hover{background-color:#619aa9;color:#fff;border:1px solid #fff}#discographyplayer .playlist .isselected{border:1px solid red}#discographyplayer .playlist .playlistentry{cursor:pointer;margin:1px 0}#discographyplayer .playlist .playlistentry .duration{float:right}#discographyplayer .playlist .playing{background:#619aa950}#discographyplayer .playlist .playlistheading{background:rgba(50,50,50,.4);margin:3px 0}#discographyplayer .playlist .playlistheading a:hover,#discographyplayer .playlist .playlistheading a:link,#discographyplayer .playlist .playlistheading a:visited{color:#eee;cursor:pointer}#discographyplayer .playlist .playlistheading a.notloaded{color:#ccc}#discographyplayer .playlist .playlistheading.notloaded{cursor:copy}#discographyplayer .vol{float:left;position:relative;width:100px;margin-left:1em;margin-top:1em}#discographyplayer .vol-icon-wrapper{font-size:20px;cursor:pointer;width:27px}#discographyplayer .vol-slider{width:60px;height:10px;position:relative;cursor:pointer}#discographyplayer .vol>*{display:inline-block;vertical-align:middle}#discographyplayer .vol-bg{background:rgba(50,50,50,.4);width:100%;margin-top:4px;height:3px;position:absolute}#discographyplayer .vol-amt{margin-top:4px;height:3px;position:absolute;background:#323232}#discographyplayer .vol-control-outer{height:100%;position:relative;margin-left:-3px;margin-right:5px}#discographyplayer .collect{float:left;margin-left:1em}#discographyplayer .{cursor:default;margin-top:.5em}#discographyplayer .collect-wishlist .wishlist-add{cursor:pointer}#discographyplayer .collect-listened{cursor:pointer;margin-top:.5em;margin-left:2px}#discographyplayer .collect .icon{height:13px;width:14px;display:inline-block;position:relative;top:2px}#discographyplayer .collect .add-item-icon{background-position:0 -73px}#discographyplayer .collect .collected-item-icon{background-position:-28px -73px}#discographyplayer .collect .own-item-icon{background-position:-42px -73px}#discographyplayer .collect .wishlist-add,#discographyplayer .collect .wishlist-collected,#discographyplayer .collect .wishlist-own,#discographyplayer .collect .wishlist-saving{display:none}#discographyplayer .collect .wishlist-add:hover .add-item-icon{background-position:-56px -73px}#discographyplayer .collect .wishlist-add .add-item-label:hover{text-decoration:underline}#discographyplayer .collect .listened,#discographyplayer .collect .listened-saving,#discographyplayer .collect .mark-listened{display:none}#discographyplayer .collect .listened .listened-symbol{color:#00dc32;text-shadow:1px 0 #ddd,-1px 0 #ddd,0 -1px #ddd,0 1px #ddd}#discographyplayer .collect .mark-listened .mark-listened-symbol{color:#fff;text-shadow:1px 0 #959595,-1px 0 #959595,0 -1px #959595,0 1px #959595}#discographyplayer .collect .mark-listened:hover .mark-listened-symbol{text-shadow:1px 0 #0af,-1px 0 #0af,0 -1px #0af,0 1px #0af}#discographyplayer .collect .mark-listened:hover .mark-listened-label{text-decoration:underline}#discographyplayer .closebutton,#discographyplayer .minimizebutton{position:absolute;top:1px;right:1px;border:1px solid #505958;color:#505958;font-size:10px;box-shadow:0 0 2px #505958;cursor:pointer;opacity:0;transition:opacity .3s;min-width:8px;min-height:13px;text-align:center}#discographyplayer .minimizebutton{right:13px}#discographyplayer .minimizebutton .minimized{display:none}#discographyplayer .minimizebutton.minimized .maximized{display:none}#discographyplayer .minimizebutton.minimized .minimized{display:inline}#discographyplayer:hover .closebutton,#discographyplayer:hover .minimizebutton{opacity:1}#discographyplayer .col{float:left;min-height:1px;position:relative}#discographyplayer .col25{width:25%}#discographyplayer .col35{width:35%}#discographyplayer .col30{width:30%}#discographyplayer .col15{width:14%}#discographyplayer .col20{width:20%}#discographyplayer .colcontrols{user-select:none}#discographyplayer .colvolumecontrols{margin-left:10px}.albumIsCurrentlyPlaying{border:2px solid #0f0}.albumIsCurrentlyPlaying+.art-play{display:none}.dig-deeper-item .albumIsCurrentlyPlaying,.music-grid-item .albumIsCurrentlyPlaying{border:none}.albumIsCurrentlyPlayingIndicator{display:none}.dig-deeper-item .albumIsCurrentlyPlayingIndicator,.music-grid-item .albumIsCurrentlyPlayingIndicator{position:absolute;display:block;width:74px;height:54px;left:50%;top:50%;margin-left:-36px;margin-top:-27px;opacity:.5;transition:opacity .2s}.albumIsCurrentlyPlayingIndicator .currentlyPlayingBg{position:absolute;width:100%;height:100%;left:0;top:0;background:#000;border-radius:4px}.albumIsCurrentlyPlayingIndicator .currentlyPlayingIcon{position:absolute;width:10px;height:20px;left:28px;top:17px;border-width:0 5px;border-color:#fff;border-style:solid}@media (max-width:1600px){#discographyplayer .controls>*{padding:4px 11px 5px 11px;height:18px}#discographyplayer .durationDisplay{margin-top:0}#discographyplayer .downloadlink:link{margin-top:0}}@media (max-width:1170px){#discographyplayer .colcontrols{width:39%}#discographyplayer .colvolumecontrols{display:none}}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rpc2NvZ3JhcGh5cGxheWVyLmNzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxLQUNFLE1BQU0sS0FFUixLQUNFLE1BQU0sS0FFUixtQkFDRSxRQUFRLEtBQ1IsU0FBUyxNQUNULE9BQU8sRUFDUCxPQUFPLEtBQ1AsTUFBTSxLQUNOLFlBQVksSUFDWixXQUFXLEtBQ1gsTUFBTSxRQUNOLFdBQVksSUFBSSxNQUFNLGdCQUN0QixLQUFNLElBQUksQ0FBQyxNQUFNLGdCQUFnQixDQUFDLFNBQVMsQ0FBQyxLQUFLLENBQUMsV0FDbEQsV0FBWSxPQUFPLElBQ25CLFdBQVksUUFFZCxxQkFDRSxXQUFZLFFBRWQsMEJBQTBCLDZCQUN4QixNQUFPLFFBQ1AsZ0JBQWlCLEtBQ2pCLE9BQVEsUUFFViwyQkFDRSxNQUFPLFFBQ1AsZ0JBQWlCLFVBQ2pCLE9BQVEsUUFFMkIsc0NBQXJDLHFDQUNJLFFBQVMsYUFDVCxlQUFnQixJQUVwQixtQ0FDSSxNQUFPLEtBQ1AsT0FBUSxLQUNSLFdBQVksSUFDWixZQUFhLElBQ2IsY0FBZSxJQUVuQixxQ0FDSSxZQUFhLEtBQ2IsWUFBYSxJQUNiLFdBQVksSUFDWixVQUFXLGtCQUVYLE9BQVEsRUFBSSxNQUFNLEtBQ2xCLFFBQVMsRUFDVCxNQUFPLEtBQ1AsV0FBWSxLQUNaLFdBQVksT0FFNkIsNENBQTdDLDRDQUNFLFVBQVcsS0FDWCxZQUFhLElBQ2IsTUFBTyxRQUNQLE9BQU8sRUFDUCxRQUFRLEVBRVYscUNBQ0UsUUFBUSxhQUNSLGVBQWdCLElBQ2hCLFNBQVUsT0FDVixXQUFZLFlBQVksR0FBRyxZQUMzQixNQUFNLElBRVIsOEJBQ0UsUUFBUSxhQUNSLGVBQWdCLElBQ2hCLE1BQU0sR0FDTixTQUFVLE9BQ1YsV0FBWSxNQUFNLEdBQUcsWUFFdkIsb0NBQ0UsV0FBVyxLQUNYLE1BQU0sS0FFUixzQ0FDRSxRQUFRLE1BQ1IsTUFBTSxNQUNOLFdBQVksS0FDWixVQUFV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 */";
 
-  var discographyplayerSidebarCSS = "@media (min-width:1600px){#menubar-wrapper:hover{z-index:1100}#menubar:hover{z-index:1100;position:relative}#discographyplayer{display:block;bottom:0;height:100vh;max-height:100vh;width:calc((100vw - 915px - 35px)/ 2);right:0;border-left:1px solid #0007;padding-left:1px}#discographyplayer .playlist{height:calc(100vh - 80px - 80px - 50px - 13px);max-height:calc(100vh - 80px - 80px - 50px - 13px)}#discographyplayer .playlist .playlistentry{overflow-x:hidden}#discographyplayer .col25{width:98%}#discographyplayer .col.nowPlaying{height:70px}#discographyplayer .col.col25.colcontrols{height:85px}#discographyplayer .col35{width:97%}#discographyplayer .col15{width:96%}#discographyplayer .colvolumecontrols{height:50px}#bufferbar,#playhead{height:25px;border-radius:0}#discographyplayer .audioplayer a.downloadlink{position:fixed;bottom:5px;right:5px;z-index:10}#discographyplayer .minimizebutton{display:none}#discographyplayer .currentlyPlaying{transition:margin-top 1s ease-in-out;width:99%;height:99%}#discographyplayer .nextInRow{height:0%;width:99%;transition:height 1s ease-in-out}}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rpc2NvZ3JhcGh5cGxheWVyU2lkZWJhci5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsMEJBQ0UsdUJBQ0UsUUFBUSxLQUVWLGVBQ0UsUUFBUSxLQUNSLFNBQVMsU0FFWCxtQkFDRSxRQUFTLE1BQ1QsT0FBUSxFQUNSLE9BQVEsTUFDUixXQUFZLE1BQ1osTUFBTyxnQ0FDUCxNQUFPLEVBQ1AsWUFBYSxJQUFJLE1BQU0sTUFDdkIsYUFBYyxJQUVoQiw2QkFDRSxPQUFRLHdDQUNSLFdBQVksd0NBRWQsNENBQ0UsV0FBVyxPQUViLDBCQUNFLE1BQU8sSUFFVCxtQ0FDRSxPQUFRLEtBRVYsMENBQ0UsT0FBUSxLQUVWLDBCQUNFLE1BQU8sSUFFVCwwQkFDRSxNQUFPLElBRVQsc0NBQ0UsT0FBUSxLQUVDLFdBQVgsVUFDRSxPQUFRLEtBQ1IsY0FBZSxFQUVqQiwrQ0FDRSxTQUFVLE1BQ1YsT0FBUSxJQUNSLE1BQU8sSUFDUCxRQUFTLEdBRVgsbUNBQ0UsUUFBUSxLQUVWLHFDQUNFLFdBQVksV0FBVyxHQUFHLFlBQzFCLE1BQU0sSUFDTixPQUFPLElBRVQsOEJBQ0UsT0FBTyxHQUNQLE1BQU0sSUFDTixXQUFZLE9BQU8sR0FBRyJ9 */";
+  var discographyplayerSidebarCSS = "@media (min-width:1600px){.grids .grid{margin:0 calc((100vw - 915px - 35px)/ 2) 0 auto}#menubar-wrapper:hover{z-index:1100}#menubar:hover{z-index:1100;position:relative}#discographyplayer{display:block;bottom:0;height:100vh;max-height:100vh;width:calc((100vw - 915px - 35px)/ 2);right:0;border-left:1px solid #0007;padding-left:1px}#discographyplayer .playlist{height:calc(100vh - 80px - 80px - 50px - 13px);max-height:calc(100vh - 80px - 80px - 50px - 13px)}#discographyplayer .playlist .playlistentry{overflow-x:hidden}#discographyplayer .col25{width:98%}#discographyplayer .col.nowPlaying{height:70px}#discographyplayer .col.col25.colcontrols{height:85px}#discographyplayer .col35{width:97%}#discographyplayer .col15{width:96%}#discographyplayer .colvolumecontrols{height:50px}#bufferbar,#playhead{height:25px;border-radius:0}#discographyplayer .audioplayer a.downloadlink{position:fixed;bottom:5px;right:5px;z-index:10}#discographyplayer .minimizebutton{display:none}#discographyplayer .currentlyPlaying{transition:margin-top 1s ease-in-out;width:99%;height:99%}#discographyplayer .nextInRow{height:0%;width:99%;transition:height 1s ease-in-out}}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rpc2NvZ3JhcGh5cGxheWVyU2lkZWJhci5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsMEJBRUUsYUFDRSxPQUFRLEVBQUUsZ0NBQWlDLEVBQUUsS0FFL0MsdUJBQ0UsUUFBUSxLQUVWLGVBQ0UsUUFBUSxLQUNSLFNBQVMsU0FFWCxtQkFDRSxRQUFTLE1BQ1QsT0FBUSxFQUNSLE9BQVEsTUFDUixXQUFZLE1BQ1osTUFBTyxnQ0FDUCxNQUFPLEVBQ1AsWUFBYSxJQUFJLE1BQU0sTUFDdkIsYUFBYyxJQUVoQiw2QkFDRSxPQUFRLHdDQUNSLFdBQVksd0NBRWQsNENBQ0UsV0FBVyxPQUViLDBCQUNFLE1BQU8sSUFFVCxtQ0FDRSxPQUFRLEtBRVYsMENBQ0UsT0FBUSxLQUVWLDBCQUNFLE1BQU8sSUFFVCwwQkFDRSxNQUFPLElBRVQsc0NBQ0UsT0FBUSxLQUVDLFdBQVgsVUFDRSxPQUFRLEtBQ1IsY0FBZSxFQUVqQiwrQ0FDRSxTQUFVLE1BQ1YsT0FBUSxJQUNSLE1BQU8sSUFDUCxRQUFTLEdBRVgsbUNBQ0UsUUFBUSxLQUVWLHFDQUNFLFdBQVksV0FBVyxHQUFHLFlBQzFCLE1BQU0sSUFDTixPQUFPLElBRVQsOEJBQ0UsT0FBTyxHQUNQLE1BQU0sSUFDTixXQUFZLE9BQU8sR0FBRyJ9 */";
 
   var pastreleasesCSS = "#pastreleases{position:fixed;bottom:1%;left:10px;background:#d5dce4;color:#033162;font-size:10pt;border:1px solid #033162;z-index:200;opacity:0;transition:opacity .7s;overflow:auto}#pastreleases .tablediv{display:table;position:relative}#pastreleases .entry,#pastreleases .header{display:table-row}#pastreleases .entry>*,#pastreleases .header>*{display:table-cell;line-height:21pt}#pastreleases .upcoming{cursor:pointer;font-size:x-small}#pastreleases .controls{cursor:pointer;position:absolute;top:0;right:1px;line-height:11pt}#pastreleases .entry:link{position:relative;border-top:1px solid #033162;color:#033162;text-decoration:none}#pastreleases .entry:nth-child(odd){background:#c5ccd4}#pastreleases .entry:hover,#pastreleases .entry:visited{color:#033162;text-decoration:none}#pastreleases .entry.future{display:none;background:#9fc2ea}#pastreleases .entry.future:nth-child(odd){background:#8fc2e1}#pastreleases .entry .image{background-size:contain;width:21pt;height:21pt}#pastreleases .entry:hover .image{display:block;position:fixed;bottom:10px;top:50%;left:50%;margin-right:-50%;transform:translate(-50%,-50%);width:350px;height:350px;background:#000;border:5px solid #fff}#pastreleases .entry time{padding-right:2px}#pastreleases .entry .title{padding-left:2px;border-left:1px solid #47a2bd;font-size:1em}#pastreleases .remove{font-family:sans-serif;color:#97174e;font-size:small;padding-right:3px}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL3Bhc3RyZWxlYXNlcy5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUksY0FDRSxTQUFTLE1BQ1QsT0FBTyxHQUNQLEtBQUssS0FDTCxXQUFXLFFBQ1gsTUFBTSxRQUNOLFVBQVUsS0FDVixPQUFPLElBQUksTUFBTSxRQUNqQixRQUFRLElBQ1IsUUFBUSxFQUNSLFdBQVksUUFBUSxJQUNwQixTQUFTLEtBRVgsd0JBQ0UsUUFBUyxNQUNULFNBQVMsU0FFWCxxQkFBcUIsc0JBQ25CLFFBQVEsVUFFVix1QkFBeUIsd0JBQ3ZCLFFBQVEsV0FDUixZQUFZLEtBRWQsd0JBQ0UsT0FBTyxRQUNQLFVBQVUsUUFFWix3QkFDRSxPQUFPLFFBQ1AsU0FBUyxTQUNULElBQUksRUFDSixNQUFNLElBQ04sWUFBWSxLQUVkLDBCQUNFLFNBQVMsU0FDVCxXQUFXLElBQUksTUFBTSxRQUNyQixNQUFNLFFBQ04sZ0JBQWdCLEtBRWxCLG9DQUNFLFdBQVcsUUFFYiwyQkFBMkIsNkJBQ3pCLE1BQU0sUUFDTixnQkFBZ0IsS0FFbEIsNEJBQ0UsUUFBUSxLQUNSLFdBQVcsUUFFYiwyQ0FDRSxXQUFXLFFBRWIsNEJBQ0UsZ0JBQWdCLFFBQ2hCLE1BQU0sS0FDTixPQUFPLEtBRVQsa0NBQ0UsUUFBUSxNQUNSLFNBQVMsTUFDVCxPQUFPLEtBQ1AsSUFBSSxJQUNKLEtBQUssSUFDTCxhQUFhLEtBQ2IsVUFBVSxxQkFDVixNQUFNLE1BQ04sT0FBTyxNQUNQLFdBQVcsS0FDWCxPQUFPLElBQUksTUFBTSxLQUVuQiwwQkFDRSxjQUFlLElBRWpCLDRCQUNFLGFBQWMsSUFDZCxZQUFhLElBQUksTUFBTSxRQUN2QixVQUFXLElBRWIsc0JBQ0UsWUFBWSxXQUNaLE1BQU0sUUFDTixVQUFXLE1BQ1gsY0FBYyJ9 */";
 
@@ -1766,6 +1768,42 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
   function musicPlayerNextSong(next) {
     const current = player.querySelector('.playlist .playing');
     if (!next) {
+      if (document.getElementById('discover_shuffle_start') && document.getElementById('discover_shuffle_start').classList.contains('active')) {
+        // TODO the next value should already be stored in the html
+
+        console.error('musicPlayerNextSong: implement me');
+        const nextAlbumrUrl = document.getElementById('discover_shuffle_next_song').dataset.nextAlbumUrl;
+        const nextSong = document.getElementById('discover_shuffle_next_song').dataset.nextSong;
+        const shuffleAfterOption = document.getElementById('discover_shuffle_shuffle_after').value;
+        console.log('musicPlayerNextSong: shuffleAfterOption', shuffleAfterOption);
+        console.log('musicPlayerNextSong: nextAlbumrUrl', nextAlbumrUrl);
+        console.log('musicPlayerNextSong: nextSong', nextSong);
+        if (shuffleAfterOption === 'album') {
+          // TODO we can't know here if the album is already played, need to handle this in the music player
+          // Check if the current album is finished. if yes, then load next album and return
+          // TODO if this is active, we need to disable shuffle, so that the album plays in normal order, and we can detect the last song.
+          // TODO return if handled, otherwise just let the function continue
+
+          const nextSong = current.nextElementSibling;
+          console.log(nextSong);
+        }
+        if (nextSong.startsWith('#')) {
+          // play song at track position
+          const trackPos = parseInt(nextSong.substring(1));
+          playAlbumFromUrl(nextAlbumrUrl, trackPos);
+          console.log('playAlbumFromUrl at track', nextAlbumrUrl, trackPos);
+        } else {
+          // Choose to play featured track
+          const songId = parseInt(nextSong);
+          playAlbumFromUrl(nextAlbumrUrl, null, songId);
+          console.log('playAlbumFromUrl with track id', nextAlbumrUrl, null, songId);
+        }
+        if (shuffleAfterOption === 'song') {
+          // Now that the next song is playing, load the next song
+          updateShuffleNextTag(null, 'next');
+        }
+        return;
+      }
       if (player.querySelector('.shufflebutton').classList.contains('active')) {
         // Shuffle mode
         const allLoadedSongs = document.querySelectorAll('.playlist .playlistentry');
@@ -3113,7 +3151,8 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       }), 200);
     }
   }
-  function addAlbumToPlaylist(TralbumData, startPlaybackIndex = 0) {
+  function addAlbumToPlaylist(TralbumData, startPlaybackIndex = 0, startPlaybackSongId = null) {
+    console.log('TralbumData', TralbumData);
     let i = 0;
     const artist = TralbumData.artist;
     const album = TralbumData.current.title;
@@ -3134,7 +3173,8 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       const inWishlist = 'tralbum_collect_info' in TralbumData && 'is_collected' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_collected;
       const isDownloadable = track.is_downloadable === true;
       const isPurchased = 'tralbum_collect_info' in TralbumData && 'is_purchased' in TralbumData.tralbum_collect_info && TralbumData.tralbum_collect_info.is_purchased;
-      addToPlaylist(startPlaybackIndex === i++, {
+      const startPlayback = startPlaybackSongId !== null && startPlaybackSongId === track.id || startPlaybackIndex === i++;
+      addToPlaylist(startPlayback, {
         file,
         title,
         trackNumber,
@@ -3536,13 +3576,13 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     }
     return playAlbumFromUrl(url, null);
   }
-  function playAlbumFromUrl(url, startPlaybackIndex = 0) {
+  function playAlbumFromUrl(url, startPlaybackIndex = 0, startPlaybackSongId = null) {
     if (!url.startsWith('http')) {
       url = document.location.protocol + '//' + url;
     }
     return getTralbumData(url).then(function onGetTralbumDataLoaded(TralbumData) {
       storeTralbumData(TralbumData);
-      return addAlbumToPlaylist(TralbumData, startPlaybackIndex);
+      return addAlbumToPlaylist(TralbumData, startPlaybackIndex, startPlaybackSongId);
     }).catch(function onGetTralbumDataError(e) {
       window.alert('Could not play and load album data from url:\n' + url + '\n' + ('error' in e ? e.error : e));
       console.error(e);
@@ -3881,7 +3921,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
           div.classList.remove('bdp_check_onlinkhover_container_shown');
           div.dataset.iv = a.dataset.iv;
         }
-      }, 1000);
+      }, 2000);
     };
     const mouseMoveLink = function onMouseLoveLink(ev) {
       if ('iv' in this.dataset) {
@@ -3962,6 +4002,238 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       a[i].appendChild(div);
       lastKey = key;
     }
+  }
+  function addShuffleTagsButton() {
+    console.debug('addShuffleTagsButton');
+    const parent = document.querySelector('.tag-search-desktop-container');
+    const inputGenres = parent.appendChild(document.createElement('input'));
+    inputGenres.setAttribute('id', 'discover_shuffle_genres');
+    inputGenres.setAttribute('type', 'text');
+    inputGenres.setAttribute('title', 'Genres to shuffle, separated by + ');
+    const inputSubTag = parent.appendChild(document.createElement('input'));
+    inputSubTag.setAttribute('id', 'discover_shuffle_subtag');
+    inputSubTag.setAttribute('type', 'text');
+    inputSubTag.setAttribute('title', 'Current sub-tag');
+    const inputNextSong = parent.appendChild(document.createElement('input'));
+    inputNextSong.setAttribute('id', 'discover_shuffle_next_song');
+    inputNextSong.setAttribute('type', 'text');
+    inputNextSong.setAttribute('title', 'Next song to play');
+    inputNextSong.setAttribute('readonly', 'readonly');
+    const button = parent.appendChild(document.createElement('button'));
+    button.setAttribute('id', 'discover_shuffle_start');
+    button.innerHTML = 'Shuffle tags'; // TODO "Shuffle subtags of {Electronic}"
+    // Shuffle related tags of Genre & Sub tag
+    button.addEventListener('click', startShuffleTags);
+
+    // dropdown option to shuffle after each song, or after each album
+    const label = parent.appendChild(document.createElement('label'));
+    label.innerHTML = 'Shuffle after:';
+    label.for = 'discover_shuffle_shuffle_after';
+    const select = parent.appendChild(document.createElement('select'));
+    select.setAttribute('id', 'discover_shuffle_shuffle_after');
+    select.innerHTML = '<option value="song">each song</option><option value="album">each album</option>';
+    select.addEventListener('change', updateShuffleNextTag);
+
+    // dropdown option for next sub-tag: Random OR avoid same subgenre
+    const label2 = parent.appendChild(document.createElement('label'));
+    label2.appendChild(document.createTextNode('Next genre: '));
+    const spanNextGenre = label2.appendChild(document.createElement('span'));
+    spanNextGenre.setAttribute('id', 'discover_shuffle_next_value');
+    label2.for = 'discover_shuffle_next_subtag';
+    const select2 = parent.appendChild(document.createElement('select'));
+    select2.setAttribute('id', 'discover_shuffle_next_subtag');
+    select2.innerHTML = '<option value="random_sub_tag">Random sub-tag</option><option value="current_sub_tag">dive deeper into sub tag</option><option value="avoid_current_sub_tag">Avoid same subgenre</option><option value="random_genre">Random genre</option>';
+    select.addEventListener('change', updateShuffleNextTag);
+
+    // button to skip to next song/album
+    // TODO always show the next album/tag on the button
+    const button2 = parent.appendChild(document.createElement('button'));
+    button2.innerHTML = 'Next';
+    button2.addEventListener('click', function (ev) {
+      updateShuffleNextTag(ev, 'next');
+    });
+
+    // button to choose a random tag for the next (in case the next is not good)
+    // TODO this should change the next album/tag on the above button
+    const button3 = parent.appendChild(document.createElement('button'));
+    button3.innerHTML = 'Shuffle';
+    button3.addEventListener('click', function (ev) {
+      updateShuffleNextTag(ev, 'shuffle');
+    });
+
+    // window.setTimeout(startShuffleTags, 500)
+  }
+  async function updateShuffleNextTag(ev, action) {
+    console.log('updateShuffleNextTag', action);
+    let currentGenres = '';
+    const genresElement = document.getElementById('discover_shuffle_genres');
+    if (genresElement && genresElement.value) {
+      currentGenres = genresElement.value.split(/\+|%20/);
+    } else if (document.location.pathname.substring(10)) {
+      if (genresElement) {
+        genresElement.value = document.location.pathname.substring(10);
+      }
+      currentGenres = document.location.pathname.substring(10).split(/\+|%20/);
+    } else {
+      window.alert('No genres specified'); // TODO handle this
+      return;
+    }
+    console.log('Current genres', currentGenres);
+    const currentSubTag = document.getElementById('discover_shuffle_subtag').value;
+    const shuffleAfterOption = document.getElementById('discover_shuffle_shuffle_after').value;
+    const nextSubTagOption = document.getElementById('discover_shuffle_next_subtag').value;
+    console.log('currentSubTag', currentSubTag);
+    console.log('shuffleAfterOption', shuffleAfterOption);
+    console.log('nextSubTagOption', nextSubTagOption);
+    const tags = [...currentGenres];
+    let nextGenres = [...currentGenres];
+    let nextSubTags = [];
+    console.log('nextSubTagOption:', nextSubTagOption);
+    if (nextSubTagOption === 'random_sub_tag' || nextSubTagOption === 'avoid_current_sub_tag') {
+      const result = await getRelatedTags(tags);
+      console.log('related tags result:', result);
+      const relatedTags = result.single_results[0].related_tags;
+      // select random tag from related tags
+      let randomTag = relatedTags[Math.floor(Math.random() * relatedTags.length)];
+      console.log((randomTag));
+      if (nextSubTagOption === 'avoid_current_sub_tag') {
+        while (randomTag.norm_name === currentSubTag) {
+          randomTag = relatedTags[Math.floor(Math.random() * relatedTags.length)];
+        }
+      }
+      nextSubTags = [randomTag.norm_name];
+    } else if (nextSubTagOption === 'random_genre') {
+      // Get a random major genre
+      nextGenres = genresList[Math.floor(Math.random() * genresList.length)];
+      // TODO what about the subtag?
+    } else if (nextSubTagOption === 'current_sub_tag') {
+      // TODO what if no currentSubTag is defined? -> choose random subtag
+      nextSubTags = [currentSubTag];
+    } else {
+      alert('invalid next option'); // TODO handle this
+      return;
+    }
+    console.log('nextSubTags', nextSubTags);
+    document.getElementById('discover_shuffle_next_value').textContent = nextSubTags.join(' + ');
+
+    // Load the next tag and display it on the button
+
+    // TODO Load the next song/album and display it in #discover_shuffle_next_song
+    const randomAlbums = await getRandomAlbumsFromTags(...nextGenres, ...nextSubTags);
+
+    // Select randomAlbum from randomAlbums
+    const randomAlbum = randomAlbums[Math.floor(Math.random() * randomAlbums.length)];
+    console.log('next album:\n' + randomAlbum.title + ' by ' + randomAlbum.band_name + '\n' + randomAlbum.item_url);
+    let nextSongTitle = null;
+    const discoverShuffleNextSongNode = document.getElementById('discover_shuffle_next_song');
+    discoverShuffleNextSongNode.dataset.nextAlbumUrl = document.location.protocol + '//' + albumKey(randomAlbum.item_url);
+    if (shuffleAfterOption === 'song' && 'featured_track' in randomAlbum && randomAlbum.featured_track && 'stream_url' in randomAlbum.featured_track && randomAlbum.featured_track.stream_url) {
+      discoverShuffleNextSongNode.dataset.nextSong = randomAlbum.featured_track.id;
+      nextSongTitle = `${randomAlbum.featured_track.title} by ${randomAlbum.featured_track.band_name} (from ${randomAlbum.title})`;
+    } else {
+      discoverShuffleNextSongNode.dataset.nextSong = '#1';
+      nextSongTitle = `${randomAlbum.title} by ${randomAlbum.album_artist || randomAlbum.band_name}`;
+    }
+    discoverShuffleNextSongNode.value = nextSongTitle;
+  }
+  function getRelatedTags(tags) {
+    /* TODO Scrape these results for the major genres, so that we get a list of subtags per genre */
+
+    return new Promise((resolve, reject) => {
+      GM.xmlHttpRequest({
+        url: 'https://bandcamp.com/api/tag_search/2/related_tags',
+        method: 'POST',
+        data: JSON.stringify({
+          tag_names: tags,
+          size: 1000,
+          /* 1000 seems to be the limit, higher throws an error */
+          combo: true
+        }),
+        onerror: function (response) {
+          reject(response);
+        },
+        onload: async function (response) {
+          const data = JSON.parse(response.responseText);
+          console.log('Related tags result:');
+          console.log(data);
+          resolve(data);
+        }
+      });
+    });
+  }
+  function getRandomAlbumsFromTags(tags) {
+    return new Promise((resolve, reject) => {
+      GM.xmlHttpRequest({
+        url: 'https://bandcamp.com/api/discover/1/discover_web',
+        method: 'POST',
+        data: JSON.stringify({
+          category_id: 0,
+          tag_norm_names: tags,
+          geoname_id: 0,
+          slice: 'rand',
+          time_facet_id: null,
+          cursor: '*',
+          size: 60,
+          include_result_types: ['a', 's']
+        }),
+        onerror: function (response) {
+          reject(response);
+        },
+        onload: async function (response) {
+          const data = JSON.parse(response.responseText);
+          resolve(data.results);
+        }
+      });
+    });
+  }
+  async function startShuffleTags() {
+    console.debug('shartShuffleTags()');
+    let currentGenres = '';
+    const genresElement = document.getElementById('discover_shuffle_genres');
+    if (genresElement && genresElement.value) {
+      currentGenres = genresElement.value.split(/\+|%20/);
+    } else if (document.location.pathname.substring(10)) {
+      if (genresElement) {
+        genresElement.value = document.location.pathname.substring(10);
+      }
+      currentGenres = document.location.pathname.substring(10).split(/\+|%20/);
+    } else {
+      alert('No genres specified'); // TODO handle this
+      return;
+    }
+    const randomAlbums = await getRandomAlbumsFromTags(currentGenres);
+    if (!randomAlbums) {
+      alert('error 845'); // TODO handle error, pick different genre
+      console.error('Response from /api/discover/1/discover_web for genres=' + currentGenres + ' is empty:');
+      return;
+    }
+
+    // Pick a random album
+    const album = randomAlbums[Math.floor(Math.random() * randomAlbums.length)];
+    console.debug('random album:', album);
+    {
+      if ('featured_track' in album && album.featured_track && 'id' in album.featured_track) {
+        // Choose to play featured track
+        playAlbumFromUrl(album.item_url, null, album.featured_track.id);
+        console.log('playAlbumFromUrl featured track', album.item_url, null, album.featured_track.id);
+      } else {
+        // choose a random track
+        const randomPosition = Math.floor(Math.random() * album.track_count);
+        playAlbumFromUrl(album.item_url, randomPosition);
+        console.log('playAlbumFromUrl random track', album.item_url, randomPosition);
+      }
+    }
+    document.querySelector('#discover_shuffle_start').classList.add('active');
+    updateShuffleNextTag();
+
+    // In Discography player:
+    // - add a switch that enables tag shuffling from currently playing album, or maybe better just redirect to /discover and autostart with a new player
+    // - dropdown option to shuffle after each song, or after each album (remember this selection)
+    // - dropdown option for next sub-tag: Random OR avoid same subgenre (remember this selection)
+    // - button to skip to next tag (show the next tag on the button) and button to choose a random tag for the next (in case the next is not good)
+    // - add an option to blacklist a sub-tag for shuffling
+    // - manage blacklist GUI
+    // - keep a list of played albums in the current session to avoid playing the same track twice
   }
   function removeTheTimeHasComeToOpenThyHeartWallet() {
     if ('theTimeHasComeToOpenThyHeartWallet' in document.head.dataset) {
@@ -5036,258 +5308,6 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       image.style.backgroundSize = 'contain';
       image.style.backgroundImage = `url(${release.albumCover})`;
     });
-  }
-  function showTagSearchForm() {
-    const menuA = document.querySelector('#bcsde_tagsearchbutton');
-    menuA.style.display = 'none';
-    if (!document.getElementById('bcsde_tagsearchform')) {
-      addStyle(`
-    #bcsde_tagsearchform {
-      margin:0px 7px;
-    }
-    #bcsde_tagsearchform_tags {
-      display: inline-block;
-      list-style: none;
-      padding: 0;
-    }
-    #bcsde_tagsearchform_tags li {
-      display:inline;
-      background:#f2eaea8a;
-      border: 1px solid rgb(225, 45, 5);
-      border-radius: 15px;
-      padding: 2px 10px 2px 2px;
-      font-size: 13px;
-      font-weight: 500;
-    }
-    #bcsde_tagsearchform_tags li svg {
-      filter: invert(100%);
-      fill:rgb(225, 45, 5);
-      vertical-align: middle;
-    }
-    #bcsde_tagsearchform_tags li .checkmark-icon {
-      display:inline-block;
-    }
-    #bcsde_tagsearchform_tags li .close-icon {
-      display:none;
-    }
-    #bcsde_tagsearchform_tags li:hover .checkmark-icon {
-      display:none;
-    }
-    #bcsde_tagsearchform_tags li:hover .close-icon {
-      display:inline-block;
-    }
-    #bcsde_tagsearchform button {
-      margin: 3px;
-      color: black !important;
-    }
-    #bcsde_tagsearchform_input {
-      background-color: #DFDFDF;
-      padding: 10px 30px 10px 10px;
-      font-size: 14px;
-      border: none;
-      width: 150px;
-      color: #333;
-      margin: 6px 0;
-      border-radius: 3px;
-      box-sizing: border-box;
-      input-select:auto;
-      -webkit-user-select:auto;
-    }
-    #bcsde_tagsearchform_suggestions {
-      list-style: none;
-      margin: 0;
-      position: absolute;
-      z-index: 10;
-      background: #FFF;
-      visibility: hidden;
-      border: 1px solid #000;
-      font-weight: normal;
-      padding: 8px 0;
-      opacity:0;
-      transition:visibility 200ms linear,opacity 200ms linear;
-      ${darkModeModeCurrent === true ? 'filter: invert(85%);' : ''}
-    }
-    #bcsde_tagsearchform_suggestions.visible {
-      visibility:visible;
-      opacity:1;
-    }
-    #bcsde_tagsearchform_suggestions li {
-      padding: 8px 10px;
-      cursor: pointer;
-      list-style: none;
-      margin: 0;
-      display: list-item;
-      text-align: left;
-    }
-    #bcsde_tagsearchform_suggestions li:hover,#bcsde_tagsearchform_suggestions li:focus {
-      background: #F3F3F3;
-    }
-    `);
-      const div = document.createElement('div');
-      div.setAttribute('id', 'bcsde_tagsearchform');
-      menuA.parentNode.appendChild(div);
-      const tagsHolder = div.appendChild(document.createElement('ul'));
-      tagsHolder.setAttribute('id', 'bcsde_tagsearchform_tags');
-      const m = document.location.href.match(/\/tag\/([A-Za-z0-9-]+)(\?tab=all_releases&t=(.+))?/); // https://bandcamp.com/tag/metal?tab=all_releases&t=post-punk%2Cdark
-      const tags = [];
-      if (m) {
-        tags.push(m[1]);
-        if (m[3]) {
-          tags.push(...m[3].split('&')[0].split('#')[0].split('%2C'));
-        }
-      }
-      tags.forEach(tag => {
-        tagsHolder.appendChild(tagSearchLabel(tag, tag.replace('-', ' ')));
-      });
-      const button = div.appendChild(document.createElement('button'));
-      button.appendChild(document.createTextNode('Go'));
-      button.addEventListener('click', openTagSearch);
-      const input = div.appendChild(document.createElement('input'));
-      input.setAttribute('type', 'text');
-      input.setAttribute('id', 'bcsde_tagsearchform_input');
-      input.setAttribute('placeholder', 'tag search');
-      input.addEventListener('keyup', tagSearchInputChange);
-      const suggestions = div.appendChild(document.createElement('ol'));
-      suggestions.setAttribute('id', 'bcsde_tagsearchform_suggestions');
-      if (document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav .log-in-link')) {
-        // Homepage and not logged in -> make some room by removing the other list items from the nav
-        document.querySelectorAll('#corphome-autocomplete-form ul.hd-nav.corp-nav>li:not([class~="menubar-item-tag-search"])').forEach(listItem => listItem.remove());
-      }
-    } else {
-      document.querySelector('#bcsde_tagsearchform').style.display = '';
-    }
-  }
-  function tagSearchLabel(tagNormName, tagName) {
-    const li = document.createElement('li');
-    li.dataset.tagNormName = tagNormName;
-    li.dataset.name = tagName;
-    const remove = li.appendChild(document.createElement('span'));
-    remove.addEventListener('click', function () {
-      this.parentNode.remove();
-    });
-    remove.innerHTML = `
-  <svg class="checkmark-icon" width="16" height="16" viewBox="0 0 24 24">
-    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#material-done"></use>
-  </svg>
-  <svg class="close-icon" width="16" height="16" viewBox="0 0 24 24">
-    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#material-close"></use>
-  </svg>
-  `;
-    li.appendChild(document.createTextNode(tagName));
-    return li;
-  }
-  let ivTagSearchInput = null;
-  function tagSearchInputChange(ev) {
-    clearInterval(ivTagSearchInput);
-    if (ev.key === 'Enter') {
-      const input = document.getElementById('bcsde_tagsearchform_input');
-      if (input.value) {
-        useTagSuggestion(null, input.value);
-        return;
-      }
-    }
-    ivTagSearchInput = window.setTimeout(showTagSuggestions, 300);
-  }
-  function showTagSuggestions() {
-    const input = document.getElementById('bcsde_tagsearchform_input');
-    const suggestions = document.getElementById('bcsde_tagsearchform_suggestions');
-    if (!input.value.trim()) {
-      suggestions.classList.remove('visible');
-      return;
-    }
-    getTagSuggestions(input.value).then(data => {
-      let found = false;
-      if (data.ok && 'matching_tags' in data) {
-        suggestions.innerHTML = '';
-        suggestions.classList.add('visible');
-        suggestions.style.left = input.offsetLeft + 'px';
-        data.matching_tags.forEach(result => {
-          found = true;
-          const li = suggestions.appendChild(document.createElement('li'));
-          li.dataset.tagNormName = result.tag_norm_name;
-          li.dataset.name = result.tag_name;
-          li.addEventListener('click', useTagSuggestion);
-          li.appendChild(document.createTextNode(result.tag_name));
-        });
-      }
-      if (!found) {
-        if (input.value.trim()) {
-          const li = suggestions.appendChild(document.createElement('li'));
-          li.dataset.tagNormName = input.value.replace(/\s+/, '-');
-          li.dataset.name = input.value;
-          li.addEventListener('click', useTagSuggestion);
-          li.appendChild(document.createTextNode(input.value));
-        } else {
-          suggestions.classList.remove('visible');
-        }
-      }
-    });
-  }
-  function useTagSuggestion(ev, str = null) {
-    const suggestions = document.getElementById('bcsde_tagsearchform_suggestions');
-    const tagsHolder = document.getElementById('bcsde_tagsearchform_tags');
-    const input = document.getElementById('bcsde_tagsearchform_input');
-    let tagNormName;
-    let name;
-    if (str) {
-      // Use str
-      tagNormName = str.replace(/\s+/, '-');
-      name = str;
-    } else {
-      // Use tag that was clicked
-      tagNormName = this.dataset.tagNormName;
-      name = this.dataset.name;
-    }
-    tagsHolder.appendChild(tagSearchLabel(tagNormName, name));
-    suggestions.classList.remove('visible');
-    input.value = '';
-    input.focus();
-  }
-  function getTagSuggestions(query) {
-    const url = 'https://bandcamp.com/api/fansignup/1/search_tag';
-    return new Promise(function getTagSuggestionsPromise(resolve, reject) {
-      GM.xmlHttpRequest({
-        method: 'POST',
-        data: JSON.stringify({
-          count: 20,
-          search_term: query
-        }),
-        url,
-        onload: function getTagSuggestionsOnLoad(response) {
-          if (!response.responseText || response.responseText.indexOf('400 Bad Request') !== -1) {
-            reject(new Error('Tag suggestions error: Too many cookies'));
-            return;
-          }
-          if (!response.responseText || response.responseText.indexOf('429 Too Many Requests') !== -1) {
-            reject(new Error('Tag suggestions error: 429 Too Many Requests'));
-            return;
-          }
-          let result = null;
-          try {
-            result = JSON.parse(response.responseText);
-          } catch (e) {
-            console.debug(response.responseText);
-            reject(e);
-            return;
-          }
-          resolve(result);
-        },
-        onerror: function getTagSuggestionsOnError(response) {
-          reject(new Error('error' in response ? response.error : 'getTagSuggestions failed with GM.xmlHttpRequest.onerror'));
-        }
-      });
-    });
-  }
-  function openTagSearch() {
-    // https://bandcamp.com/tag/metal?tab=all_releases&t=post-punk%2Cdark
-    this.innerHTML = 'Loading...';
-    const tagsHolder = document.getElementById('bcsde_tagsearchform_tags');
-    const tags = [...new Set(Array.from(tagsHolder.querySelectorAll('li')).map(li => li.dataset.tagNormName))];
-    if (!tags) {
-      return;
-    }
-    const url = `https://bandcamp.com/tag/${tags.shift()}?tab=all_releases&t=${tags.join('%2C')}`;
-    document.location.href = url;
   }
   function mainMenu(startBackup) {
     addStyle(`
@@ -6731,9 +6751,9 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       deletePermanentTralbum
     }).render();
   }
-  function appendMainMenuButtonTo(ul, before) {
-    before = before ? before : ul.firstChild;
-    addStyle(`
+  function appendMainMenuButtonTo(ul, before, shadowRoot) {
+    before = before || ul.firstChild;
+    const cssStr = `
     .menubar-item {
       display: flex;
       align-items: center;
@@ -6763,7 +6783,14 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     .menubar-item:hover .menubar-symbol-tag-search {
       transform:scale(1.3)
     }
-  `);
+  `;
+    if (shadowRoot) {
+      GM_addElement(shadowRoot, 'style', {
+        textContent: cssStr
+      });
+    } else {
+      addStyle(cssStr);
+    }
     const liSettings = ul.insertBefore(document.createElement('li'), before);
     liSettings.className = 'menubar-item hoverable';
     liSettings.title = 'userscript settings - ' + SCRIPT_NAME;
@@ -6799,22 +6826,6 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       //   openExplorer()
       // })
     }
-    const liSearch = ul.insertBefore(document.createElement('li'), before);
-    liSearch.className = 'menubar-item hoverable menubar-item-tag-search';
-    liSearch.title = 'tag search - ' + SCRIPT_NAME;
-    const aSearch = liSearch.appendChild(document.createElement('a'));
-    aSearch.className = 'menubar-symbol menubar-symbol-tag-search';
-    aSearch.href = '#';
-    if (NOEMOJI) {
-      aSearch.innerHTML = `
-    <svg width="22" height="22" viewBox="0 0 15 16" class="svg-icon" style="border: 2px solid #000000c4;border-radius: 30%;padding: 3px;">
-        <use xlink:href="#menubar-search-input-icon">
-    </svg>`;
-    } else {
-      aSearch.appendChild(document.createTextNode('\uD83D\uDD0D'));
-    }
-    aSearch.setAttribute('id', 'bcsde_tagsearchbutton');
-    aSearch.addEventListener('click', showTagSearchForm);
   }
   function appendMainMenuButtonLeftTo(leftOf) {
     // Wait for the design to load images
@@ -7499,6 +7510,7 @@ If this is a malicious website, running the userscript may leak personal data (e
         if (allFeatures.tagSearchPlayer.enabled) {
           window.setInterval(makeDiscoverSearchCoversGreat, 1000);
         }
+        addShuffleTagsButton();
       }
       if (document.querySelector('.share-panel-wrapper-desktop')) {
         // Album page with Share,Embed,Wishlist links
@@ -7517,7 +7529,12 @@ If this is a malicious website, running the userscript may leak personal data (e
         showDownloadLinkOnAlbumPage();
       }
       GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu);
-      if (document.querySelector('.menu-items .search')) {
+      if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot) {
+        const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot;
+        const searchLi = shadowRoot.querySelector('.menu-items .search');
+        const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi;
+        appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot);
+      } else if (document.querySelector('.menu-items .search')) {
         // Discover
         const searchLi = document.querySelector('.menu-items .search');
         const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi;
@@ -7552,6 +7569,12 @@ If this is a malicious website, running the userscript may leak personal data (e
             listenedTabLink.classList.add('active');
             listenedTabLink.click();
           }, 500);
+        }
+        if (allFeatures.markasplayedEverywhere.enabled) {
+          // If you click the more button on the wishlist/user profile, bandcamp continues to load more albums. Need to update the listened links then as well:
+          document.querySelectorAll('.show-button .show-more').forEach(button => button.addEventListener('click', () => {
+            window.setInterval(makeAlbumLinksGreat, 2000);
+          }));
         }
       }
       if (allFeatures.albumPageVolumeBar.enabled) {
