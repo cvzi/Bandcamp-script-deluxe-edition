@@ -1812,19 +1812,18 @@ function musicPlayerCookieChannel (onStopEventCb) {
     // Receive messages from the cookie channel event handler
     if (event.origin === document.location.protocol + '//' + document.location.hostname &&
     event.data && typeof (event.data) === 'object' && 'discographyplayerCookiechannelPlaylist' in event.data &&
-    event.data.discographyplayerCookiechannelPlaylist.length >= 2 && event.data.discographyplayerCookiechannelPlaylist[1] === 'stop') {
+    event.data.discographyplayerCookiechannelPlaylist === 'stop') {
       onStopEventCb(event.data.discographyplayerCookiechannelPlaylist)
     }
   })
   const script = document.createElement('script')
   script.innerHTML = `
   if(typeof Cookie !== 'undefined') {
-    var channel = new Cookie.CommChannel('playlist')
+    var channel = new Cookie.CommChannel('playback')
     channel.send('stop')
-    channel.subscribe(function(a,b) {
-      window.postMessage({'discographyplayerCookiechannelPlaylist': b}, document.location.href)
+    channel.subscribe(function(a) {
+      window.postMessage({'discographyplayerCookiechannelPlaylist': a}, document.location.href)
       })
-    channel.startListening()
     window.addEventListener('message', function onMessage (event) {
       // Receive messages from the user script
       if (event.origin === document.location.protocol + '//' + document.location.hostname
