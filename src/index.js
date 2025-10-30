@@ -7445,7 +7445,8 @@ function onLoaded () {
 
     GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu)
 
-    if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot) {
+    if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot &&
+      document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('.menu-items .search')) {
       const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot
 
       const searchLi = shadowRoot.querySelector('.menu-items .search')
