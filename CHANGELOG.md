@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.37.5](../../tree/v1.37.5) *(2025-10-31)*
+*   Fix custom release date format
+*   Fix menu buttons in some locations
 ## [1.37.4](../../tree/v1.37.4) *(2025-10-30)*
 *   Bugfixes for bugs introduced in v1.37.3
 ## [1.37.3](../../tree/v1.37.3) *(2025-10-27)*
