@@ -33,6 +33,7 @@ const SCRIPT_NAME = 'Bandcamp script (Deluxe Edition)'
 const LYRICS_EMPTY_PATH = '/robots.txt'
 const PLAYER_URL = 'https://bandcamp.com/robots.txt?player'
 const ONEHOUR = 3600000
+const MAIN_MENU_DOM_ID = 'bcsde_main_menu_added'
 let darkModeInjected = false
 let storeTralbumDataPermanentlySwitch = true
 const allFeatures = {
@@ -6626,6 +6627,7 @@ function appendMainMenuButtonTo (ul, before, shadowRoot) {
   }
 
   const liSettings = ul.insertBefore(document.createElement('li'), before)
+  liSettings.id = MAIN_MENU_DOM_ID
   liSettings.className = 'menubar-item hoverable'
   liSettings.title = 'userscript settings - ' + SCRIPT_NAME
   const aSettings = liSettings.appendChild(document.createElement('a'))
@@ -7462,28 +7464,45 @@ function onLoaded () {
 
     GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu)
 
-    if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot &&
-      document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('.menu-items .search')) {
-      const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot
-
-      const searchLi = shadowRoot.querySelector('.menu-items .search')
-      const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
-      appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot)
-    } else if (document.querySelector('.menu-items .search')) {
-      // Discover
-      const searchLi = document.querySelector('.menu-items .search')
-      const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
-      appendMainMenuButtonTo(insertBefore.parentNode, insertBefore)
-    } else if (document.querySelector('.user-nav')) {
-      appendMainMenuButtonTo(document.querySelector('.user-nav'))
-    } else if (document.querySelector('#user-nav')) {
-      appendMainMenuButtonTo(document.querySelector('#user-nav'))
-    } else if (document.getElementById('customHeaderWrapper')) {
-      appendMainMenuButtonLeftTo(document.getElementById('customHeaderWrapper'))
-    } else if (document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav')) {
-      // Homepage and not logged in
-      appendMainMenuButtonTo(document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav'))
+    const addMainMenuButtons = () => {
+      if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot &&
+        document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('.menu-items .search')) {
+        const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot
+        const searchLi = shadowRoot.querySelector('.menu-items .search')
+        const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
+        appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot)
+      } else if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot &&
+        document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('li.signup')) {
+        const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot
+        const searchLi = shadowRoot.querySelector('li.signup')
+        const insertBefore = searchLi
+        appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot)
+      } else if (document.querySelector('.menu-items .search')) {
+        // Discover
+          window.setTimeout(() => {
+            const searchLi = document.querySelector('.menu-items .search')
+            const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
+            appendMainMenuButtonTo(insertBefore.parentNode, insertBefore)
+          }, 1000)
+      } else if (document.querySelector('.user-nav')) {
+        appendMainMenuButtonTo(document.querySelector('.user-nav'))
+      } else if (document.querySelector('#user-nav')) {
+        appendMainMenuButtonTo(document.querySelector('#user-nav'))
+      } else if (document.getElementById('customHeaderWrapper')) {
+        appendMainMenuButtonLeftTo(document.getElementById('customHeaderWrapper'))
+      } else if (document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav')) {
+        // Homepage and not logged in
+        appendMainMenuButtonTo(document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav'))
+      }
     }
+
+    addMainMenuButtons()
+    window.setTimeout(() => {
+      if (!document.getElementById(MAIN_MENU_DOM_ID)) {
+        addMainMenuButtons()
+      }
+    }, 3000)
+
 
     if (document.querySelector('.hd-banner-2018')) {
       // Move the "we are hiring" banner (not loggin in)
