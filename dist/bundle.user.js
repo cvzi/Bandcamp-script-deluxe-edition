@@ -21,7 +21,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.37.3
+// @version         1.37.4
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -2626,19 +2626,18 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
     }
     window.addEventListener('message', function onMessage(event) {
       // Receive messages from the cookie channel event handler
-      if (event.origin === document.location.protocol + '//' + document.location.hostname && event.data && typeof event.data === 'object' && 'discographyplayerCookiechannelPlaylist' in event.data && event.data.discographyplayerCookiechannelPlaylist.length >= 2 && event.data.discographyplayerCookiechannelPlaylist[1] === 'stop') {
+      if (event.origin === document.location.protocol + '//' + document.location.hostname && event.data && typeof event.data === 'object' && 'discographyplayerCookiechannelPlaylist' in event.data && event.data.discographyplayerCookiechannelPlaylist === 'stop') {
         onStopEventCb(event.data.discographyplayerCookiechannelPlaylist);
       }
     });
     const script = document.createElement('script');
     script.innerHTML = `
   if(typeof Cookie !== 'undefined') {
-    var channel = new Cookie.CommChannel('playlist')
+    var channel = new Cookie.CommChannel('playback')
     channel.send('stop')
-    channel.subscribe(function(a,b) {
-      window.postMessage({'discographyplayerCookiechannelPlaylist': b}, document.location.href)
+    channel.subscribe(function(a) {
+      window.postMessage({'discographyplayerCookiechannelPlaylist': a}, document.location.href)
       })
-    channel.startListening()
     window.addEventListener('message', function onMessage (event) {
       // Receive messages from the user script
       if (event.origin === document.location.protocol + '//' + document.location.hostname
@@ -4005,21 +4004,34 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
   }
   function addShuffleTagsButton() {
     console.debug('addShuffleTagsButton');
+    const createButton = () => {
+      // Return a new button element, try to clone an existing one to copy the styling
+      const b = document.querySelector('.tag-search-desktop-container button');
+      if (b) {
+        return b.cloneNode(false);
+      } else {
+        return document.createElement('button');
+      }
+    };
     const parent = document.querySelector('.tag-search-desktop-container');
-    const inputGenres = parent.appendChild(document.createElement('input'));
+    const inputContainer = parent.appendChild(document.createElement('div'));
+    const inputGenres = inputContainer.appendChild(document.createElement('input'));
     inputGenres.setAttribute('id', 'discover_shuffle_genres');
     inputGenres.setAttribute('type', 'text');
     inputGenres.setAttribute('title', 'Genres to shuffle, separated by + ');
-    const inputSubTag = parent.appendChild(document.createElement('input'));
+    inputGenres.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #0088ff12;border: 1px solid silver;border-bottom: none;');
+    const inputSubTag = inputContainer.appendChild(document.createElement('input'));
     inputSubTag.setAttribute('id', 'discover_shuffle_subtag');
     inputSubTag.setAttribute('type', 'text');
     inputSubTag.setAttribute('title', 'Current sub-tag');
-    const inputNextSong = parent.appendChild(document.createElement('input'));
+    inputSubTag.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #0088ff12;border: 1px solid silver;border-bottom: none;');
+    const inputNextSong = inputContainer.appendChild(document.createElement('input'));
     inputNextSong.setAttribute('id', 'discover_shuffle_next_song');
     inputNextSong.setAttribute('type', 'text');
     inputNextSong.setAttribute('title', 'Next song to play');
     inputNextSong.setAttribute('readonly', 'readonly');
-    const button = parent.appendChild(document.createElement('button'));
+    inputNextSong.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #0088ff12;border: 1px solid silver;');
+    const button = parent.appendChild(createButton());
     button.setAttribute('id', 'discover_shuffle_start');
     button.innerHTML = 'Shuffle tags'; // TODO "Shuffle subtags of {Electronic}"
     // Shuffle related tags of Genre & Sub tag
@@ -4047,7 +4059,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
 
     // button to skip to next song/album
     // TODO always show the next album/tag on the button
-    const button2 = parent.appendChild(document.createElement('button'));
+    const button2 = parent.appendChild(createButton());
     button2.innerHTML = 'Next';
     button2.addEventListener('click', function (ev) {
       updateShuffleNextTag(ev, 'next');
@@ -4055,7 +4067,7 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
 
     // button to choose a random tag for the next (in case the next is not good)
     // TODO this should change the next album/tag on the above button
-    const button3 = parent.appendChild(document.createElement('button'));
+    const button3 = parent.appendChild(createButton());
     button3.innerHTML = 'Shuffle';
     button3.addEventListener('click', function (ev) {
       updateShuffleNextTag(ev, 'shuffle');
@@ -7529,7 +7541,7 @@ If this is a malicious website, running the userscript may leak personal data (e
         showDownloadLinkOnAlbumPage();
       }
       GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu);
-      if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot) {
+      if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('.menu-items .search')) {
         const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot;
         const searchLi = shadowRoot.querySelector('.menu-items .search');
         const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi;

@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.37.4](../../tree/v1.37.4) *(2025-10-30)*
+*   Bugfixes for bugs introduced in v1.37.3
 ## [1.37.3](../../tree/v1.37.3) *(2025-10-27)*
 *   Fix listened status in wishlist/collection when scrolling down to dynmically loaded item
 ## [1.37.2](../../tree/v1.37.2) *(2025-03-07)*
