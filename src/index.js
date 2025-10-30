@@ -356,6 +356,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`
       link.setAttribute('href', 'https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/284#issuecomment-1563394077')
       link.appendChild(document.createTextNode('Format options: %DD%, %MM%, %YYYY%, ...'))
 
+      await GM.setValue('custom_release_date_format_str', inputFormat.value)
       onKeyUp()
     }
   }
