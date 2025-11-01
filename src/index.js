@@ -15,7 +15,7 @@ import speakerIconLowSrc from './img/speaker_icon_low_48x40.png'
 import speakerIconMiddleSrc from './img/speaker_icon_middle_48x40.png'
 import speakerIconHighSrc from './img/speaker_icon_high_48x40.png'
 
-/* globals GM, GM_addStyle, GM_download, GM_setClipboard, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics, Blob */
+/* globals GM, GM_addStyle, GM_addElement, GM_download, GM_setClipboard, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics, Blob */
 
 // TODO Mark as played automatically when played
 // TODO custom CSS
@@ -3296,7 +3296,6 @@ function addShuffleTagsButton () {
   inputSubTag.setAttribute('title', 'Current sub-tag')
   inputSubTag.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #0088ff12;border: 1px solid silver;border-bottom: none;')
 
-
   const inputNextSong = inputContainer.appendChild(document.createElement('input'))
   inputNextSong.setAttribute('id', 'discover_shuffle_next_song')
   inputNextSong.setAttribute('type', 'text')
@@ -3403,7 +3402,7 @@ async function updateShuffleNextTag (ev, action) {
   // TODO what if no currentSubTag is defined? -> choose random subtag
     nextSubTags = [currentSubTag]
   } else {
-    alert('invalid next option') // TODO handle this
+    window.alert('invalid next option') // TODO handle this
     return
   }
 
@@ -3504,14 +3503,14 @@ async function startShuffleTags () {
     }
     currentGenres = document.location.pathname.substring(10).split(/\+|%20/)
   } else {
-    alert('No genres specified') // TODO handle this
+    window.alert('No genres specified') // TODO handle this
     return
   }
 
   const randomAlbums = await getRandomAlbumsFromTags(currentGenres)
 
   if (!randomAlbums) {
-    alert('error 845') // TODO handle error, pick different genre
+    window.alert('error 845') // TODO handle error, pick different genre
     console.error('Response from /api/discover/1/discover_web for genres=' + currentGenres + ' is empty:')
 
     return
@@ -4721,12 +4720,13 @@ async function showPastReleases (ev, forceShow) {
   })
 }
 
+let tagSearchRootContainer = null
 function showTagSearchForm () {
   const menuA = this // document.querySelector('#bcsde_tagsearchbutton')
   menuA.style.display = 'none'
 
   if (!document.getElementById('bcsde_tagsearchform')) {
-    addStyle(`
+    const cssStr = `
     #bcsde_tagsearchform {
       margin:0px 7px;
     }
@@ -4764,6 +4764,11 @@ function showTagSearchForm () {
     #bcsde_tagsearchform button {
       margin: 3px;
       color: black !important;
+      border: 1px solid black;
+      border-radius: 5px;
+      text-decoration: none;
+      background: rgba(255, 255,255, 0.7);
+      padding: 5px;
     }
     #bcsde_tagsearchform_input {
       background-color: #DFDFDF;
@@ -4784,6 +4789,7 @@ function showTagSearchForm () {
       position: absolute;
       z-index: 10;
       background: #FFF;
+      color: black;
       visibility: hidden;
       border: 1px solid #000;
       font-weight: normal;
@@ -4797,6 +4803,7 @@ function showTagSearchForm () {
       opacity:1;
     }
     #bcsde_tagsearchform_suggestions li {
+      color:black;
       padding: 8px 10px;
       cursor: pointer;
       list-style: none;
@@ -4807,10 +4814,14 @@ function showTagSearchForm () {
     #bcsde_tagsearchform_suggestions li:hover,#bcsde_tagsearchform_suggestions li:focus {
       background: #F3F3F3;
     }
-    `)
+    `
+
+    GM_addElement(menuA.parentNode, 'style', { textContent: cssStr }) // Works if these nodes are in shadow DOM where addStyle() doesn't work
+
     const div = document.createElement('div')
     div.setAttribute('id', 'bcsde_tagsearchform')
     menuA.parentNode.appendChild(div)
+    tagSearchRootContainer = menuA.parentNode
 
     const tagsHolder = div.appendChild(document.createElement('ul'))
     tagsHolder.setAttribute('id', 'bcsde_tagsearchform_tags')
@@ -4876,7 +4887,7 @@ function tagSearchInputChange (ev) {
   clearInterval(ivTagSearchInput)
 
   if (ev.key === 'Enter') {
-    const input = document.getElementById('bcsde_tagsearchform_input')
+    const input = (tagSearchRootContainer || document).querySelector('#bcsde_tagsearchform_input')
     if (input.value) {
       useTagSuggestion(null, input.value)
       return
@@ -4887,8 +4898,8 @@ function tagSearchInputChange (ev) {
 }
 
 function showTagSuggestions () {
-  const input = document.getElementById('bcsde_tagsearchform_input')
-  const suggestions = document.getElementById('bcsde_tagsearchform_suggestions')
+  const input = (tagSearchRootContainer || document).querySelector('#bcsde_tagsearchform_input')
+  const suggestions = (tagSearchRootContainer || document).querySelector('#bcsde_tagsearchform_suggestions')
   if (!input.value.trim()) {
     suggestions.classList.remove('visible')
     return
@@ -4923,9 +4934,9 @@ function showTagSuggestions () {
 }
 
 function useTagSuggestion (ev, str = null) {
-  const suggestions = document.getElementById('bcsde_tagsearchform_suggestions')
-  const tagsHolder = document.getElementById('bcsde_tagsearchform_tags')
-  const input = document.getElementById('bcsde_tagsearchform_input')
+  const suggestions = (tagSearchRootContainer || document).querySelector('#bcsde_tagsearchform_suggestions')
+  const tagsHolder = (tagSearchRootContainer || document).querySelector('#bcsde_tagsearchform_tags')
+  const input = (tagSearchRootContainer || document).querySelector('#bcsde_tagsearchform_input')
 
   let tagNormName
   let name
@@ -4984,19 +4995,20 @@ function getTagSuggestions (query) {
 
 function openTagSearch () {
   // https://bandcamp.com/tag/metal?tab=all_releases&t=post-punk%2Cdark
-  this.innerHTML = 'Loading...'
 
-  const tagsHolder = document.getElementById('bcsde_tagsearchform_tags')
+  const tagsHolder = (tagSearchRootContainer || document).querySelector('#bcsde_tagsearchform_tags')
 
   const tags = [...new Set(Array.from(tagsHolder.querySelectorAll('li')).map(li => li.dataset.tagNormName))]
 
-  if (!tags) {
+  if (tags.length === 0) {
     return
   }
 
   const url = `https://bandcamp.com/tag/${tags.shift()}?tab=all_releases&t=${tags.join('%2C')}`
 
   document.location.href = url
+
+  this.innerHTML = 'Loading...'
 }
 
 function mainMenu (startBackup) {
@@ -6587,6 +6599,10 @@ async function showExplorer () {
 }
 
 function appendMainMenuButtonTo (ul, before, shadowRoot) {
+  if (MAIN_MENU_DOM_ID in document.body.dataset) {
+    return
+  }
+
   before = before || ul.firstChild
   const cssStr = `
     .menubar-item {
@@ -6628,6 +6644,7 @@ function appendMainMenuButtonTo (ul, before, shadowRoot) {
 
   const liSettings = ul.insertBefore(document.createElement('li'), before)
   liSettings.id = MAIN_MENU_DOM_ID
+  document.body.dataset[MAIN_MENU_DOM_ID] = 1
   liSettings.className = 'menubar-item hoverable'
   liSettings.title = 'userscript settings - ' + SCRIPT_NAME
   const aSettings = liSettings.appendChild(document.createElement('a'))
@@ -6664,24 +6681,22 @@ function appendMainMenuButtonTo (ul, before, shadowRoot) {
     // })
   }
 
-  if (false) { // Do not show the search button in the menu bar for now
-    const liSearch = ul.insertBefore(document.createElement('li'), before)
-    liSearch.className = 'menubar-item hoverable menubar-item-tag-search'
-    liSearch.title = 'tag search - ' + SCRIPT_NAME
-    const aSearch = liSearch.appendChild(document.createElement('a'))
-    aSearch.className = 'menubar-symbol menubar-symbol-tag-search'
-    aSearch.href = '#'
-    if (NOEMOJI) {
-      aSearch.innerHTML = `
-      <svg width="22" height="22" viewBox="0 0 15 16" class="svg-icon" style="border: 2px solid #000000c4;border-radius: 30%;padding: 3px;">
-          <use xlink:href="#menubar-search-input-icon">
-      </svg>`
-    } else {
-      aSearch.appendChild(document.createTextNode('\uD83D\uDD0D'))
-    }
-    aSearch.setAttribute('id', 'bcsde_tagsearchbutton')
-    aSearch.addEventListener('click', showTagSearchForm)
+  const liSearch = ul.insertBefore(document.createElement('li'), before)
+  liSearch.className = 'menubar-item hoverable menubar-item-tag-search'
+  liSearch.title = 'tag search - ' + SCRIPT_NAME
+  const aSearch = liSearch.appendChild(document.createElement('a'))
+  aSearch.className = 'menubar-symbol menubar-symbol-tag-search'
+  aSearch.href = '#'
+  if (NOEMOJI) {
+    aSearch.innerHTML = `
+    <svg width="22" height="22" viewBox="0 0 15 16" class="svg-icon" style="border: 2px solid #000000c4;border-radius: 30%;padding: 3px;">
+        <use xlink:href="#menubar-search-input-icon">
+    </svg>`
+  } else {
+    aSearch.appendChild(document.createTextNode('\uD83D\uDD0D'))
   }
+  aSearch.setAttribute('id', 'bcsde_tagsearchbutton')
+  aSearch.addEventListener('click', showTagSearchForm)
 }
 
 function appendMainMenuButtonLeftTo (leftOf) {
@@ -7479,11 +7494,11 @@ function onLoaded () {
         appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot)
       } else if (document.querySelector('.menu-items .search')) {
         // Discover
-          window.setTimeout(() => {
-            const searchLi = document.querySelector('.menu-items .search')
-            const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
-            appendMainMenuButtonTo(insertBefore.parentNode, insertBefore)
-          }, 1000)
+        window.setTimeout(() => {
+          const searchLi = document.querySelector('.menu-items .search')
+          const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
+          appendMainMenuButtonTo(insertBefore.parentNode, insertBefore)
+        }, 1000)
       } else if (document.querySelector('.user-nav')) {
         appendMainMenuButtonTo(document.querySelector('.user-nav'))
       } else if (document.querySelector('#user-nav')) {
@@ -7502,7 +7517,6 @@ function onLoaded () {
         addMainMenuButtons()
       }
     }, 3000)
-
 
     if (document.querySelector('.hd-banner-2018')) {
       // Move the "we are hiring" banner (not loggin in)
