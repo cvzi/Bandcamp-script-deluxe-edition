@@ -330,7 +330,7 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`
         const customFormat = document.getElementById('bcsde_custom_release_date_format_str').value
         const preview = document.getElementById('bcsde_custom_release_date_preview')
         if (customFormat && customFormat.trim()) {
-          preview.textContent = 'Preview: ' + customDateFormatter(customFormat.trim(), new Date(981154800000))
+          preview.textContent = 'Preview: ' + customDateFormatter(customFormat.trim(), new Date(982882800000))
         } else {
           preview.textContent = 'Preview:'
         }

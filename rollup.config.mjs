@@ -67,8 +67,6 @@ export default {
     banner,
     sourcemap: true,
     globals: {
-      react: 'React',
-      'react-dom': 'ReactDOM',
       'lz-string': 'LZString'
     }
   },
@@ -88,7 +86,10 @@ export default {
         'node_modules/process-es6/**'
       ]
     }),
-    babel({ babelHelpers: 'bundled' }),
+    babel({
+      babelHelpers: 'bundled',
+      exclude: 'node_modules/**' // prevent Babel from processing the huge React files and other deps
+    }),
     metablock({
       file: './meta.json',
       override: {
@@ -99,6 +100,5 @@ export default {
         license: pkg.license
       }
     })
-  ],
-  external: id => /^react(-dom)?$/.test(id)
+  ]
 }

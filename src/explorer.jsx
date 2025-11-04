@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import { FixedSizeList } from 'react-window'
+import { createRoot } from 'react-dom/client'
+import { List } from 'react-window'
 
 /* globals GM */
 export default function Explorer (root, hooks) {
@@ -14,71 +14,56 @@ export default function Explorer (root, hooks) {
     return Promise.all(hooks[name].map(f => f(...args)))
   }
 
-  class AlbumListItem extends React.Component {
-    constructor (props) {
-      super(props)
-      this.state = {
-        TralbumData: props.data.library[Object.keys(props.data.library)[props.index]]
-      }
-    }
+  const AlbumListComponent = React.memo(function AlbumListComponent ({ index, style, library }) {
+    const tralbum = library[Object.keys(library)[index]]
 
-    handleAlbumClick = (ev) => {
+    const handleAlbumClick = React.useCallback((ev) => {
       const targetStyle = ev.target.style
       targetStyle.cursor = document.body.style.cursor = 'wait'
-      const url = this.state.TralbumData.url
-      window.setTimeout(function () {
-        runHooks('playAlbumFromUrl', url).then(function () {
+      const url = tralbum.url
+      window.setTimeout(() => {
+        runHooks('playAlbumFromUrl', url).then(() => {
           targetStyle.cursor = document.body.style.cursor = ''
         })
       }, 1)
-    }
+    }, [tralbum])
 
-    handleContextMenu = (ev) => {
+    const handleContextMenu = React.useCallback((ev) => {
       ev.preventDefault()
       ev.target.classList.add('selected')
 
-      const TralbumData = this.state.TralbumData
-      const url = TralbumData.url
-
-      if (!confirm(`Delete album "${TralbumData.current.title}" by ${TralbumData.artist}?`)) {
+      const url = tralbum.url
+      if (!window.confirm(`Delete album "${tralbum.current.title}" by ${tralbum.artist}?`)) {
         ev.target.classList.remove('selected')
         return
       }
 
       window.setTimeout(() => {
-        runHooks('deletePermanentTralbum', url).then(function () {
+        runHooks('deletePermanentTralbum', url).then(() => {
           ev.target.classList.remove('selected')
           ev.target.style.visibility = 'hidden'
         })
       }, 1)
-    }
+    }, [tralbum])
 
-    render () {
-      return (
-        <div
-          className={`albumListItem ${this.props.index % 2 ? 'albumListItemOdd' : ''}`}
-          onClick={this.handleAlbumClick}
-          onContextMenu={this.handleContextMenu}
-          title='Click to play'
-          style={this.props.style}
-        >
-          {this.state.TralbumData.artist} - {this.state.TralbumData.current.title}
-        </div>
-      )
-    }
-  }
+    return (
+      <div
+        className={`albumListItem ${index % 2 ? 'albumListItemOdd' : ''}`}
+        onClick={handleAlbumClick}
+        onContextMenu={handleContextMenu}
+        title='Click to play'
+        style={style}
+      >
+        {tralbum.artist} - {tralbum.current.title}
+      </div>
+    )
+  })
 
   class AlbumList extends React.Component {
     constructor (props) {
       super(props)
-      this.state = {
-        library: {},
-        isLoading: false,
-        error: null
-      }
-      if (!this.props.getKey) {
-        throw Error('<AlbumList> needs a getKey property')
-      }
+      this.state = { library: {}, isLoading: false, error: null }
+      if (!this.props.getKey) throw Error('<AlbumList> needs a getKey property')
     }
 
     componentDidMount () {
@@ -91,32 +76,25 @@ export default function Explorer (root, hooks) {
 
     render () {
       const { library, isLoading, error } = this.state
+      if (error) return <p>{error.message}</p>
+      if (isLoading) return <p>Loading ...</p>
 
-      if (error) {
-        return <p>{error.message}</p>
-      }
+      const rowCount = Object.keys(library).length
 
-      if (isLoading) {
-        return <p>Loading ...</p>
-      }
       return (
-        <FixedSizeList
+        <List
           className='List'
           height={600}
-          itemCount={Object.keys(library).length}
-          itemSize={35}
-          //width={600}
-          itemData={{ library: library }}
-        >
-          {AlbumListItem}
-        </FixedSizeList>
+          rowCount={rowCount}
+          rowHeight={35}
+          rowComponent={AlbumListComponent}
+          rowProps={{ library }} // passes to each row
+        />
       )
     }
   }
 
   this.render = function () {
-    ReactDOM.createRoot(root).render(
-      <AlbumList getKey='tralbumlibrary' />,
-    )
+    createRoot(root).render(<AlbumList getKey='tralbumlibrary' />)
   }
 }
