@@ -18108,6 +18108,444 @@ SOFTWARE.
     };
   }
 
+  /* global Document, GM_addStyle, GM_addElement */
+
+  /**
+   * Waits until <head> exists (or DOM is ready) for the given document.
+   */
+  function ensureHead(doc = document) {
+    if (doc.head) return Promise.resolve();
+    if (doc.readyState === 'loading') {
+      return new Promise(resolve => {
+        doc.addEventListener('DOMContentLoaded', () => resolve(), {
+          once: true
+        });
+      });
+    }
+    return new Promise(resolve => setTimeout(resolve)); // next tick
+  }
+
+  /**
+   * Add CSS to the page or to a specific container (e.g., ShadowRoot).
+   * - If `root` is provided, styles are injected there (ideal for shadow DOM).
+   * - Otherwise, styles are added to <head> (or via GM_addStyle when available).
+   *
+   * @param {string|string[]} css                CSS string or array of CSS strings
+   * @param {Object} [opts]
+   * @param {Document} [opts.doc=document]       Target document (ignored if root is set)
+   * @param {Element|ShadowRoot} [opts.root]     Container to receive <style> (e.g. shadowRoot or an element)
+   * @param {boolean} [opts.useGM=true]          Use GM_addStyle / GM_addElement when available
+   * @returns {Promise<void>}                    Resolves when injected
+   */
+  async function addStyle(css, opts = {}) {
+    const {
+      doc = document,
+      root = null,
+      useGM = true
+    } = opts;
+
+    // Normalize to an array of non-empty strings
+    const chunks = Array.isArray(css) ? css.filter(Boolean).map(String) : css ? [String(css)] : [];
+    if (chunks.length === 0) return;
+
+    // If a root is explicitly provided (e.g., shadow DOM), inject there.
+    if (root) {
+      for (const chunk of chunks) {
+        if (useGM && typeof GM_addElement === 'function') {
+          // Works in shadow DOM too
+          GM_addElement(root, 'style', {
+            textContent: chunk
+          });
+        } else {
+          const style = (root instanceof Document ? root : root.ownerDocument).createElement('style');
+          style.type = 'text/css';
+          style.textContent = chunk;
+          root.appendChild(style);
+        }
+      }
+      return;
+    }
+
+    // No root provided → inject into document head (or use GM_addStyle)
+    if (useGM && typeof GM_addStyle === 'function' && doc === document) {
+      for (const chunk of chunks) GM_addStyle(chunk);
+      return;
+    }
+    await ensureHead(doc);
+    for (const chunk of chunks) {
+      const style = doc.createElement('style');
+      style.type = 'text/css';
+      style.textContent = chunk;
+      (doc.head ?? doc.documentElement).appendChild(style);
+    }
+  }
+
+  /* globals location */
+
+  const MAX_ERRORS = 200;
+  let prefix = '[ErrorReporter]';
+  const _subscribers = [];
+  function _notify(errors) {
+    for (const fn of _subscribers) {
+      try {
+        fn(errors);
+      } catch {}
+    }
+  }
+  function _subscribe(fn) {
+    _subscribers.push(fn);
+    return () => {
+      const i = _subscribers.indexOf(fn);
+      if (i >= 0) _subscribers.splice(i, 1);
+    };
+  }
+
+  /**
+   * Initialize the ErrorReporter with a prefix for console messages.
+   */
+  function init(prefixString = '[ErrorReporter]') {
+    prefix = prefixString;
+  }
+
+  /**
+   * Store the errors array in GM storage
+   */
+  function persist(errors) {
+    return GM.setValue('errorList', JSON.stringify(errors));
+  }
+
+  /**
+   * Load the errors array from GM storage
+   * @returns {Promise<Array>} The errors array
+   */
+  async function load() {
+    const stored = await GM.getValue('errorList', '[]');
+    return JSON.parse(stored);
+  }
+
+  /**
+   * Clear all stored errors.
+   */
+  function clear() {
+    return GM.setValue('errorList', '[]');
+  }
+
+  /**
+   * Add an error entry to the log and persist it
+   */
+  function add(error, label = 'unknown') {
+    console.error(`${prefix} ${label} failed:`, error);
+    const entry = {
+      time: new Date().toISOString(),
+      label,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : null,
+      url: location ? location.href : null
+    };
+    load().then(async errors => {
+      errors.push(entry);
+      if (errors.length > MAX_ERRORS) errors = errors.slice(-MAX_ERRORS);
+      await persist(errors);
+      _notify(errors);
+    });
+  }
+
+  /**
+   * Convert the stored error objects into a readable text log.
+   * Example output:
+   *
+   * [2025-11-06T20:45:31.111Z] (fetchUserData) ReferenceError: user is not defined
+   *   at fetchUserData (main.js:42)
+   *   at <anonymous>:1:123
+   *
+   * [2025-11-06T20:45:32.550Z] (updateUI) TypeError: Cannot read property 'textContent' of null
+   *   Page: https://bandcamp.com/album/whatever
+   */
+  function formatErrorsForLog(errors) {
+    if (!Array.isArray(errors) || !errors.length) return 'No errors recorded.';
+    return errors.slice().sort((a, b) => Date.parse(b.time || 0) - Date.parse(a.time || 0)) // newest first
+    .map(e => {
+      const ts = e.time || new Date().toISOString();
+      const label = e.label || 'unknown';
+      const message = e.message || '';
+      const url = e.url ? `\n  Page: ${e.url}` : '';
+      const stack = e.stack ? `\n  ${e.stack.split('\n').join('\n  ')}` : '';
+      return `[${ts}] (${label}) ${message}${stack}${url}`;
+    }).join('\n\n');
+  }
+
+  /**
+   * Show recent errors in a modal dialog.
+   */
+  async function showRecentErrors() {
+    addStyle(`
+    .er-panel{position:fixed; z-index:999999; right:12px; bottom:12px;}
+    .er-btn{cursor:pointer; padding:8px 12px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,.15); background:#222; color:#fff; font:14px/1.2 system-ui; }
+    .er-badge{display:none; margin-left:8px; background:#e11; color:#fff; border-radius:10px; padding:2px 6px; font-size:12px;}
+    .er-modal{position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center;}
+    .er-card{width:min(900px, 96vw); height:min(80vh, 720px); background:#fff; color:#111; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.25); display:flex; flex-direction:column;}
+    .er-head{padding:12px 16px; border-bottom:1px solid #eee; display:flex; gap:8px; align-items:center; justify-content:space-between; font-weight:600;}
+    .er-body{padding:10px; display:grid; grid-template-columns: 1fr 360px; gap:10px; overflow:hidden;}
+    .er-list{margin:0; padding:0; list-style:none; overflow:auto; border:1px solid #eee; border-radius:8px; }
+    .er-item{padding:10px 12px; border-bottom:1px solid #f1f1f1;}
+    .er-item:last-child{border-bottom:0;}
+    .er-topline{display:flex; gap:8px; align-items:baseline; flex-wrap:wrap;}
+    .er-time{font:12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color:#666;}
+    .er-label{font-weight:600;}
+    .er-message{color:#c00;}
+    .er-details{margin-top:6px;}
+    .er-pre{margin:6px 0 0; padding:8px; background:#fafafa; border:1px solid #eee; border-radius:6px; max-height:160px; overflow:auto; font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;}
+    .er-side{display:flex; flex-direction:column; gap:8px; overflow:hidden;}
+    .er-side .er-jsonlabel{font-weight:600;}
+    .er-body textarea{width:90%; height:100%; border: 2px solid #6363d3; resize:none; padding:12px; font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#fafafa}
+    .er-actions{padding:10px; border-top:1px solid #eee; display:flex; gap:8px; justify-content:flex-end;}
+    .er-actions button{padding:8px 12px; border:1px solid #ddd; background:#f6f6f6; border-radius:8px; cursor:pointer;}
+    @media (max-width: 900px){
+      .er-body{grid-template-columns: 1fr;}
+    }
+  `);
+    const errorsRaw = await load();
+    // newest first
+    const errors = (Array.isArray(errorsRaw) ? errorsRaw : []).slice().sort((a, b) => {
+      const ta = Date.parse(a.time || a.at || 0);
+      const tb = Date.parse(b.time || b.at || 0);
+      return tb - ta;
+    });
+    const logText = formatErrorsForLog(errors);
+    const modal = document.createElement('div');
+    modal.className = 'er-modal';
+
+    // Static shell
+    modal.innerHTML = `
+    <div class="er-card" role="dialog" aria-label="Error report">
+      <div class="er-head">
+        <span>Errors: ${errors.length}</span>
+        <div></div>
+      </div>
+      <div class="er-body">
+        <ul class="er-list" aria-label="Recent Errors"></ul>
+        <div class="er-side">
+        <div>Copy or review the error log below:</div>
+        <textarea readonly>${logText}</textarea>
+        </div>
+      </div>
+      <div class="er-actions">
+        <button class="er-clear">Clear errors</button>
+        <button class="er-close">Close</button>
+      </div>
+    </div>
+  `;
+
+    // Build human-readable list safely
+    const listEl = modal.querySelector('.er-list');
+    for (const e of errors) {
+      const li = document.createElement('li');
+      li.className = 'er-item';
+      const top = document.createElement('div');
+      top.className = 'er-topline';
+      const time = document.createElement('span');
+      time.className = 'er-time';
+      time.textContent = e.time || e.at || '';
+      const label = document.createElement('span');
+      label.className = 'er-label';
+      label.textContent = e.label || 'unknown';
+      const message = document.createElement('span');
+      message.className = 'er-message';
+      message.textContent = e.message || '';
+      top.appendChild(time);
+      top.appendChild(label);
+      top.appendChild(document.createTextNode(' — '));
+      top.appendChild(message);
+      const details = document.createElement('details');
+      details.className = 'er-details';
+      const summary = document.createElement('summary');
+      summary.textContent = 'Details';
+      details.appendChild(summary);
+
+      // URL
+      if (e.url) {
+        const p = document.createElement('div');
+        const a = document.createElement('a');
+        a.href = e.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = e.url;
+        p.appendChild(document.createTextNode('Page: '));
+        p.appendChild(a);
+        details.appendChild(p);
+      }
+
+      // Stack
+      if (e.stack) {
+        const pre = document.createElement('pre');
+        pre.className = 'er-pre';
+        pre.textContent = e.stack;
+        details.appendChild(pre);
+      }
+      li.appendChild(top);
+      li.appendChild(details);
+      listEl.appendChild(li);
+    }
+
+    // Wire close/clear
+    const close = () => modal.remove();
+    modal.addEventListener('click', ev => {
+      if (ev.target === modal) close();
+    });
+    modal.querySelector('.er-close').addEventListener('click', close);
+    modal.querySelector('.er-clear').addEventListener('click', async () => {
+      await clear();
+      close();
+      showRecentErrors();
+    });
+    document.body.appendChild(modal);
+  }
+  function startLiveErrorPanel({
+    pollMs = 1500
+  } = {}) {
+    addStyle(`
+    .er-devpanel{position:fixed; left:0; top:50px; height:70vh; width:400px; z-index:999999;
+      background:#111; color:#eee; box-shadow:2px 0 20px rgba(0,0,0,.35); border: 2px solid #861684; display:flex; flex-direction:column; font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;}
+    .er-devheader{display:flex; align-items:center; gap:8px; padding:8px 10px; background:#181818; border-bottom:1px solid #262626;}
+    .er-devtitle{font-weight:700; flex:1;}
+    .er-devbtn{cursor:pointer; padding:4px 8px; border:1px solid #333; background:#1f1f1f; color:#eee; border-radius:6px;}
+    .er-devbtn[aria-pressed="true"]{background:#2a2a2a;}
+    .er-devlist{flex:1; overflow:auto; padding:8px; }
+    .er-item{padding:8px; border-bottom:1px solid #222;}
+    .er-item:last-child{border-bottom:0;}
+    .er-top{display:flex; gap:6px; align-items:baseline; flex-wrap:wrap;}
+    .er-time{color:#9aa; font-size:11px;}
+    .er-label{font-weight:700; color:#fff;}
+    .er-msg{color:#f88;}
+    .er-stack{white-space:pre-wrap; color:#ccd; margin-top:6px;}
+    .er-url{color:#9cf; margin-top:4px; word-break:break-all;}
+    .er-collapsed{transform:translateX(-360px);}
+  `);
+
+    // Panel shell
+    const panel = document.createElement('aside');
+    panel.dataset.panelStartedCollapsed = 'true';
+    panel.className = 'er-devpanel er-collapsed';
+    panel.innerHTML = `
+    <div class="er-devheader">
+      <div class="er-devtitle">Error log:</div>
+      <button class="er-devbtn er-copy" type="button" title="Copy log">Copy</button>
+      <button class="er-devbtn er-pause" type="button" aria-pressed="false" title="Pause live">Pause</button>
+      <button class="er-devbtn er-clear" type="button" title="Clear errors">Clear</button>
+      <button class="er-devbtn er-collapse" type="button" title="Collapse">&#9654;</button>
+    </div>
+    <div class="er-devlist" aria-live="polite" aria-label="Live error list"></div>
+  `;
+    document.body.appendChild(panel);
+    const listEl = panel.querySelector('.er-devlist');
+    const btnPause = panel.querySelector('.er-pause');
+    const btnClear = panel.querySelector('.er-clear');
+    const btnCopy = panel.querySelector('.er-copy');
+    const btnCollapse = panel.querySelector('.er-collapse');
+    let paused = false;
+    let lastRenderedCount = -1;
+    btnPause.addEventListener('click', () => {
+      paused = !paused;
+      btnPause.setAttribute('aria-pressed', String(paused));
+      btnPause.textContent = paused ? 'Resume' : 'Pause';
+    });
+    btnClear.addEventListener('click', async () => {
+      await clear();
+      render([]);
+    });
+    btnCopy.addEventListener('click', async () => {
+      const errors = await load();
+      const text = formatErrorsForLog(errors);
+      if (GM.setClipboard) {
+        await GM.setClipboard(text, {
+          type: 'text',
+          mimetype: 'text/plain'
+        });
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+    });
+    btnCollapse.addEventListener('click', () => {
+      panel.classList.toggle('er-collapsed');
+      btnCollapse.innerHTML = panel.classList.contains('er-collapsed') ? '&#9654;' : '&#9664;';
+    });
+    function render(errors) {
+      if (paused) return;
+      if ('panelStartedCollapsed' in panel.dataset && errors.length > 0) {
+        // First render, auto-expand
+        delete panel.dataset.panelStartedCollapsed;
+        btnCollapse.click();
+      }
+      // Avoid extra work if same count and last item unchanged
+      if (errors.length === lastRenderedCount && listEl.dataset.lastTime === (errors[0]?.time || '')) return;
+      lastRenderedCount = errors.length;
+      listEl.dataset.lastTime = errors[0]?.time || '';
+      listEl.innerHTML = ''; // simple full re-render
+
+      const sorted = errors.slice().sort((a, b) => Date.parse(b.time || 0) - Date.parse(a.time || 0));
+      for (const e of sorted) {
+        const item = document.createElement('div');
+        item.className = 'er-item';
+        const top = document.createElement('div');
+        top.className = 'er-top';
+        const t = document.createElement('span');
+        t.className = 'er-time';
+        t.textContent = e.time || '';
+        const lab = document.createElement('span');
+        lab.className = 'er-label';
+        lab.textContent = e.label || 'unknown';
+        const sep = document.createTextNode(' — ');
+        const msg = document.createElement('span');
+        msg.className = 'er-msg';
+        msg.textContent = e.message || '';
+        top.appendChild(t);
+        top.appendChild(lab);
+        top.appendChild(sep);
+        top.appendChild(msg);
+        item.appendChild(top);
+        if (e.stack) {
+          const pre = document.createElement('div');
+          pre.className = 'er-stack';
+          pre.textContent = e.stack;
+          item.appendChild(pre);
+        }
+        if (e.url) {
+          const url = document.createElement('div');
+          url.className = 'er-url';
+          url.textContent = e.url;
+          item.appendChild(url);
+        }
+        listEl.appendChild(item);
+      }
+    }
+
+    // Initial render + live updates
+    load().then(render);
+    const unsub = _subscribe(render);
+
+    // Return a cleanup function if you ever need to remove the panel
+    return () => {
+      unsub();
+      panel.remove();
+    };
+  }
+
+  /**
+   * Export as a singleton module
+   */
+  const ErrorReporter = {
+    add,
+    init,
+    clear,
+    showRecentErrors,
+    startLiveErrorPanel
+  };
+
   var discographyplayerCSS = ".cll{clear:left}.clb{clear:both}#discographyplayer{z-index:1010;position:fixed;bottom:0;height:83px;width:100%;padding-top:3px;background:#fff;color:#505958;border-top:1px solid rgba(0,0,0,.15);font:13px/1.231 \"Helvetica Neue\",Helvetica,Arial,sans-serif;transition:bottom .5s;box-sizing:initial}#discographyplayer *{box-sizing:initial}#discographyplayer a:link,#discographyplayer a:visited{color:#0687f5;text-decoration:none;cursor:pointer}#discographyplayer a:hover{color:#0687f5;text-decoration:underline;cursor:pointer}#discographyplayer .nowPlaying .cover,#discographyplayer .nowPlaying .info{display:inline-block;vertical-align:top}#discographyplayer .nowPlaying img{width:60px;height:60px;margin-top:4px;margin-left:4px;margin-bottom:4px}#discographyplayer .nowPlaying .info{line-height:18px;margin-left:8px;margin-top:8px;max-width:calc(100% - 76px);border:0 solid #000;padding:0;width:auto;max-height:auto;overflow-y:hidden}#discographyplayer .nowPlaying .info .album,#discographyplayer .nowPlaying .info .title{font-size:13px;font-weight:400;color:#0687f5;margin:0;padding:0}#discographyplayer .currentlyPlaying{display:inline-block;vertical-align:top;overflow:hidden;transition:margin-left 3s ease-in-out;width:99%}#discographyplayer .nextInRow{display:inline-block;vertical-align:top;width:0%;overflow:hidden;transition:width 6s ease-in-out}#discographyplayer .durationDisplay{margin-top:24px;float:left}#discographyplayer .downloadlink:link{display:block;float:right;margin-top:22px;font-size:15px;padding:0 3px;color:#0687f5;border:1px solid #0687f5;transition:color .3s ease-in-out,border-color .3s ease-in-out}#discographyplayer .downloadlink:hover{text-decoration:none;background-color:#0687f5;color:#fff;border:1px solid #fff}#discographyplayer .downloadlink.downloading{color:#f0f;border-color:#f0f;animation:downloadrotation 3s infinite linear;cursor:wait}@keyframes downloadrotation{from{transform:rotate(0)}to{transform:rotate(359deg)}}#discographyplayer .controls{margin-top:10px;width:auto;float:left}#discographyplayer .controls>*{display:inline-block;cursor:pointer;border:1px solid #d9d9d9;padding:11px;margin-right:4px;height:18px;width:17px;transition:background-color .1s}#discographyplayer .controls>:hover{background-color:#0687f52b}#discographyplayer .playpause .play{width:0;height:0;border-top:9px inset transparent;border-bottom:9px inset transparent;border-left:15px solid #222;cursor:pointer;margin-left:2px}#discographyplayer .playpause .pause{border:0;border-left:5px solid #2d2d2d;border-right:5px solid #2d2d2d;height:18px;width:4px;margin-right:2px;margin-left:1px}#discographyplayer .playpause .busy{background-image:url(https://bandcamp.com/img/playerbusy-noborder.gif);background-position:50% 50%;background-repeat:no-repeat;border:none;height:30px;margin:0 0 0 -3px;width:25px;overflow:hidden;background-size:contain}#discographyplayer .shuffleswitch .shufflebutton{background-size:cover;background-position-y:0px;filter:drop-shadow(#FFFF 0px 0px 0px);transition:filter .5s;border:0;height:13px;width:20px;margin-top:4px}#discographyplayer .shuffleswitch .shufflebutton.active{filter:drop-shadow(#0060F2 1px 1px 2px)}#discographyplayer .arrowbutton{border:0;height:13px;width:20px;margin-top:4px;background:url(https://bandcamp.com/img/nextprev.png) 0 0/40px 12px no-repeat transparent;background-position-x:0px;cursor:pointer}#discographyplayer .arrowbutton.next-icon{background-position:100% 0}#discographyplayer .arrowbutton.prevalbum-icon{border-right:3px solid #2d2d2d}#discographyplayer .arrowbutton.nextalbum-icon{background-position:100% 0;border-left:3px solid #2d2d2d}#timeline{width:100%;background:rgba(50,50,50,.4);margin-top:5px;border-left:1px solid #000;border-right:1px solid #000}#playhead{width:10px;height:10px;border-radius:50%;background:#323232;cursor:pointer}.bufferbaranimation{transition:width 1s}#bufferbar{position:absolute;width:0;height:10px;background:rgba(0,0,0,.1)}#discographyplayer .playlist{position:relative;width:100%;display:inline-block;max-height:80px;overflow:auto;list-style:none;margin:0;padding:0 5px 0 5px;scrollbar-color:rgba(50,50,50,0.4) white;background-color:#fff;transition:background-color .3s}#discographyplayer .playlist.dropbox{background-color:#86c786}#discographyplayer .playlist.dropbox.processing{background-color:#45d1b1}#discographyplayer_contextmenu{position:absolute;box-shadow:#000000b0 2px 2px 2px;background-color:#fff;border:#619aa9 2px solid;z-index:1011}#discographyplayer_contextmenu .contextmenu_submenu{cursor:pointer;padding:2px;border:1px solid #619aa9}#discographyplayer_contextmenu .contextmenu_submenu:hover{background-color:#619aa9;color:#fff;border:1px solid #fff}#discographyplayer .playlist .isselected{border:1px solid red}#discographyplayer .playlist .playlistentry{cursor:pointer;margin:1px 0}#discographyplayer .playlist .playlistentry .duration{float:right}#discographyplayer .playlist .playing{background:#619aa950}#discographyplayer .playlist .playlistheading{background:rgba(50,50,50,.4);margin:3px 0}#discographyplayer .playlist .playlistheading a:hover,#discographyplayer .playlist .playlistheading a:link,#discographyplayer .playlist .playlistheading a:visited{color:#eee;cursor:pointer}#discographyplayer .playlist .playlistheading a.notloaded{color:#ccc}#discographyplayer .playlist .playlistheading.notloaded{cursor:copy}#discographyplayer .vol{float:left;position:relative;width:100px;margin-left:1em;margin-top:1em}#discographyplayer .vol-icon-wrapper{font-size:20px;cursor:pointer;width:27px}#discographyplayer .vol-slider{width:60px;height:10px;position:relative;cursor:pointer}#discographyplayer .vol>*{display:inline-block;vertical-align:middle}#discographyplayer .vol-bg{background:rgba(50,50,50,.4);width:100%;margin-top:4px;height:3px;position:absolute}#discographyplayer .vol-amt{margin-top:4px;height:3px;position:absolute;background:#323232}#discographyplayer .vol-control-outer{height:100%;position:relative;margin-left:-3px;margin-right:5px}#discographyplayer .collect{float:left;margin-left:1em}#discographyplayer .{cursor:default;margin-top:.5em}#discographyplayer .collect-wishlist .wishlist-add{cursor:pointer}#discographyplayer .collect-listened{cursor:pointer;margin-top:.5em;margin-left:2px}#discographyplayer .collect .icon{height:13px;width:14px;display:inline-block;position:relative;top:2px}#discographyplayer .collect .add-item-icon{background-position:0 -73px}#discographyplayer .collect .collected-item-icon{background-position:-28px -73px}#discographyplayer .collect .own-item-icon{background-position:-42px -73px}#discographyplayer .collect .wishlist-add,#discographyplayer .collect .wishlist-collected,#discographyplayer .collect .wishlist-own,#discographyplayer .collect .wishlist-saving{display:none}#discographyplayer .collect .wishlist-add:hover .add-item-icon{background-position:-56px -73px}#discographyplayer .collect .wishlist-add .add-item-label:hover{text-decoration:underline}#discographyplayer .collect .listened,#discographyplayer .collect .listened-saving,#discographyplayer .collect .mark-listened{display:none}#discographyplayer .collect .listened .listened-symbol{color:#00dc32;text-shadow:1px 0 #ddd,-1px 0 #ddd,0 -1px #ddd,0 1px #ddd}#discographyplayer .collect .mark-listened .mark-listened-symbol{color:#fff;text-shadow:1px 0 #959595,-1px 0 #959595,0 -1px #959595,0 1px #959595}#discographyplayer .collect .mark-listened:hover .mark-listened-symbol{text-shadow:1px 0 #0af,-1px 0 #0af,0 -1px #0af,0 1px #0af}#discographyplayer .collect .mark-listened:hover .mark-listened-label{text-decoration:underline}#discographyplayer .closebutton,#discographyplayer .minimizebutton{position:absolute;top:1px;right:1px;border:1px solid #505958;color:#505958;font-size:10px;box-shadow:0 0 2px #505958;cursor:pointer;opacity:0;transition:opacity .3s;min-width:8px;min-height:13px;text-align:center}#discographyplayer .minimizebutton{right:13px}#discographyplayer .minimizebutton .minimized{display:none}#discographyplayer .minimizebutton.minimized .maximized{display:none}#discographyplayer .minimizebutton.minimized .minimized{display:inline}#discographyplayer:hover .closebutton,#discographyplayer:hover .minimizebutton{opacity:1}#discographyplayer .col{float:left;min-height:1px;position:relative}#discographyplayer .col25{width:25%}#discographyplayer .col35{width:35%}#discographyplayer .col30{width:30%}#discographyplayer .col15{width:14%}#discographyplayer .col20{width:20%}#discographyplayer .colcontrols{user-select:none}#discographyplayer .colvolumecontrols{margin-left:10px}.albumIsCurrentlyPlaying{border:2px solid #0f0}.albumIsCurrentlyPlaying+.art-play{display:none}.dig-deeper-item .albumIsCurrentlyPlaying,.music-grid-item .albumIsCurrentlyPlaying{border:none}.albumIsCurrentlyPlayingIndicator{display:none}.dig-deeper-item .albumIsCurrentlyPlayingIndicator,.music-grid-item .albumIsCurrentlyPlayingIndicator{position:absolute;display:block;width:74px;height:54px;left:50%;top:50%;margin-left:-36px;margin-top:-27px;opacity:.5;transition:opacity .2s}.albumIsCurrentlyPlayingIndicator .currentlyPlayingBg{position:absolute;width:100%;height:100%;left:0;top:0;background:#000;border-radius:4px}.albumIsCurrentlyPlayingIndicator .currentlyPlayingIcon{position:absolute;width:10px;height:20px;left:28px;top:17px;border-width:0 5px;border-color:#fff;border-style:solid}@media (max-width:1600px){#discographyplayer .controls>*{padding:4px 11px 5px 11px;height:18px}#discographyplayer .durationDisplay{margin-top:0}#discographyplayer .downloadlink:link{margin-top:0}}@media (max-width:1170px){#discographyplayer .colcontrols{width:39%}#discographyplayer .colvolumecontrols{display:none}}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rpc2NvZ3JhcGh5cGxheWVyLmNzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxLQUNFLE1BQU0sS0FFUixLQUNFLE1BQU0sS0FFUixtQkFDRSxRQUFRLEtBQ1IsU0FBUyxNQUNULE9BQU8sRUFDUCxPQUFPLEtBQ1AsTUFBTSxLQUNOLFlBQVksSUFDWixXQUFXLEtBQ1gsTUFBTSxRQUNOLFdBQVksSUFBSSxNQUFNLGdCQUN0QixLQUFNLElBQUksQ0FBQyxNQUFNLGdCQUFnQixDQUFDLFNBQVMsQ0FBQyxLQUFLLENBQUMsV0FDbEQsV0FBWSxPQUFPLElBQ25CLFdBQVksUUFFZCxxQkFDRSxXQUFZLFFBRWQsMEJBQTBCLDZCQUN4QixNQUFPLFFBQ1AsZ0JBQWlCLEtBQ2pCLE9BQVEsUUFFViwyQkFDRSxNQUFPLFFBQ1AsZ0JBQWlCLFVBQ2pCLE9BQVEsUUFFMkIsc0NBQXJDLHFDQUNJLFFBQVMsYUFDVCxlQUFnQixJQUVwQixtQ0FDSSxNQUFPLEtBQ1AsT0FBUSxLQUNSLFdBQVksSUFDWixZQUFhLElBQ2IsY0FBZSxJQUVuQixxQ0FDSSxZQUFhLEtBQ2IsWUFBYSxJQUNiLFdBQVksSUFDWixVQUFXLGtCQUVYLE9BQVEsRUFBSSxNQUFNLEtBQ2xCLFFBQVMsRUFDVCxNQUFPLEtBQ1AsV0FBWSxLQUNaLFdBQVksT0FFNkIsNENBQTdDLDRDQUNFLFVBQVcsS0FDWCxZQUFhLElBQ2IsTUFBTyxRQUNQLE9BQU8sRUFDUCxRQUFRLEVBRVYscUNBQ0UsUUFBUSxhQUNSLGVBQWdCLElBQ2hCLFNBQVUsT0FDVixXQUFZLFlBQVksR0FBRyxZQUMzQixNQUFNLElBRVIsOEJBQ0UsUUFBUSxhQUNSLGVBQWdCLElBQ2hCLE1BQU0sR0FDTixTQUFVLE9BQ1YsV0FBWSxNQUFNLEdBQUcsWUFFdkIsb0NBQ0UsV0FBVyxLQUNYLE1BQU0sS0FFUixzQ0FDRSxRQUFRLE1BQ1IsTUFBTSxNQUNOLFdBQVksS0FDWixVQUFV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 */";
 
   var discographyplayerSidebarCSS = "@media (min-width:1600px){.grids .grid{margin:0 calc((100vw - 915px - 35px)/ 2) 0 auto}#menubar-wrapper:hover{z-index:1100}#menubar:hover{z-index:1100;position:relative}#discographyplayer{display:block;bottom:0;height:100vh;max-height:100vh;width:calc((100vw - 915px - 35px)/ 2);right:0;border-left:1px solid #0007;padding-left:1px}#discographyplayer .playlist{height:calc(100vh - 80px - 80px - 50px - 13px);max-height:calc(100vh - 80px - 80px - 50px - 13px)}#discographyplayer .playlist .playlistentry{overflow-x:hidden}#discographyplayer .col25{width:98%}#discographyplayer .col.nowPlaying{height:70px}#discographyplayer .col.col25.colcontrols{height:85px}#discographyplayer .col35{width:97%}#discographyplayer .col15{width:96%}#discographyplayer .colvolumecontrols{height:50px}#bufferbar,#playhead{height:25px;border-radius:0}#discographyplayer .audioplayer a.downloadlink{position:fixed;bottom:5px;right:5px;z-index:10}#discographyplayer .minimizebutton{display:none}#discographyplayer .currentlyPlaying{transition:margin-top 1s ease-in-out;width:99%;height:99%}#discographyplayer .nextInRow{height:0%;width:99%;transition:height 1s ease-in-out}}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rpc2NvZ3JhcGh5cGxheWVyU2lkZWJhci5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsMEJBRUUsYUFDRSxPQUFRLEVBQUUsZ0NBQWlDLEVBQUUsS0FFL0MsdUJBQ0UsUUFBUSxLQUVWLGVBQ0UsUUFBUSxLQUNSLFNBQVMsU0FFWCxtQkFDRSxRQUFTLE1BQ1QsT0FBUSxFQUNSLE9BQVEsTUFDUixXQUFZLE1BQ1osTUFBTyxnQ0FDUCxNQUFPLEVBQ1AsWUFBYSxJQUFJLE1BQU0sTUFDdkIsYUFBYyxJQUVoQiw2QkFDRSxPQUFRLHdDQUNSLFdBQVksd0NBRWQsNENBQ0UsV0FBVyxPQUViLDBCQUNFLE1BQU8sSUFFVCxtQ0FDRSxPQUFRLEtBRVYsMENBQ0UsT0FBUSxLQUVWLDBCQUNFLE1BQU8sSUFFVCwwQkFDRSxNQUFPLElBRVQsc0NBQ0UsT0FBUSxLQUVDLFdBQVgsVUFDRSxPQUFRLEtBQ1IsY0FBZSxFQUVqQiwrQ0FDRSxTQUFVLE1BQ1YsT0FBUSxJQUNSLE1BQU8sSUFDUCxRQUFTLEdBRVgsbUNBQ0UsUUFBUSxLQUVWLHFDQUNFLFdBQVksV0FBVyxHQUFHLFlBQzFCLE1BQU0sSUFDTixPQUFPLElBRVQsOEJBQ0UsT0FBTyxHQUNQLE1BQU0sSUFDTixXQUFZLE9BQU8sR0FBRyJ9 */";
@@ -18117,6 +18555,8 @@ SOFTWARE.
   var darkmodeCSS = "#centerWrapper #pgBd #trackInfoInner{display:flex;flex-direction:column}#centerWrapper #pgBd #trackInfoInner>.tralbumCommands{order:1}#centerWrapper #pgBd #rightColumn{display:flex;flex-direction:column}#centerWrapper #pgBd #rightColumn>#showography{order:1}.ui-widget-overlay{display:none}.ui-dialog.ui-widget.ui-widget-content.ui-corner-all.nu-dialog.no-title{position:fixed!important;top:0!important;right:0!important;bottom:auto!important;left:auto!important}.inline_player .nextbutton,.inline_player .prevbutton,svg{filter:invert(90%)}a{color:#da5!important}.trackYear,button{color:#ac6!important}div#collection-container.collection-container,div.home{background:#000!important}div.area_text,div.sort_controls,div.text,span{color:#ccc!important}div#dlg0_h.hd,div#pgBd.yui-skin-sam,div.blogunit-details-section,div.collection-item-details-container{background:var(--pgBdColor)!important}div.collection-item-artist,h1{color:#ccc!important}DIV.track_number.secondaryText,div.collection-item-title,div.message,h2{color:#fff!important}h3{color:#ffed80!important}DIV.tralbumData.tralbum-credits{color:#ccc!important}DIV#license.info,DIV.tralbumData.tralbum-about,DIV.tralbumData.tralbum-feed,li{color:#806300!important}button.sc-button.sc-button-small.sc-button-responsive.sc-button-addtoset{color:#000!important}div#fan-suggestions.dotted-section.mine,div.bcweekly-bd,div.collection-item-gallery-container,div.collection-stats.dotted-section.mine{background:#222!important}p{color:#aaa!important}div.sound__soundActions{background:0 0!important}button.sc-button.sc-button-small.sc-button-responsive.sc-button-addtoset{color:#111!important}div.ft.fakeFt{background:#555!important}div.bd.footerless{background:#999!important}.walkthrough ol{background-color:#373737}.walkthrough .button{background:#262626;border:#262626}.fan-banner.empty.owner{background-color:#373737}#menubar,#pgFt,.menubar-outer{background-color:#26423b!important;border-bottom:dotted #000 1px!important}#menubar-wrapper{background-color:#000;border-bottom:dotted #000 1px!important}#menubar input#search-field{margin:0;height:21px;line-height:21px;width:222px;font-family:\"Helvetica Neue\",Arial,sans-serif;color:#fff;font-size:13px;padding:0 21px 0 3px;-webkit-user-select:text;text-align:center;background-color:#282828;border:1px solid #282828;outline:0;border-radius:3px}#menubar input#search-field.focused{background-color:#282828;border:1px solid #282828}#menubar.menubar-2018 .hoverable:hover{background:#11607582!important}.fan-bio .edit-profile a{border:1px solid #373737;border-radius:5px;outline:0;background:#373737;color:#aaa;font-weight:500;padding:5px 9px;font-size:11px;line-height:15px;text-transform:uppercase;display:inline-block}.grids{color:#fff;margin:0 0 100px}.recommendations-container{background-color:#373737;border-top:dotted #373737 1px}.fan-container .top.editing{border-bottom:1px solid #2a2a2a;background-color:#191919}.ui-dialog.nu-dialog .ui-dialog-titlebar{padding:15px 20px 12px;background-color:#26423b!important;border-bottom:1px solid #26423b!important}.ui-dialog-titlebar *{color:#fff!important}.ui-dialog-content{color:#ddd!important}.ui-widget-content{border:1px solid #373;background:#373737!important;color:#ddd!important}.external-follow-confirm .ui-dialog-buttonset button,.mailing-list-opt-in .ui-dialog-buttonset button{background:#26423b!important}.external-follow-confirm .ui-dialog-buttonset button:last-child,.mailing-list-opt-in.band .ui-dialog-buttonset button:last-child{background:#0002!important;border:2px solid #26423b!important}#follow-unfollow{background:0 0!important}#follow-unfollow.following{background:#26423b!important;border-color:#26423b!important}#follow-unfollow>div{color:#ac6!important}#follow-unfollow.following>div{background:#26423b!important}.app-promo-desktop,.bcdaily,.discover,.email-intake,.notable{background-color:#262626}.bcdaily .bcdaily-story{min-height:280px;background:#373737}.notable-item{background-color:#373737}.item-page{background:#373737;border:1px solid #373737}.follow-fan-btn{background-color:#373737;border:1px solid #373737}.spotlight-bio,.spotlight-button,.spotlight-link,.spotlight-location,.spotlight-name{color:#fff}.aotd-large{background:#373737}.factoid-title{color:#46c5d5}#autocomplete-results.autocompleted{background:#262626;border:1px solid #262626;color:#fff}.searchwidget.keyboard-focus input[type=text]:focus{background:#262626;box-shadow:0 0}.discover-detail-inner{background-color:#373737}body.wordpress{background:#262626}.wordpress .sidebar .textwidget{color:#fff}.wordpress h1 a{display:block;height:60px;background-size:242px 28px;background-position:24.6% 50%}p{color:#fff!important}.wordpress #content{color:#fff}#dash-container .follow-band,#dash-container .follow-discover,#dash-container .follow-fan{border:1px solid #373737;background:linear-gradient(to bottom,#373737 0,#373737 100%)}html{background:#1e1e1e!important}#stories-vm .story-innards{background-color:#373737}.pane{color:#c7c7c7}#settings-menubar{border-right:1px solid #383838}#settings-menubar li{border-left:1px solid #383838;border-bottom:1px solid #383838;border-top:1px solid #383838}.share_dialog.ui-dialog .ui-dialog-content{background-color:#262626}.share_dialog .section_head{color:#fff}.buy-dlg{color:#fff}.pg-ft{background-color:#000}#lang-picker-vm{border-radius:10px}#menubar>ul>li .logo{background:url('https://www.dropbox.com/s/8s7km8r329l7qy7/bandcamp-logo-gray.png?dl=1') 0 0 no-repeat;background-size:contain;height:20px;margin-top:15px;width:85px}.hd-logo{background:transparent url('https://www.dropbox.com/s/8s7km8r329l7qy7/bandcamp-logo-gray.png?dl=1') no-repeat;background-size:100%;margin-top:24px;height:25px;width:156px}.wordpress h1 a{display:block;text-indent:-999em;background:url('https://www.dropbox.com/s/mx80o2eenp43l0o/bandcamp-daily-retina-dark-theme.png?dl=1') no-repeat;height:60px;background-size:242px 28px;background-position:24.6% 50%}#pgBd{color:#fff}.download-bottom-area{border-top:none;background:0 0}.download .formats-container{border:1px solid #373737;background-color:#373737}.download .formats{list-style:none;color:#888;padding:0;background-color:#373737;width:170px;z-index:2;cursor:default}.download .formats li:hover{background-color:#262626}html{scrollbar-color:#222 #26423b}::-webkit-scrollbar{height:13px}::-webkit-scrollbar-thumb{background:#26423b;border:1px solid #4a4a4a}::-webkit-scrollbar-thumb:hover{background:#316d4b}::-webkit-scrollbar-thumb:active{background:#316d4b}::-webkit-scrollbar-track{background:#4a4a4a}::-webkit-scrollbar-track:hover{background:#4a4a4a}::-webkit-scrollbar-track:active{background:#4a4a4a}::-webkit-scrollbar-corner{background:#4a4a4a}body{background-color:#000!important;color:#fff!important}#propOpenWrapper{background-color:var(--propOpenWrapperBackgroundColor)!important;transition:background-color .5s}.bcdaily-thumb-img,img{filter:brightness(70%)}.bcdaily-thumb-img:hover,img:hover{filter:none}img.imageviewer_image{filter:none}.bclogo svg{filter:brightness(60%)}.inline_player .playbutton.busy::after{opacity:.3;background-image:url('https://bandcamp.com/img/loading-dark.gif')}.inline_player .nextsongcontrolbutton,.inline_player .playbutton,.inline_player .volumeButton,.track_list .play_status{background-color:#686868;border-color:#595959}.nextsongcontrolbutton .nextsongcontrolicon{filter:drop-shadow(#090909b3 1px 1px 2px)}.nextsongcontrolbutton.active .nextsongcontrolicon{filter:drop-shadow(#a3f204 1px 1px 2px)!important}.hidden .nextsongcontrolbutton{display:none}.inline_player .progbar .thumb{background-color:#000;border-color:#ccc}.inline_player .nextbutton,.inline_player .prevbutton{opacity:.7}.track_list tr.lyricsRow td[colspan] div{color:#f8f8f8}input[type=password],input[type=text],textarea{background-color:#121f12!important;color:#40b333!important}.carousel-player-inner{background-color:#26423b}.carousel-player-inner .progress-bar{background-color:#26423b}#carousel-player .queue.show{background-color:#26423b}#carousel-player .queue.show li.active{background-color:#528679}#autocomplete-results .see-all{background-color:#f3f3f345!important}.deluxemenu{color:#c9ebfb!important;background:#00042f!important}.deluxemenu button{background:#1c1494}.deluxeexportmenu table tr>td{color:#00a1c6!important}.deluxeexportmenu table tr>td:nth-child(3){color:#006bc6!important}.deluxemenu fieldset{border:1px solid #fffa!important;box-shadow:1px 1px 3px #fff5!important}.deluxemenu fieldset legend{color:#fffa!important}#discographyplayer{background-color:#26423b!important;color:#869593!important}#discographyplayer .playlist{background-color:#26423b!important}#discographyplayer .playlist.dropbox{background-color:#497e49!important}#discographyplayer .playlist.dropbox.processing{background-color:#1a957e!important}#discographyplayer .playlist .playing{background:#619aa9db!important}#timeline{background:rgba(34,57,42,.69)!important}#bufferbar{background:rgba(77,79,76,.59)!important}#playhead{background:#2a6c21!important}#discographyplayer .playlist{scrollbar-color:#222 #26423b!important}#discographyplayer_contextmenu{box-shadow:#ffffff50 2px 2px 2px;background-color:#162d27;border:#619aa9 2px solid;color:#c2aa4a}#discographyplayer_contextmenu .contextmenu_submenu{cursor:pointer;padding:2px;background-color:#162d27;color:#c2aa4a;border:1px solid transparent}#discographyplayer_contextmenu .contextmenu_submenu:hover{background-color:#619aa9;color:#fff;border:1px solid #fff}#band-navbar{background-color:#333!important}.hd.corp-home{background-color:#26423b}#hub .bd-section.top-section{opacity:.8}#s-daily{background:#262626!important}.franchise-description{color:#d7d072}.footer-gradient{background-image:linear-gradient(to bottom,#262626,#5e5e5e)}#s-daily dailyfooter{background-color:#5e5e5e}#s-daily dailyfooter h2{-webkit-text-stroke:2px #257110!important}#s-daily a.pagination-link{-webkit-text-stroke:2px #257110!important}#s-daily a.pagination-link .back-text{-webkit-text-stroke:2px #1c6c3f!important}article-title{color:#e3e3e3}.mpmerchformats{color:#909090}article-footer{color:#909090}article>article-end{filter:invert(75%)}article .icon{filter:invert(50%)}.salesfeed .item-inner:hover{background-color:#0e738c!important}.hd.header-rework-2018 .hd-sub-head .blue-gradient{background:-webkit-linear-gradient(left,#da5,#daf)!important}.factoid .dots{filter:brightness(300%)}.bdp_check_onlinkhover_container_shown{background-color:#26423ba8!important}.bdp_check_onlinkhover_container:hover{background-color:#2d7d39a8!important;box-shadow:#2db91f7a 0 0 5px}#pastreleases{background-color:#154a86!important}#pastreleases .entry:nth-child(odd){background-color:#3e6c9f!important}#pastreleases .entry.future{background-color:#4783c8!important}#pastreleases .entry.future:nth-child(odd){background-color:#11447d!important}#queueloadingindicator{background-color:#154a86!important}.sidebar .shortcuts{background:#0000;border-color:#0000}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2Rhcmttb2RlLmNzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFNQSxxQ0FDSSxRQUFTLEtBQ1QsZUFBZ0IsT0FFcEIsc0RBQ0ksTUFBTyxFQUdYLGtDQUNJLFFBQVMsS0FDVCxlQUFnQixPQUVwQiwrQ0FDSSxNQUFPLEVBSVgsbUJBQ0ksUUFBUyxLQUViLHdFQUNJLFNBQVUsZ0JBQ1YsSUFBSyxZQUNMLE1BQU8sWUFDUCxPQUFRLGVBQ1IsS0FBTSxlQUVWLDJCQUNBLDJCQUNBLElBQ0ksT0FBUSxZQUVaLEVBQ0ksTUFBTyxlQUVYLFdBQ0EsT0FDSSxNQUFPLGVBRVgsOENBQ0EsU0FDSSxXQUFZLGVBRWhCLGNBQ0Esa0JBQ0EsU0FDQSxLQUNJLE1BQU8sZUFFWCxjQUNBLHNCQUNBLDZCQUNBLHNDQUNJLFdBQVksMkJBRWhCLDJCQUNBLEdBQ0ksTUFBTyxlQUVYLCtCQUNBLDBCQUNBLFlBQ0EsR0FDSSxNQUFPLGVBRVgsR0FDSSxNQUFPLGtCQUVYLGdDQUNJLE1BQU8sZUFFWCxpQkFDQSw4QkFDQSw2QkFDQSxHQUNJLE1BQU8sa0JBRVgseUVBQ0ksTUFBTyxlQUVYLHdDQUNBLGdCQUNBLHNDQUNBLHlDQUNJLFdBQVksZUFFaEIsRUFDSSxNQUFPLGVBRVgsd0JBQ0ksV0FBWSxjQUVoQix5RUFDSSxNQUFPLGVBRVgsY0FDSSxXQUFZLGVBRWhCLGtCQUNJLFdBQVksZUFFaEIsZ0JBQ0ksaUJBQWtCLFFBRXRCLHFCQUNJLFdBQVksUUFDWixPQUFRLFFBRVosd0JBQ0ksaUJBQWtCLFFBRXRCLFNBQ0EsTUFDQSxlQUNJLGlCQUFrQixrQkFDbEIsY0FBZSxPQUFPLEtBQUssY0FFL0IsaUJBQ0ksaUJBQWtCLEtBQ2xCLGNBQWUsT0FBTyxLQUFLLGNBRS9CLDRCQUNJLE9BQVEsRUFDUixPQUFRLEtBQ1IsWUFBYSxLQUNiLE1BQU8sTUFDUCxZQUFhLGdCQUFnQixDQUFFLEtBQUssQ0FBRSxXQUN0QyxNQUFPLEtB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 */";
 
   var geniusCSS = "#myconfigwin39457845{z-index:2060!important;position:fixed!important}#myconfigwin39457845 h1{margin:5px}#myconfigwin39457845 .divAutoShow{display:none}#myconfigwin39457845 button{background-color:#cacaca!important;color:#000!important;border:2px outset!important;padding:1px!important;font-size:1.2em!important}#lyricsiframe{opacity:.1;transition:opacity 2s;margin:0;padding:0;position:relative}.lyricsnavbar{font-size:.7em;text-align:right;padding:0 10px 0 0!important}.lyricsnavbar a:link,.lyricsnavbar a:visited,.lyricsnavbar span{color:#606060;text-decoration:none;transition:color .4s}.lyricsnavbar a:hover,.lyricsnavbar span:hover{color:#9026e0;text-decoration:none}.loadingspinner{color:#000;font-size:12px;line-height:15px;width:15px!important;height:15px!important;padding:2px!important}.loadingspinnerholder{z-index:10;cursor:progress;position:relative;width:20px!important;height:20px!important}.searchresultlist{margin:0!important;padding:0!important;border:1px solid #000;border-radius:3px;width:450px!important}.searchresultlist ol{list-style:none;padding:0!important;margin:0}.searchresultlist ol li div{width:auto!important}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL2dlbml1cy5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQ0UscUJBQ0UsUUFBUSxlQUNSLFNBQVMsZ0JBRVgsd0JBQ0UsT0FBTyxJQUVULGtDQUNFLFFBQVEsS0FFViw0QkFDRSxpQkFBa0Isa0JBQ2xCLE1BQU8sZUFDUCxPQUFRLElBQUksaUJBQ1osUUFBUyxjQUNULFVBQVcsZ0JBRWIsY0FDRSxRQUFRLEdBQ1IsV0FBVyxRQUFRLEdBQ25CLE9BQU8sRUFDUCxRQUFRLEVBQ1IsU0FBUyxTQUVYLGNBQ0UsVUFBWSxLQUNaLFdBQVcsTUFDWCxRQUFTLEVBQUksS0FBSyxFQUFJLFlBRUwscUJBQXFCLHdCQUF4QyxtQkFDRSxNQUFNLFFBQ04sZ0JBQWdCLEtBQ2hCLFdBQVcsTUFBTSxJQUVuQixzQkFBc0IseUJBQ3BCLE1BQU0sUUFDTixnQkFBZ0IsS0FFbEIsZ0JBQ0ksTUFBTSxLQUNOLFVBQVUsS0FDVixZQUFZLEtBQ1osTUFBTSxlQUNOLE9BQU8sZUFDUCxRQUFTLGNBRWIsc0JBQ0UsUUFBUSxHQUNSLE9BQU8sU0FDUCxTQUFTLFNBQ1QsTUFBTSxlQUNOLE9BQU8sZUFFVCxrQkFDRSxPQUFPLFlBQ1AsUUFBUSxZQUNSLE9BQU8sSUFBSSxNQUFNLEtBQ2pCLGNBQWUsSUFDZixNQUFPLGdCQUVULHFCQUNFLFdBQVksS0FDWixRQUFTLFlBQ1QsT0FBTyxFQUtULDRCQUNFLE1BQU8ifQ== */";
+
+  var noEmojiCSS = "@font-face{font-family:Symbola;src:local(\"Symbola Regular\"),local(\"Symbola\"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format(\"woff2\"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format(\"woff\"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format(\"truetype\"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format(\"opentype\"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format(\"svg\")}.bdp_check_onchecked_symbol,.bdp_check_onlinkhover_symbol,.downloaddisk,.downloadlink,.listened-symbol,.mark-listened-symbol,.minimizebutton,.sharepanelchecksymbol,.user-nav .menubar-symbol,.volumeSymbol{font-family:Symbola,Quivira,\"Segoe UI Symbol\",\"Segoe UI Emoji\",Arial,sans-serif}.downloaddisk,.downloadlink{font-weight:bolder}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODEyNS9zcmMvY3NzL25vZW1vamkuY3NzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBLFdBQ0ksWUFBWSxRQUNaLElBQUksd0JBQXdCLENBQUMsZ0JBQWdCLENBQUMsZ0ZBQWdGLGVBQWUsQ0FBQywrRUFBK0UsY0FBYyxDQUFDLDhFQUE4RSxrQkFBa0IsQ0FBQyw4RUFBOEUsa0JBQWtCLENBQUMsc0ZBQXNGLGNBS3hnQiw0QkFEQSw4QkFHQSxjQUNBLGNBRUEsaUJBQ0Esc0JBQ0EsZ0JBVEEsdUJBTUEsMEJBSEEsY0FPSSxZQUFZLE9BQU8sQ0FBQyxPQUFPLENBQUMsaUJBQWlCLENBQUMsZ0JBQWdCLENBQUMsS0FBSyxDQUFDLFdBR3pFLGNBQWMsY0FDVixZQUFhIn0= */";
 
   var exportMenuHTML = "<h2>Export played albums</h2>\n  <h1 class=\"drophint\">Drop to restore from backup</h1>\n  Available fields per album:<br>\n  <table>\n    <tr>\n      <td>%artist%</td>\n      <td>Artist name</td>\n      <td>Jay-X</td>\n    </tr>\n    <tr>\n      <td>%title%</td>\n      <td>Song title</td>\n      <td>Classic song</td>\n    </tr>\n    <tr>\n      <td>%cover%</td>\n      <td>Cover image url</td>\n      <td>https://f4.bcbits.com/img/a2588527047_2.jpg</td>\n    </tr>\n    <tr>\n      <td>%url%</td>\n      <td>Album url</td>\n      <td>petrolgirls.bandcamp.com/album/cut-stitch</td>\n    </tr>\n    <tr>\n      <td>%releaseDate% / %releaseUnix% / %releaseTimestamp%</td>\n      <td>Release date</td>\n      <td>2019-02-07T14:01:59.100Z / 1549548119 / 1549548119100</td>\n    </tr>\n    <tr>\n      <td>%listenedDate% / %listenedUnix% / %listenedTimestamp%</td>\n      <td>Played/Listened date</td>\n      <td>2019-02-07T02:17:21.315Z / 1549505841 / 1549505841315</td>\n    </tr>\n    <tr>\n      <td>%releaseY% / %releaseYYYY%</td>\n      <td>Release: Year</td>\n      <td>19 / 2019</td>\n    </tr>\n    <tr>\n      <td>%releaseM% / %releaseMM% / %releaseMon% / %releaseMonth%</td>\n      <td>Release: Month</td>\n      <td>2 / 02 / Feb / February</td>\n    </tr>\n    <tr>\n      <td>%releaseD% / %releaseDD%</td>\n      <td>Release: Day of month</td>\n      <td>7 / 07</td>\n    </tr>\n    <tr>\n      <td>%releaseDay%</td>\n      <td>Release: Day of week</td>\n      <td>Friday</td>\n    </tr>\n    <tr>\n      <td>%listenedY% / %listenedYYYY%</td>\n      <td>Played: Year</td>\n      <td>19 / 2019</td>\n    </tr>\n    <tr>\n      <td>%listenedM% / %listenedMM% / %listenedMon% / %listenedMonth%</td>\n      <td>Played: Month</td>\n      <td>2 / 02 / Feb / February</td>\n    </tr>\n    <tr>\n      <td>%listenedD% / %listenedDD%</td>\n      <td>Played: Day of month</td>\n      <td>7 / 07</td>\n    </tr>\n    <tr>\n      <td>%listenedDay%</td>\n      <td>Played: Day of week</td>\n      <td>Friday</td>\n    </tr>\n\n  </table>\n";
 
@@ -18128,7 +18568,7 @@ SOFTWARE.
 
   var speakerIconHighSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAoCAMAAACPWYlDAAAAOVBMVEUAAABqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampHCtmUAAAAEnRSTlMAhTXgE+5yutBAH0yQKqibV2MOLOh8AAABXElEQVQ4y8WUW5aEIAxEeb/UVrP/xc5Mimk9IGn96vrhiLmkCBB1rWVRTzQlIv0gfqZfeXeeKkK4i8Qyx1S2ZLdRvLHUATw1XccHog4oxB4x0WilFijZIQMl14WXSC0QiPw0YWbuim+pBRaY2etU578DsLYtsPriKP8WNYDJqnhEOiT/O39NA+VIlMpWPzBqCZhQGfiMKrE3CTAzKoPKFYBGAhQTS+avUDCIgIqcIp08rTIwsW0N9y9wIuDYPTw5DkwyoLhaDkcQkOhzhlCB/QaQT0C5kQH7zOb2HhasOWOIn6sUcVQeF9Xi4AUA9a+XaTMYBGDHFcTKqcYVAdDnuxf+L4hkKVir62+rAjgRwJuGMePf3TDrQ6M3HWCs77e6A/gtR6epJmi1+wZQOfmVNzBoliY1AKfxl30Mcq8LoPaBgUIHqIjOOlI+mlaVm9PaxPc92aon0jZl9S39AOlqRk93STxjAAAAAElFTkSuQmCC";
 
-  /* globals GM, GM_addStyle, GM_addElement, GM_download, GM_setClipboard, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics, Blob */
+  /* globals GM, GM_download, GM_setClipboard, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics, Blob */
 
   // TODO Mark as played automatically when played
   // TODO custom CSS
@@ -18244,6 +18684,10 @@ SOFTWARE.
     },
     customReleaseDateFormat: {
       name: 'Format release date on album page',
+      default: false
+    },
+    debugMode: {
+      name: 'Debug mode for developers',
       default: false
     }
   };
@@ -18588,31 +19032,6 @@ Sunset:   ${data.sunset.toLocaleTimeString()}`;
       }
     }
     return format;
-  }
-  const stylesToInsert = [];
-  function addStyle(css) {
-    if (GM_addStyle && css) {
-      return GM_addStyle(css);
-    } else {
-      if (css) {
-        stylesToInsert.push(css);
-      }
-      const head = document.head ? document.head : document.documentElement;
-      if (head) {
-        let style = document.createElement('style');
-        if (style) {
-          while (stylesToInsert.length) {
-            head.append(style);
-            style.type = 'text/css';
-            style.appendChild(document.createTextNode(stylesToInsert.shift()));
-            style = document.createElement('style');
-          }
-          return fullfill(style);
-        }
-      }
-      // document was not ready, wait
-      return new Promise(resolve => window.setTimeout(() => addStyle(false).then(resolve), 100));
-    }
   }
   function css2rgb(colorStr) {
     const div = document.body.appendChild(document.createElement('div'));
@@ -21038,6 +21457,9 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       }
       div.dataset.makeDiscoverSearchCoversGreat = true;
       const imageCarousel = div.querySelector('.image-carousel');
+      if (!imageCarousel) {
+        return;
+      }
       imageCarousel.addEventListener('click', discoverSearchCoverClick, true);
 
       // Add play overlay
@@ -21244,18 +21666,18 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     inputGenres.setAttribute('id', 'discover_shuffle_genres');
     inputGenres.setAttribute('type', 'text');
     inputGenres.setAttribute('title', 'Genres to shuffle, separated by + ');
-    inputGenres.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #0088ff12;border: 1px solid silver;border-bottom: none;');
+    inputGenres.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #313b44b2;color:white; border: 1px solid silver;border-bottom: none;');
     const inputSubTag = inputContainer.appendChild(document.createElement('input'));
     inputSubTag.setAttribute('id', 'discover_shuffle_subtag');
     inputSubTag.setAttribute('type', 'text');
     inputSubTag.setAttribute('title', 'Current sub-tag');
-    inputSubTag.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #0088ff12;border: 1px solid silver;border-bottom: none;');
+    inputSubTag.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #313b44b2;color:white; border: 1px solid silver;border-bottom: none;');
     const inputNextSong = inputContainer.appendChild(document.createElement('input'));
     inputNextSong.setAttribute('id', 'discover_shuffle_next_song');
     inputNextSong.setAttribute('type', 'text');
     inputNextSong.setAttribute('title', 'Next song to play');
     inputNextSong.setAttribute('readonly', 'readonly');
-    inputNextSong.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #0088ff12;border: 1px solid silver;');
+    inputNextSong.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #313b44b2;color:white; border: 1px solid silver;');
     const button = parent.appendChild(createButton());
     button.setAttribute('id', 'discover_shuffle_start');
     button.innerHTML = 'Shuffle tags'; // TODO "Shuffle subtags of {Electronic}"
@@ -22640,10 +23062,9 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       background: #F3F3F3;
     }
     `;
-      GM_addElement(menuA.parentNode, 'style', {
-        textContent: cssStr
-      }); // Works if these nodes are in shadow DOM where addStyle() doesn't work
-
+      addStyle(cssStr, {
+        root: menuA.parentNode?.getRootNode()
+      });
       const div = document.createElement('div');
       div.setAttribute('id', 'bcsde_tagsearchform');
       menuA.parentNode.appendChild(div);
@@ -22841,6 +23262,20 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       margin-left: 10px;
       color: #000a
     }
+    .deluxemenu button {
+      border: 1px #ffffff solid;
+      border-radius: 5px;
+      text-decoration: none;
+      background: #413fbf38;
+      margin: 5px;
+      padding: 2px;
+      font-size:large;
+    }
+    .deluxemenu button:hover {
+      border: 1px #3d42d9 solid;
+      background: #5c7dd99c;
+    }
+
     .breathe {
       animation: breathe 1.5s linear infinite
     }
@@ -24254,6 +24689,35 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
       deletePermanentTralbum
     }).render();
   }
+  function addMainMenuButtons() {
+    if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('.menu-items .search')) {
+      const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot;
+      const searchLi = shadowRoot.querySelector('.menu-items .search');
+      const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi;
+      appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot);
+    } else if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('li.signup')) {
+      const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot;
+      const searchLi = shadowRoot.querySelector('li.signup');
+      const insertBefore = searchLi;
+      appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot);
+    } else if (document.querySelector('.menu-items .search')) {
+      // Discover
+      window.setTimeout(() => {
+        const searchLi = document.querySelector('.menu-items .search');
+        const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi;
+        appendMainMenuButtonTo(insertBefore.parentNode, insertBefore);
+      }, 1000);
+    } else if (document.querySelector('.user-nav')) {
+      appendMainMenuButtonTo(document.querySelector('.user-nav'));
+    } else if (document.querySelector('#user-nav')) {
+      appendMainMenuButtonTo(document.querySelector('#user-nav'));
+    } else if (document.getElementById('customHeaderWrapper')) {
+      appendMainMenuButtonLeftTo(document.getElementById('customHeaderWrapper'));
+    } else if (document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav')) {
+      // Homepage and not logged in
+      appendMainMenuButtonTo(document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav'));
+    }
+  }
   function appendMainMenuButtonTo(ul, before, shadowRoot) {
     if (MAIN_MENU_DOM_ID in document.body.dataset) {
       return;
@@ -24291,8 +24755,8 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     }
   `;
     if (shadowRoot) {
-      GM_addElement(shadowRoot, 'style', {
-        textContent: cssStr
+      addStyle(cssStr, {
+        root: shadowRoot
       });
     } else {
       addStyle(cssStr);
@@ -24888,6 +25352,30 @@ If this is a malicious website, running the userscript may leak personal data (e
       });
     });
   }
+  function guard(label, fn) {
+    try {
+      const ret = fn();
+      if (ret && typeof ret.then === 'function') {
+        return ret.catch(err => ErrorReporter.add(err, label));
+      }
+      return ret;
+    } catch (err) {
+      ErrorReporter.add(err, label);
+    }
+  }
+  function guardPromise(promise, label = 'async op') {
+    return Promise.resolve(promise).catch(err => {
+      ErrorReporter.add(err, label);
+    });
+  }
+  function setTimeoutSafe(cb, delay, label = 'timeout callback', ...args) {
+    // eslint-disable-next-line n/no-callback-literal
+    return window.setTimeout(() => guard(label, () => cb(...args)), delay);
+  }
+  function setIntervalSafe(cb, delay, label = 'interval callback', ...args) {
+    // eslint-disable-next-line n/no-callback-literal
+    return window.setInterval(() => guard(label, () => cb(...args)), delay);
+  }
   async function setDomain(enabled) {
     const domains = JSON.parse(await GM.getValue('domains', '{}'));
     domains[document.location.hostname] = enabled;
@@ -24914,6 +25402,7 @@ If this is a malicious website, running the userscript may leak personal data (e
   function start() {
     // Load settings and enable darkmode
     return new Promise(function startFct(resolve) {
+      ErrorReporter.init(`[${SCRIPT_NAME}]`);
       GM.getValue('enabledFeatures', false).then(value => getEnabledFeatures(value)).then(function () {
         if (BANDCAMP && allFeatures.darkMode.enabled) {
           darkModeMode().then(function (yes) {
@@ -24928,62 +25417,60 @@ If this is a malicious website, running the userscript may leak personal data (e
       });
     });
   }
-  function onLoaded() {
+  async function onLoaded() {
     if (!enabledFeaturesLoaded) {
-      GM.getValue('enabledFeatures', false).then(value => getEnabledFeatures(value)).then(function () {
-        onLoaded();
-      });
-      return;
+      getEnabledFeatures(await GM.getValue('enabledFeatures', false));
     }
     if (!BANDCAMP && document.querySelector('#legal.horizNav li.view-switcher.desktop a,head>meta[name=generator][content=Bandcamp]')) {
       // Page is a bandcamp page but does not have a bandcamp domain
-      confirmDomain().then(function (isBandcamp) {
-        BANDCAMP = isBandcamp;
-        if (isBandcamp) {
-          onLoaded();
-          GM.registerMenuCommand(SCRIPT_NAME + ' - disable on this page', () => setDomain(false).then(() => document.location.reload()));
-        } else {
-          GM.registerMenuCommand(SCRIPT_NAME + ' - enable on this page', () => setDomain(true).then(() => document.location.reload()));
-        }
-      });
-      return;
+      BANDCAMP = await confirmDomain();
+      if (BANDCAMP) {
+        GM.registerMenuCommand(SCRIPT_NAME + ' - disable on this page', () => setDomain(false).then(() => document.location.reload()));
+      } else {
+        GM.registerMenuCommand(SCRIPT_NAME + ' - enable on this page', () => setDomain(true).then(() => document.location.reload()));
+        return; // abort here
+      }
     } else if (!BANDCAMP && !CAMPEXPLORER) {
       // Not a bandcamp page -> quit
       return;
     }
     const IS_PLAYER_URL = document.location.href.startsWith(PLAYER_URL);
-    const IS_PLAYER_FRAME = IS_PLAYER_URL && document.location.search.indexOf('iframe');
+    const IS_PLAYER_FRAME = IS_PLAYER_URL && document.location.search.indexOf('iframe') !== -1;
     if (allFeatures.darkMode.enabled) {
-      // Darkmode in start() is only run on bandcamp domains
-      if (!darkModeInjected) {
-        darkModeMode().then(function (yes) {
-          if (yes) {
-            darkMode();
-          }
-        });
-      }
-      window.setTimeout(darkModeOnLoad, 0);
+      guard('darkMode init', async () => {
+        if (!darkModeInjected) {
+          const yes = await darkModeMode();
+          if (yes) darkMode();
+        }
+        setTimeoutSafe(darkModeOnLoad, 0, 'darkModeOnLoad');
+      });
     }
     storeTralbumDataPermanentlySwitch = allFeatures.keepLibrary.enabled;
     const maintenanceContent = document.querySelector('.content');
     if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') !== -1) {
       console.log('Maintenance detected');
-    } else {
+      return;
+    }
+    guard('add emoji fonts', () => {
       if (NOEMOJI) {
-        addStyle('@font-face{font-family:Symbola;src:local("Symbola Regular"),local("Symbola"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format("woff2"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format("woff"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format("truetype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format("opentype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format("svg")}' + '.sharepanelchecksymbol,.bdp_check_onlinkhover_symbol,.bdp_check_onchecked_symbol,.volumeSymbol,.downloaddisk,.downloadlink,.user-nav .menubar-symbol,.listened-symbol,.mark-listened-symbol,.minimizebutton{font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif}' + '.downloaddisk,.downloadlink{font-weight: bolder}');
+        addStyle(noEmojiCSS);
       }
-      GM.getValue('notification_timeout', NOTIFICATION_TIMEOUT).then(function (ms) {
-        NOTIFICATION_TIMEOUT = parseInt(ms);
-      });
+    });
+    NOTIFICATION_TIMEOUT = parseInt(await GM.getValue('notification_timeout', NOTIFICATION_TIMEOUT));
+    guard('showPastReleases', () => {
       if (allFeatures.releaseReminder.enabled && !IS_PLAYER_FRAME) {
         showPastReleases();
       }
+    });
+    guard('index page tweaks', () => {
       if (document.querySelector('#indexpage .indexpage_list_cell a[href*="/album/"] img')) {
         // Index pages are almost like discography page. To make them compatible, let's add the class names from the discography page
         document.querySelector('#indexpage').classList.add('music-grid');
         document.querySelectorAll('#indexpage .indexpage_list_cell').forEach(cell => cell.classList.add('music-grid-item'));
         addStyle('#indexpage .ipCellImage { position:relative }');
       }
+    });
+    guard('search result tweaks', () => {
       if (document.querySelector('.search .result-items .searchresult img')) {
         // Search result pages. To make them compatible, let's add the class names from the discography page
         document.querySelector('.search .result-items').classList.add('music-grid');
@@ -24992,24 +25479,32 @@ If this is a malicious website, running the userscript may leak personal data (e
         .search .result-items .searchresult[data-search*='"type":"a"'],
         .search .result-items .searchresult[data-search*='"type":"t"'],
         .search .result-items .searchresult[data-search*='"type":"b"']
-        `).forEach(cell => cell.classList.add('music-grid-item'));
+      `).forEach(cell => cell.classList.add('music-grid-item'));
       }
+    });
+    guard('user profile collection', () => {
       if (allFeatures.userProfilePlayer.enabled && document.querySelector('.collection-grid .collection-item-container')) {
         makeUserProfileCollectionGreat();
         if (!allFeatures.discographyplayer.enabled) {
           makeAlbumCoversGreat();
         }
       }
+    });
+    guard('discography featured grid tweaks', () => {
       if (allFeatures.discographyplayer.enabled && document.querySelector('.featured-grid.featured-items .featured-item')) {
         // Discography page (featured albums)
         // To make them compatible, let's add the class names from the regular music-grid
         document.querySelectorAll('.featured-grid.featured-items').forEach(e => e.classList.add('music-grid'));
         document.querySelectorAll('.featured-grid.featured-items .featured-item').forEach(e => e.classList.add('music-grid-item'));
       }
+    });
+    guard('discography page covers', () => {
       if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href*="/album/"] img,.music-grid .music-grid-item a[href*="/track/"] img')) {
         // Discography page
         makeAlbumCoversGreat();
       }
+    });
+    guard('album page features', () => {
       if (document.querySelector('.inline_player')) {
         // Album page with player
         if (allFeatures.thetimehascome.enabled) {
@@ -25028,14 +25523,18 @@ If this is a malicious website, running the userscript may leak personal data (e
           addOpenDiscographyPlayerFromAlbumPage();
         }
       }
+    });
+    guard('discover page', () => {
       if (document.location.pathname.startsWith('/discover')) {
         // Discover search page
         makeDiscoverSearchCoversGreatCss();
         if (allFeatures.tagSearchPlayer.enabled) {
-          window.setInterval(makeDiscoverSearchCoversGreat, 1000);
+          setIntervalSafe(makeDiscoverSearchCoversGreat, 1000, 'makeDiscoverSearchCoversGreat');
         }
         addShuffleTagsButton();
       }
+    });
+    guard('share panel / wishlist hooks', () => {
       if (document.querySelector('.share-panel-wrapper-desktop')) {
         // Album page with Share,Embed,Wishlist links
 
@@ -25049,45 +25548,22 @@ If this is a malicious website, running the userscript may leak personal data (e
           addReleaseDateButton();
         }
       }
+    });
+    guard('show download link if purchased', () => {
       if (unsafeWindow.TralbumData && unsafeWindow.TralbumData.tralbum_collect_info && unsafeWindow.TralbumData.tralbum_collect_info.is_purchased) {
         showDownloadLinkOnAlbumPage();
       }
-      GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu);
-      const addMainMenuButtons = () => {
-        if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('.menu-items .search')) {
-          const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot;
-          const searchLi = shadowRoot.querySelector('.menu-items .search');
-          const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi;
-          appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot);
-        } else if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('li.signup')) {
-          const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot;
-          const searchLi = shadowRoot.querySelector('li.signup');
-          const insertBefore = searchLi;
-          appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot);
-        } else if (document.querySelector('.menu-items .search')) {
-          // Discover
-          window.setTimeout(() => {
-            const searchLi = document.querySelector('.menu-items .search');
-            const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi;
-            appendMainMenuButtonTo(insertBefore.parentNode, insertBefore);
-          }, 1000);
-        } else if (document.querySelector('.user-nav')) {
-          appendMainMenuButtonTo(document.querySelector('.user-nav'));
-        } else if (document.querySelector('#user-nav')) {
-          appendMainMenuButtonTo(document.querySelector('#user-nav'));
-        } else if (document.getElementById('customHeaderWrapper')) {
-          appendMainMenuButtonLeftTo(document.getElementById('customHeaderWrapper'));
-        } else if (document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav')) {
-          // Homepage and not logged in
-          appendMainMenuButtonTo(document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav'));
-        }
-      };
+    });
+    GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu);
+    guard('main menu buttons', () => {
       addMainMenuButtons();
-      window.setTimeout(() => {
+      setTimeoutSafe(() => {
         if (!document.getElementById(MAIN_MENU_DOM_ID)) {
           addMainMenuButtons();
         }
-      }, 3000);
+      }, 3000, 'main menu buttons (retry)');
+    });
+    guard('hide hiring banners', () => {
       if (document.querySelector('.hd-banner-2018')) {
         // Move the "we are hiring" banner (not loggin in)
         document.querySelector('.hd-banner-2018').style.left = '-500px';
@@ -25096,53 +25572,77 @@ If this is a malicious website, running the userscript may leak personal data (e
         // Remove the "we are hiring" banner (logged in)
         document.querySelector('.li-banner-2018').remove();
       }
+    });
+    guard('carousel player', () => {
       if (document.getElementById('carousel-player') || document.querySelector('.play-carousel')) {
-        window.setTimeout(makeCarouselPlayerGreatAgain, 5000);
+        setTimeoutSafe(makeCarouselPlayerGreatAgain, 5000, 'makeCarouselPlayerGreatAgain');
       }
+    });
+    guard('grid tabs + listened tab', () => {
       if (document.querySelector('ol#grid-tabs li') && document.querySelector('.fan-bio-pic-upload-container')) {
         const listenedTabLink = makeListenedListTabLink();
         if (document.location.hash === '#listened-tab') {
-          window.setTimeout(function resetGridTabs() {
+          setTimeoutSafe(() => {
             document.querySelector('#grid-tabs .active').classList.remove('active');
             document.querySelector('#grids .grid.active').classList.remove('active');
             listenedTabLink.classList.add('active');
             listenedTabLink.click();
-          }, 500);
+          }, 500, 'resetGridTabs');
         }
         if (allFeatures.markasplayedEverywhere.enabled) {
           // If you click the more button on the wishlist/user profile, bandcamp continues to load more albums. Need to update the listened links then as well:
-          document.querySelectorAll('.show-button .show-more').forEach(button => button.addEventListener('click', () => {
-            window.setInterval(makeAlbumLinksGreat, 2000);
-          }));
+          document.querySelectorAll('.show-button .show-more').forEach(button => {
+            button.addEventListener('click', () => {
+              setIntervalSafe(makeAlbumLinksGreat, 2000, 'wishlist/user profile pagination');
+            });
+          });
         }
       }
+    });
+    guard('restore volume', () => {
       if (allFeatures.albumPageVolumeBar.enabled) {
         restoreVolume();
       }
+    });
+    guard('make album links great', () => {
       if (allFeatures.markasplayedEverywhere.enabled) {
         makeAlbumLinksGreat();
       }
+    });
+    guard('backup reminder', () => {
       if (allFeatures.backupReminder.enabled && !IS_PLAYER_FRAME) {
         checkBackupStatus();
       }
+    });
+    guard('custom release date format', () => {
       if (allFeatures.customReleaseDateFormat.enabled) {
         formatReleaseDateOnAlbumPage();
       }
+    });
+    guard('show album ID', () => {
       if (allFeatures.showAlbumID.enabled) {
         showAlbumID();
       }
-      if (allFeatures.feedShowOnlyNewReleases.enabled && document.querySelector('#stories li.story')) {
-        feedShowOnlyNewReleases();
-      }
-      if (allFeatures.feedShowAudioControls.enabled && document.querySelector('#stories li.story')) {
-        feedAddAudioControls();
+    });
+    guard('feed tweaks', () => {
+      if (document.querySelector('#stories li.story')) {
+        if (allFeatures.feedShowOnlyNewReleases.enabled) {
+          feedShowOnlyNewReleases();
+        }
+        if (allFeatures.feedShowAudioControls.enabled) {
+          feedAddAudioControls();
+        }
       }
       feedEnablePlayNextItem();
       feedAddDiscographyPlayerButtons();
+    });
+    guard('profile discography player buttons', () => {
       profileAddDiscographyPlayerButtons();
+    });
+    guard('campexplorer', () => {
       if (CAMPEXPLORER) {
         let lastTagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : '';
-        window.setInterval(function () {
+        setIntervalSafe(() => {
           const tagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : '';
           if (lastTagsText !== tagsText) {
             lastTagsText = tagsText;
@@ -25153,35 +25653,45 @@ If this is a malicious website, running the userscript may leak personal data (e
               makeAlbumLinksGreat();
             }
           }
-        }, 3000);
+        }, 3000, 'tags change poll');
 
         // Add a little space at the bottom of the page to accommodate the discographyplayer at the bottom
         document.body.style.paddingBottom = '200px';
         // Move the sidebar to the left
-        document.querySelectorAll('.sidebar').forEach(function (div) {
+        document.querySelectorAll('.sidebar').forEach(div => {
           div.style.alignSelf = 'flex-start';
-          div.querySelectorAll('.shortcuts').forEach(function (shortcuts) {
+          div.querySelectorAll('.shortcuts').forEach(shortcuts => {
             shortcuts.style.borderRadius = '0 1em 1em 0';
           });
         });
       }
+    });
+    guard('explorer / lyrics init', () => {
       if (IS_PLAYER_URL) {
         showExplorer();
       } else if (document.location.pathname === LYRICS_EMPTY_PATH) {
         initGenius();
       }
-      GM.getValue('musicPlayerState', '{}').then(function restoreState(s) {
-        if (s !== '{}') {
-          GM.setValue('musicPlayerState', '{}');
-          musicPlayerRestoreState(JSON.parse(s));
-        }
-      });
+    });
+    await guardPromise(GM.getValue('musicPlayerState', '{}').then(s => {
+      if (s !== '{}') {
+        GM.setValue('musicPlayerState', '{}');
+        musicPlayerRestoreState(JSON.parse(s));
+      }
+    }), 'restore music player state');
+    guard('store corrected TralbumData', () => {
       if (document.querySelector('.inline_player') && unsafeWindow.TralbumData && unsafeWindow.TralbumData.current && unsafeWindow.TralbumData.trackinfo) {
         const TralbumData = correctTralbumData(JSON.parse(JSON.stringify(unsafeWindow.TralbumData)), document.body.innerHTML);
         storeTralbumDataPermanently(TralbumData);
       }
-    }
+    });
+    guard('startLiveErrorPanel', () => {
+      if (allFeatures.debugMode.enabled) {
+        ErrorReporter.startLiveErrorPanel();
+      }
+    });
   }
+  GM.registerMenuCommand(SCRIPT_NAME + ' - show recent script errors', () => ErrorReporter.showRecentErrors());
   start().then(function () {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', onLoaded);

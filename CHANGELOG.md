@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.38.0](../../tree/v1.38.0) *(2025-11-06)*
+*   Log errors
 ## [1.37.6](../../tree/v1.37.6) *(2025-11-01)*
 *   Fix menu buttons in some locations
 ## [1.37.5](../../tree/v1.37.5) *(2025-10-31)*
