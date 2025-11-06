@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name            Bandcamp script (bandcamp.com only)
+// @name            Bandcamp script (Deluxe Edition)
 // @description     A discography player for bandcamp.com and manager for your played albums
 // @namespace       https://openuserjs.org/users/cuzi
 // @supportURL      https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues
@@ -9,9 +9,8 @@
 // @require         https://openuserjs.org/src/libs/cuzi/GeniusLyrics.js
 // @require         https://unpkg.com/lz-string@1.5.0/libs/lz-string.min.js
 // @run-at          document-start
+// @match           https://*/*
 // @match           https://bandcamp.com/*
-// @match           https://*.bandcamp.com/*
-// @match           https://campexplorer.io/*
 // @exclude         https://bandcamp.com/videoframe*
 // @exclude         https://bandcamp.com/EmbeddedPlayer*
 // @connect         bandcamp.com
@@ -19,6 +18,7 @@
 // @connect         bcbits.com
 // @connect         *.bcbits.com
 // @connect         genius.com
+// @connect         *
 // @version         1.38.0
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
