@@ -1,0 +1,21 @@
+@font-face{
+    font-family:Symbola;
+    src:local("Symbola Regular"),local("Symbola"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format("woff2"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format("woff"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format("truetype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format("opentype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format("svg")
+}
+
+.sharepanelchecksymbol,
+.bdp_check_onlinkhover_symbol,
+.bdp_check_onchecked_symbol,
+.volumeSymbol,
+.downloaddisk,
+.downloadlink,
+.user-nav .menubar-symbol,
+.listened-symbol,
+.mark-listened-symbol,
+.minimizebutton {
+    font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif
+}
+
+.downloaddisk,.downloadlink { 
+    font-weight: bolder
+}

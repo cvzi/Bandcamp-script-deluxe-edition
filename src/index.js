@@ -2,12 +2,15 @@ import './violentmonkey.js'
 import genresList from './genres.js'
 import subGenresList from './subtags.js'
 import Explorer from './explorer.jsx'
+import ErrorReporter from './errorReporter.js'
+import { addStyle } from './utils.js'
 
 import discographyplayerCSS from './css/discographyplayer.css'
 import discographyplayerSidebarCSS from './css/discographyplayerSidebar.css'
 import pastreleasesCSS from './css/pastreleases.css'
 import darkmodeCSS from './css/darkmode.css'
 import geniusCSS from './css/genius.css'
+import noEmojiCSS from './css/noemoji.css'
 
 import exportMenuHTML from './exportMenu.html'
 import speakerIconMuteSrc from './img/speaker_icon_mute_48x40.png'
@@ -15,7 +18,7 @@ import speakerIconLowSrc from './img/speaker_icon_low_48x40.png'
 import speakerIconMiddleSrc from './img/speaker_icon_middle_48x40.png'
 import speakerIconHighSrc from './img/speaker_icon_high_48x40.png'
 
-/* globals GM, GM_addStyle, GM_addElement, GM_download, GM_setClipboard, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics, Blob */
+/* globals GM, GM_download, GM_setClipboard, unsafeWindow, MouseEvent, JSON5, MediaMetadata, Response, geniusLyrics, Blob */
 
 // TODO Mark as played automatically when played
 // TODO custom CSS
@@ -131,6 +134,10 @@ const allFeatures = {
   },
   customReleaseDateFormat: {
     name: 'Format release date on album page',
+    default: false
+  },
+  debugMode: {
+    name: 'Debug mode for developers',
     default: false
   }
 }
@@ -499,32 +506,6 @@ function customDateFormatter (format, date) {
     }
   }
   return format
-}
-
-const stylesToInsert = []
-function addStyle (css) {
-  if (GM_addStyle && css) {
-    return GM_addStyle(css)
-  } else {
-    if (css) {
-      stylesToInsert.push(css)
-    }
-    const head = (document.head ? document.head : document.documentElement)
-    if (head) {
-      let style = document.createElement('style')
-      if (style) {
-        while (stylesToInsert.length) {
-          head.append(style)
-          style.type = 'text/css'
-          style.appendChild(document.createTextNode(stylesToInsert.shift()))
-          style = document.createElement('style')
-        }
-        return fullfill(style)
-      }
-    }
-    // document was not ready, wait
-    return new Promise((resolve) => window.setTimeout(() => addStyle(false).then(resolve), 100))
-  }
 }
 
 function css2rgb (colorStr) {
@@ -3064,6 +3045,9 @@ function makeDiscoverSearchCoversGreat () {
     div.dataset.makeDiscoverSearchCoversGreat = true
 
     const imageCarousel = div.querySelector('.image-carousel')
+    if (!imageCarousel) {
+      return
+    }
     imageCarousel.addEventListener('click', discoverSearchCoverClick, true)
 
     // Add play overlay
@@ -3288,20 +3272,20 @@ function addShuffleTagsButton () {
   inputGenres.setAttribute('id', 'discover_shuffle_genres')
   inputGenres.setAttribute('type', 'text')
   inputGenres.setAttribute('title', 'Genres to shuffle, separated by + ')
-  inputGenres.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #0088ff12;border: 1px solid silver;border-bottom: none;')
+  inputGenres.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #313b44b2;color:white; border: 1px solid silver;border-bottom: none;')
 
   const inputSubTag = inputContainer.appendChild(document.createElement('input'))
   inputSubTag.setAttribute('id', 'discover_shuffle_subtag')
   inputSubTag.setAttribute('type', 'text')
   inputSubTag.setAttribute('title', 'Current sub-tag')
-  inputSubTag.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #0088ff12;border: 1px solid silver;border-bottom: none;')
+  inputSubTag.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #313b44b2;color:white; border: 1px solid silver;border-bottom: none;')
 
   const inputNextSong = inputContainer.appendChild(document.createElement('input'))
   inputNextSong.setAttribute('id', 'discover_shuffle_next_song')
   inputNextSong.setAttribute('type', 'text')
   inputNextSong.setAttribute('title', 'Next song to play')
   inputNextSong.setAttribute('readonly', 'readonly')
-  inputNextSong.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #0088ff12;border: 1px solid silver;')
+  inputNextSong.setAttribute('style', 'display: block;width: 350px;font-size: 12px;background: #313b44b2;color:white; border: 1px solid silver;')
 
   const button = parent.appendChild(createButton())
   button.setAttribute('id', 'discover_shuffle_start')
@@ -4816,7 +4800,7 @@ function showTagSearchForm () {
     }
     `
 
-    GM_addElement(menuA.parentNode, 'style', { textContent: cssStr }) // Works if these nodes are in shadow DOM where addStyle() doesn't work
+    addStyle(cssStr, { root: menuA.parentNode?.getRootNode() })
 
     const div = document.createElement('div')
     div.setAttribute('id', 'bcsde_tagsearchform')
@@ -5040,6 +5024,20 @@ function mainMenu (startBackup) {
       margin-left: 10px;
       color: #000a
     }
+    .deluxemenu button {
+      border: 1px #ffffff solid;
+      border-radius: 5px;
+      text-decoration: none;
+      background: #413fbf38;
+      margin: 5px;
+      padding: 2px;
+      font-size:large;
+    }
+    .deluxemenu button:hover {
+      border: 1px #3d42d9 solid;
+      background: #5c7dd99c;
+    }
+
     .breathe {
       animation: breathe 1.5s linear infinite
     }
@@ -6598,6 +6596,38 @@ async function showExplorer () {
   }).render()
 }
 
+function addMainMenuButtons () {
+  if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot &&
+        document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('.menu-items .search')) {
+    const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot
+    const searchLi = shadowRoot.querySelector('.menu-items .search')
+    const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
+    appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot)
+  } else if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot &&
+        document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('li.signup')) {
+    const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot
+    const searchLi = shadowRoot.querySelector('li.signup')
+    const insertBefore = searchLi
+    appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot)
+  } else if (document.querySelector('.menu-items .search')) {
+    // Discover
+    window.setTimeout(() => {
+      const searchLi = document.querySelector('.menu-items .search')
+      const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
+      appendMainMenuButtonTo(insertBefore.parentNode, insertBefore)
+    }, 1000)
+  } else if (document.querySelector('.user-nav')) {
+    appendMainMenuButtonTo(document.querySelector('.user-nav'))
+  } else if (document.querySelector('#user-nav')) {
+    appendMainMenuButtonTo(document.querySelector('#user-nav'))
+  } else if (document.getElementById('customHeaderWrapper')) {
+    appendMainMenuButtonLeftTo(document.getElementById('customHeaderWrapper'))
+  } else if (document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav')) {
+    // Homepage and not logged in
+    appendMainMenuButtonTo(document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav'))
+  }
+}
+
 function appendMainMenuButtonTo (ul, before, shadowRoot) {
   if (MAIN_MENU_DOM_ID in document.body.dataset) {
     return
@@ -6637,7 +6667,7 @@ function appendMainMenuButtonTo (ul, before, shadowRoot) {
   `
 
   if (shadowRoot) {
-    GM_addElement(shadowRoot, 'style', { textContent: cssStr })
+    addStyle(cssStr, { root: shadowRoot })
   } else {
     addStyle(cssStr)
   }
@@ -7289,6 +7319,34 @@ If this is a malicious website, running the userscript may leak personal data (e
   })
 }
 
+function guard (label, fn) {
+  try {
+    const ret = fn()
+    if (ret && typeof ret.then === 'function') {
+      return ret.catch((err) => ErrorReporter.add(err, label))
+    }
+    return ret
+  } catch (err) {
+    ErrorReporter.add(err, label)
+  }
+}
+
+function guardPromise (promise, label = 'async op') {
+  return Promise.resolve(promise).catch(err => {
+    ErrorReporter.add(err, label)
+  })
+}
+
+function setTimeoutSafe (cb, delay, label = 'timeout callback', ...args) {
+  // eslint-disable-next-line n/no-callback-literal
+  return window.setTimeout(() => guard(label, () => cb(...args)), delay)
+}
+
+function setIntervalSafe (cb, delay, label = 'interval callback', ...args) {
+  // eslint-disable-next-line n/no-callback-literal
+  return window.setInterval(() => guard(label, () => cb(...args)), delay)
+}
+
 async function setDomain (enabled) {
   const domains = JSON.parse(await GM.getValue('domains', '{}'))
   domains[document.location.hostname] = enabled
@@ -7317,6 +7375,8 @@ async function darkModeMode () {
 function start () {
   // Load settings and enable darkmode
   return new Promise(function startFct (resolve) {
+    ErrorReporter.init(`[${SCRIPT_NAME}]`)
+
     GM.getValue('enabledFeatures', false).then((value) => getEnabledFeatures(value)).then(function () {
       if (BANDCAMP && allFeatures.darkMode.enabled) {
         darkModeMode().then(function (yes) {
@@ -7332,43 +7392,35 @@ function start () {
   })
 }
 
-function onLoaded () {
+async function onLoaded () {
   if (!enabledFeaturesLoaded) {
-    GM.getValue('enabledFeatures', false).then((value) => getEnabledFeatures(value)).then(function () {
-      onLoaded()
-    })
-    return
+    getEnabledFeatures(await GM.getValue('enabledFeatures', false))
   }
   if (!BANDCAMP && document.querySelector('#legal.horizNav li.view-switcher.desktop a,head>meta[name=generator][content=Bandcamp]')) {
     // Page is a bandcamp page but does not have a bandcamp domain
-    confirmDomain().then(function (isBandcamp) {
-      BANDCAMP = isBandcamp
-      if (isBandcamp) {
-        onLoaded()
-        GM.registerMenuCommand(SCRIPT_NAME + ' - disable on this page', () => setDomain(false).then(() => document.location.reload()))
-      } else {
-        GM.registerMenuCommand(SCRIPT_NAME + ' - enable on this page', () => setDomain(true).then(() => document.location.reload()))
-      }
-    })
-    return
+    BANDCAMP = await confirmDomain()
+    if (BANDCAMP) {
+      GM.registerMenuCommand(SCRIPT_NAME + ' - disable on this page', () => setDomain(false).then(() => document.location.reload()))
+    } else {
+      GM.registerMenuCommand(SCRIPT_NAME + ' - enable on this page', () => setDomain(true).then(() => document.location.reload()))
+      return // abort here
+    }
   } else if (!BANDCAMP && !CAMPEXPLORER) {
     // Not a bandcamp page -> quit
     return
   }
 
   const IS_PLAYER_URL = document.location.href.startsWith(PLAYER_URL)
-  const IS_PLAYER_FRAME = IS_PLAYER_URL && document.location.search.indexOf('iframe')
+  const IS_PLAYER_FRAME = IS_PLAYER_URL && document.location.search.indexOf('iframe') !== -1
 
   if (allFeatures.darkMode.enabled) {
-    // Darkmode in start() is only run on bandcamp domains
-    if (!darkModeInjected) {
-      darkModeMode().then(function (yes) {
-        if (yes) {
-          darkMode()
-        }
-      })
-    }
-    window.setTimeout(darkModeOnLoad, 0)
+    guard('darkMode init', async () => {
+      if (!darkModeInjected) {
+        const yes = await darkModeMode()
+        if (yes) darkMode()
+      }
+      setTimeoutSafe(darkModeOnLoad, 0, 'darkModeOnLoad')
+    })
   }
 
   storeTralbumDataPermanentlySwitch = allFeatures.keepLibrary.enabled
@@ -7376,28 +7428,33 @@ function onLoaded () {
   const maintenanceContent = document.querySelector('.content')
   if (maintenanceContent && maintenanceContent.textContent.indexOf('are offline') !== -1) {
     console.log('Maintenance detected')
-  } else {
+    return
+  }
+
+  guard('add emoji fonts', () => {
     if (NOEMOJI) {
-      addStyle('@font-face{font-family:Symbola;src:local("Symbola Regular"),local("Symbola"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff2) format("woff2"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.woff) format("woff"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.ttf) format("truetype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.otf) format("opentype"),url(https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/font/Symbola.svg#Symbola) format("svg")}' +
-        '.sharepanelchecksymbol,.bdp_check_onlinkhover_symbol,.bdp_check_onchecked_symbol,.volumeSymbol,.downloaddisk,.downloadlink,.user-nav .menubar-symbol,.listened-symbol,.mark-listened-symbol,.minimizebutton{font-family:Symbola,Quivira,"Segoe UI Symbol","Segoe UI Emoji",Arial,sans-serif}' +
-        '.downloaddisk,.downloadlink{font-weight: bolder}')
+      addStyle(noEmojiCSS)
     }
+  })
 
-    GM.getValue('notification_timeout', NOTIFICATION_TIMEOUT).then(function (ms) {
-      NOTIFICATION_TIMEOUT = parseInt(ms)
-    })
+  NOTIFICATION_TIMEOUT = parseInt(await GM.getValue('notification_timeout', NOTIFICATION_TIMEOUT))
 
+  guard('showPastReleases', () => {
     if (allFeatures.releaseReminder.enabled && !IS_PLAYER_FRAME) {
       showPastReleases()
     }
+  })
 
+  guard('index page tweaks', () => {
     if (document.querySelector('#indexpage .indexpage_list_cell a[href*="/album/"] img')) {
       // Index pages are almost like discography page. To make them compatible, let's add the class names from the discography page
       document.querySelector('#indexpage').classList.add('music-grid')
       document.querySelectorAll('#indexpage .indexpage_list_cell').forEach(cell => cell.classList.add('music-grid-item'))
       addStyle('#indexpage .ipCellImage { position:relative }')
     }
+  })
 
+  guard('search result tweaks', () => {
     if (document.querySelector('.search .result-items .searchresult img')) {
       // Search result pages. To make them compatible, let's add the class names from the discography page
       document.querySelector('.search .result-items').classList.add('music-grid')
@@ -7406,28 +7463,36 @@ function onLoaded () {
         .search .result-items .searchresult[data-search*='"type":"a"'],
         .search .result-items .searchresult[data-search*='"type":"t"'],
         .search .result-items .searchresult[data-search*='"type":"b"']
-        `).forEach(cell => cell.classList.add('music-grid-item'))
+      `).forEach(cell => cell.classList.add('music-grid-item'))
     }
+  })
 
+  guard('user profile collection', () => {
     if (allFeatures.userProfilePlayer.enabled && document.querySelector('.collection-grid .collection-item-container')) {
       makeUserProfileCollectionGreat()
       if (!allFeatures.discographyplayer.enabled) {
         makeAlbumCoversGreat()
       }
     }
+  })
 
+  guard('discography featured grid tweaks', () => {
     if (allFeatures.discographyplayer.enabled && document.querySelector('.featured-grid.featured-items .featured-item')) {
       // Discography page (featured albums)
       // To make them compatible, let's add the class names from the regular music-grid
       document.querySelectorAll('.featured-grid.featured-items').forEach(e => e.classList.add('music-grid'))
       document.querySelectorAll('.featured-grid.featured-items .featured-item').forEach(e => e.classList.add('music-grid-item'))
     }
+  })
 
+  guard('discography page covers', () => {
     if (allFeatures.discographyplayer.enabled && document.querySelector('.music-grid .music-grid-item a[href*="/album/"] img,.music-grid .music-grid-item a[href*="/track/"] img')) {
       // Discography page
       makeAlbumCoversGreat()
     }
+  })
 
+  guard('album page features', () => {
     if (document.querySelector('.inline_player')) {
       // Album page with player
       if (allFeatures.thetimehascome.enabled) {
@@ -7446,17 +7511,20 @@ function onLoaded () {
         addOpenDiscographyPlayerFromAlbumPage()
       }
     }
+  })
 
+  guard('discover page', () => {
     if (document.location.pathname.startsWith('/discover')) {
       // Discover search page
       makeDiscoverSearchCoversGreatCss()
       if (allFeatures.tagSearchPlayer.enabled) {
-        window.setInterval(makeDiscoverSearchCoversGreat, 1000)
+        setIntervalSafe(makeDiscoverSearchCoversGreat, 1000, 'makeDiscoverSearchCoversGreat')
       }
-
       addShuffleTagsButton()
     }
+  })
 
+  guard('share panel / wishlist hooks', () => {
     if (document.querySelector('.share-panel-wrapper-desktop')) {
       // Album page with Share,Embed,Wishlist links
 
@@ -7472,52 +7540,26 @@ function onLoaded () {
         addReleaseDateButton()
       }
     }
+  })
 
+  guard('show download link if purchased', () => {
     if (unsafeWindow.TralbumData && unsafeWindow.TralbumData.tralbum_collect_info && unsafeWindow.TralbumData.tralbum_collect_info.is_purchased) {
       showDownloadLinkOnAlbumPage()
     }
+  })
 
-    GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu)
+  GM.registerMenuCommand(SCRIPT_NAME + ' - Settings', mainMenu)
 
-    const addMainMenuButtons = () => {
-      if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot &&
-        document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('.menu-items .search')) {
-        const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot
-        const searchLi = shadowRoot.querySelector('.menu-items .search')
-        const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
-        appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot)
-      } else if (document.querySelector('.menu-bar-wrapper menu-bar') && document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot &&
-        document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot.querySelector('li.signup')) {
-        const shadowRoot = document.querySelector('.menu-bar-wrapper menu-bar').shadowRoot
-        const searchLi = shadowRoot.querySelector('li.signup')
-        const insertBefore = searchLi
-        appendMainMenuButtonTo(insertBefore.parentNode, insertBefore, shadowRoot)
-      } else if (document.querySelector('.menu-items .search')) {
-        // Discover
-        window.setTimeout(() => {
-          const searchLi = document.querySelector('.menu-items .search')
-          const insertBefore = searchLi.nextElementSibling ? searchLi.nextElementSibling : searchLi
-          appendMainMenuButtonTo(insertBefore.parentNode, insertBefore)
-        }, 1000)
-      } else if (document.querySelector('.user-nav')) {
-        appendMainMenuButtonTo(document.querySelector('.user-nav'))
-      } else if (document.querySelector('#user-nav')) {
-        appendMainMenuButtonTo(document.querySelector('#user-nav'))
-      } else if (document.getElementById('customHeaderWrapper')) {
-        appendMainMenuButtonLeftTo(document.getElementById('customHeaderWrapper'))
-      } else if (document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav')) {
-        // Homepage and not logged in
-        appendMainMenuButtonTo(document.querySelector('#corphome-autocomplete-form ul.hd-nav.corp-nav'))
-      }
-    }
-
+  guard('main menu buttons', () => {
     addMainMenuButtons()
-    window.setTimeout(() => {
+    setTimeoutSafe(() => {
       if (!document.getElementById(MAIN_MENU_DOM_ID)) {
         addMainMenuButtons()
       }
-    }, 3000)
+    }, 3000, 'main menu buttons (retry)')
+  })
 
+  guard('hide hiring banners', () => {
     if (document.querySelector('.hd-banner-2018')) {
       // Move the "we are hiring" banner (not loggin in)
       document.querySelector('.hd-banner-2018').style.left = '-500px'
@@ -7526,65 +7568,83 @@ function onLoaded () {
       // Remove the "we are hiring" banner (logged in)
       document.querySelector('.li-banner-2018').remove()
     }
+  })
 
+  guard('carousel player', () => {
     if (document.getElementById('carousel-player') || document.querySelector('.play-carousel')) {
-      window.setTimeout(makeCarouselPlayerGreatAgain, 5000)
+      setTimeoutSafe(makeCarouselPlayerGreatAgain, 5000, 'makeCarouselPlayerGreatAgain')
     }
+  })
 
+  guard('grid tabs + listened tab', () => {
     if (document.querySelector('ol#grid-tabs li') && document.querySelector('.fan-bio-pic-upload-container')) {
       const listenedTabLink = makeListenedListTabLink()
       if (document.location.hash === '#listened-tab') {
-        window.setTimeout(function resetGridTabs () {
+        setTimeoutSafe(() => {
           document.querySelector('#grid-tabs .active').classList.remove('active')
           document.querySelector('#grids .grid.active').classList.remove('active')
           listenedTabLink.classList.add('active')
           listenedTabLink.click()
-        }, 500)
+        }, 500, 'resetGridTabs')
       }
       if (allFeatures.markasplayedEverywhere.enabled) {
         // If you click the more button on the wishlist/user profile, bandcamp continues to load more albums. Need to update the listened links then as well:
-        document.querySelectorAll('.show-button .show-more').forEach(button => button.addEventListener('click', () => {
-          window.setInterval(makeAlbumLinksGreat, 2000)
-        }))
+        document.querySelectorAll('.show-button .show-more').forEach(button => {
+          button.addEventListener('click', () => {
+            setIntervalSafe(makeAlbumLinksGreat, 2000, 'wishlist/user profile pagination')
+          })
+        })
       }
     }
+  })
 
+  guard('restore volume', () => {
     if (allFeatures.albumPageVolumeBar.enabled) {
       restoreVolume()
     }
-
+  })
+  guard('make album links great', () => {
     if (allFeatures.markasplayedEverywhere.enabled) {
       makeAlbumLinksGreat()
     }
-
+  })
+  guard('backup reminder', () => {
     if (allFeatures.backupReminder.enabled && !IS_PLAYER_FRAME) {
       checkBackupStatus()
     }
-
+  })
+  guard('custom release date format', () => {
     if (allFeatures.customReleaseDateFormat.enabled) {
       formatReleaseDateOnAlbumPage()
     }
-
+  })
+  guard('show album ID', () => {
     if (allFeatures.showAlbumID.enabled) {
       showAlbumID()
     }
+  })
 
-    if (allFeatures.feedShowOnlyNewReleases.enabled && document.querySelector('#stories li.story')) {
-      feedShowOnlyNewReleases()
+  guard('feed tweaks', () => {
+    if (document.querySelector('#stories li.story')) {
+      if (allFeatures.feedShowOnlyNewReleases.enabled) {
+        feedShowOnlyNewReleases()
+      }
+      if (allFeatures.feedShowAudioControls.enabled) {
+        feedAddAudioControls()
+      }
     }
-
-    if (allFeatures.feedShowAudioControls.enabled && document.querySelector('#stories li.story')) {
-      feedAddAudioControls()
-    }
-
     feedEnablePlayNextItem()
     feedAddDiscographyPlayerButtons()
+  })
 
+  guard('profile discography player buttons', () => {
     profileAddDiscographyPlayerButtons()
+  })
 
+  guard('campexplorer', () => {
     if (CAMPEXPLORER) {
       let lastTagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : ''
-      window.setInterval(function () {
+      setIntervalSafe(() => {
         const tagsText = document.querySelector('.tags') ? document.querySelector('.tags').textContent : ''
         if (lastTagsText !== tagsText) {
           lastTagsText = tagsText
@@ -7595,38 +7655,53 @@ function onLoaded () {
             makeAlbumLinksGreat()
           }
         }
-      }, 3000)
+      }, 3000, 'tags change poll')
 
       // Add a little space at the bottom of the page to accommodate the discographyplayer at the bottom
       document.body.style.paddingBottom = '200px'
       // Move the sidebar to the left
-      document.querySelectorAll('.sidebar').forEach(function (div) {
+      document.querySelectorAll('.sidebar').forEach(div => {
         div.style.alignSelf = 'flex-start'
-        div.querySelectorAll('.shortcuts').forEach(function (shortcuts) {
+        div.querySelectorAll('.shortcuts').forEach(shortcuts => {
           shortcuts.style.borderRadius = '0 1em 1em 0'
         })
       })
     }
+  })
 
+  guard('explorer / lyrics init', () => {
     if (IS_PLAYER_URL) {
       showExplorer()
     } else if (document.location.pathname === LYRICS_EMPTY_PATH) {
       initGenius()
     }
+  })
 
-    GM.getValue('musicPlayerState', '{}').then(function restoreState (s) {
+  await guardPromise(
+    GM.getValue('musicPlayerState', '{}').then(s => {
       if (s !== '{}') {
         GM.setValue('musicPlayerState', '{}')
         musicPlayerRestoreState(JSON.parse(s))
       }
-    })
+    }),
+    'restore music player state'
+  )
 
+  guard('store corrected TralbumData', () => {
     if (document.querySelector('.inline_player') && unsafeWindow.TralbumData && unsafeWindow.TralbumData.current && unsafeWindow.TralbumData.trackinfo) {
       const TralbumData = correctTralbumData(JSON.parse(JSON.stringify(unsafeWindow.TralbumData)), document.body.innerHTML)
       storeTralbumDataPermanently(TralbumData)
     }
-  }
+  })
+
+  guard('startLiveErrorPanel', () => {
+    if (allFeatures.debugMode.enabled) {
+      ErrorReporter.startLiveErrorPanel()
+    }
+  })
 }
+
+GM.registerMenuCommand(SCRIPT_NAME + ' - show recent script errors', () => ErrorReporter.showRecentErrors())
 
 start().then(function () {
   if (document.readyState === 'loading') {
