@@ -63,7 +63,7 @@
         "serve": "^14.2.5",
         "standard": "^17.1.2",
         "react": "^19.2.0",
-        "react-dom": "^19.2.0",
+        "react-dom": "^19.2.1",
         "react-window": "^2.2.2"
     },
     "dependencies": {
