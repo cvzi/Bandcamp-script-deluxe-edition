@@ -17416,7 +17416,7 @@ SOFTWARE.
   var jsxRuntimeExports = requireJsxRuntime();
 
   const q = typeof window < "u" ? reactExports.useLayoutEffect : reactExports.useEffect;
-  function oe(e) {
+  function ie(e) {
     if (e !== void 0)
       switch (typeof e) {
         case "number":
@@ -17439,8 +17439,8 @@ SOFTWARE.
   }) {
     const { styleHeight: f, styleWidth: l } = reactExports.useMemo(
       () => ({
-        styleHeight: oe(i?.height),
-        styleWidth: oe(i?.width)
+        styleHeight: ie(i?.height),
+        styleWidth: ie(i?.width)
       }),
       [i?.height, i?.width]
     ), [c, d] = reactExports.useState({
@@ -17450,17 +17450,17 @@ SOFTWARE.
     return q(() => {
       if (n === null || a)
         return;
-      const u = new ResizeObserver((b) => {
-        for (const w of b) {
-          const { contentRect: I, target: x } = w;
-          n === x && d((m) => m.height === I.height && m.width === I.width ? m : {
-            height: I.height,
-            width: I.width
+      const h = new ResizeObserver((p) => {
+        for (const I of p) {
+          const { contentRect: u, target: w } = I;
+          n === w && d((m) => m.height === u.height && m.width === u.width ? m : {
+            height: u.height,
+            width: u.width
           });
         }
       });
-      return u.observe(n, { box: e }), () => {
-        u?.unobserve(n);
+      return h.observe(n, { box: e }), () => {
+        h?.unobserve(n);
       };
     }, [e, a, n, f, l]), reactExports.useMemo(
       () => ({
@@ -17486,14 +17486,14 @@ SOFTWARE.
   }) {
     return r;
   }
-  function $(e, t = "Assertion error") {
+  function L(e, t = "Assertion error") {
     if (!e)
       throw console.error(t), Error(t);
   }
   function Y(e, t) {
     if (e === t)
       return true;
-    if (!!e != !!t || ($(e !== void 0), $(t !== void 0), Object.keys(e).length !== Object.keys(t).length))
+    if (!!e != !!t || (L(e !== void 0), L(t !== void 0), Object.keys(e).length !== Object.keys(t).length))
       return false;
     for (const s in e)
       if (!Object.is(t[s], e[s]))
@@ -17513,12 +17513,12 @@ SOFTWARE.
       const r = e.get(
         e.size === 0 ? 0 : e.size - 1
       );
-      $(r !== void 0, "Unexpected bounds cache miss");
+      L(r !== void 0, "Unexpected bounds cache miss");
       const n = (r.scrollOffset + r.size) / e.size;
       return t * n;
     }
   }
-  function me({
+  function we({
     align: e,
     cachedBounds: t,
     index: s,
@@ -17527,6 +17527,10 @@ SOFTWARE.
     containerScrollOffset: o,
     containerSize: i
   }) {
+    if (s < 0 || s >= r)
+      throw RangeError(`Invalid index specified: ${s}`, {
+        cause: `Index ${s} is not within the range of 0 - ${r - 1}`
+      });
     const f = fe({
       cachedBounds: t,
       itemCount: r,
@@ -17550,7 +17554,7 @@ SOFTWARE.
         return o >= d && o <= c ? o : o < d ? d : c;
     }
   }
-  function ie({
+  function P({
     cachedBounds: e,
     containerScrollOffset: t,
     containerSize: s,
@@ -17578,7 +17582,7 @@ SOFTWARE.
       stopIndexOverscan: c
     };
   }
-  function we({
+  function me({
     itemCount: e,
     itemProps: t,
     itemSize: s
@@ -17586,7 +17590,7 @@ SOFTWARE.
     const r = /* @__PURE__ */ new Map();
     return {
       get(n) {
-        for ($(n < e, `Invalid index ${n}`); r.size - 1 < n; ) {
+        for (L(n < e, `Invalid index ${n}`); r.size - 1 < n; ) {
           const i = r.size;
           let f;
           switch (typeof s) {
@@ -17606,7 +17610,7 @@ SOFTWARE.
             });
           else {
             const l = r.get(i - 1);
-            $(
+            L(
               l !== void 0,
               `Unexpected bounds cache miss for index ${n}`
             ), r.set(i, {
@@ -17616,7 +17620,7 @@ SOFTWARE.
           }
         }
         const o = r.get(n);
-        return $(
+        return L(
           o !== void 0,
           `Unexpected bounds cache miss for index ${n}`
         ), o;
@@ -17635,7 +17639,7 @@ SOFTWARE.
     itemSize: s
   }) {
     return reactExports.useMemo(
-      () => we({
+      () => me({
         itemCount: e,
         itemProps: t,
         itemSize: s
@@ -17650,10 +17654,10 @@ SOFTWARE.
     let s;
     switch (typeof t) {
       case "string": {
-        $(
+        L(
           t.endsWith("%"),
           `Invalid item size: "${t}"; string values must be percentages (e.g. "100%")`
-        ), $(
+        ), L(
           e !== void 0,
           "Container size must be defined if a percentage item size is specified"
         ), s = e * parseInt(t) / 100;
@@ -17666,7 +17670,7 @@ SOFTWARE.
     }
     return s;
   }
-  function ee({
+  function te({
     containerElement: e,
     containerStyle: t,
     defaultContainerSize: s = 0,
@@ -17678,71 +17682,75 @@ SOFTWARE.
     onResize: l,
     overscanCount: c
   }) {
-    const [d, a] = reactExports.useState({
-      startIndexVisible: 0,
-      startIndexOverscan: 0,
-      stopIndexVisible: -1,
-      stopIndexOverscan: -1
-    }), {
-      startIndexVisible: u,
-      startIndexOverscan: b,
-      stopIndexVisible: w,
-      stopIndexOverscan: I
-    } = {
-      startIndexVisible: Math.min(o - 1, d.startIndexVisible),
-      startIndexOverscan: Math.min(o - 1, d.startIndexOverscan),
-      stopIndexVisible: Math.min(o - 1, d.stopIndexVisible),
-      stopIndexOverscan: Math.min(o - 1, d.stopIndexOverscan)
-    }, { height: x = s, width: m = s } = be({
+    const { height: d = s, width: a = s } = be({
       defaultHeight: s ,
       defaultWidth: void 0,
       element: e,
       mode: "only-height" ,
       style: t
-    }), y = reactExports.useRef({
+    }), h = reactExports.useRef({
       height: 0,
       width: 0
-    }), E = x , h = ye({ containerSize: E, itemSize: f });
+    }), p = d , I = ye({ containerSize: p, itemSize: f });
     reactExports.useLayoutEffect(() => {
       if (typeof l == "function") {
-        const p = y.current;
-        (p.height !== x || p.width !== m) && (l({ height: x, width: m }, { ...p }), p.height = x, p.width = m);
+        const g = h.current;
+        (g.height !== d || g.width !== a) && (l({ height: d, width: a }, { ...g }), g.height = d, g.width = a);
       }
-    }, [x, l, m]);
-    const z = Oe({
+    }, [d, l, a]);
+    const u = Oe({
       itemCount: o,
       itemProps: i,
-      itemSize: h
-    }), k = reactExports.useCallback(
-      (p) => z.get(p),
-      [z]
-    ), S = reactExports.useCallback(
-      () => fe({
-        cachedBounds: z,
+      itemSize: I
+    }), w = reactExports.useCallback(
+      (g) => u.get(g),
+      [u]
+    ), [m, O] = reactExports.useState(
+      () => P({
+        cachedBounds: u,
+        // TODO Potentially support a defaultScrollOffset prop?
+        containerScrollOffset: 0,
+        containerSize: p,
         itemCount: o,
-        itemSize: h
+        overscanCount: c
+      })
+    ), {
+      startIndexVisible: G,
+      startIndexOverscan: x,
+      stopIndexVisible: F,
+      stopIndexOverscan: V
+    } = {
+      startIndexVisible: Math.min(o - 1, m.startIndexVisible),
+      startIndexOverscan: Math.min(o - 1, m.startIndexOverscan),
+      stopIndexVisible: Math.min(o - 1, m.stopIndexVisible),
+      stopIndexOverscan: Math.min(o - 1, m.stopIndexOverscan)
+    }, z = reactExports.useCallback(
+      () => fe({
+        cachedBounds: u,
+        itemCount: o,
+        itemSize: I
       }),
-      [z, o, h]
-    ), W = reactExports.useCallback(
-      (p) => {
-        const T = Z({
+      [u, o, I]
+    ), $ = reactExports.useCallback(
+      (g) => {
+        const S = Z({
           containerElement: e,
           direction: r,
           isRtl: n,
-          scrollOffset: p
+          scrollOffset: g
         });
-        return ie({
-          cachedBounds: z,
-          containerScrollOffset: T,
-          containerSize: E,
+        return P({
+          cachedBounds: u,
+          containerScrollOffset: S,
+          containerSize: p,
           itemCount: o,
           overscanCount: c
         });
       },
       [
-        z,
+        u,
         e,
-        E,
+        p,
         r,
         n,
         o,
@@ -17750,76 +17758,76 @@ SOFTWARE.
       ]
     );
     q(() => {
-      const p = (e?.scrollTop ) ?? 0;
-      a(W(p));
-    }, [e, r, W]), q(() => {
+      const g = (e?.scrollTop ) ?? 0;
+      O($(g));
+    }, [e, r, $]), q(() => {
       if (!e)
         return;
-      const p = () => {
-        a((T) => {
-          const { scrollLeft: R, scrollTop: v } = e, g = Z({
+      const g = () => {
+        O((S) => {
+          const { scrollLeft: E, scrollTop: b } = e, v = Z({
             containerElement: e,
             direction: r,
             isRtl: n,
-            scrollOffset: v 
-          }), A = ie({
-            cachedBounds: z,
-            containerScrollOffset: g,
-            containerSize: E,
+            scrollOffset: b 
+          }), R = P({
+            cachedBounds: u,
+            containerScrollOffset: v,
+            containerSize: p,
             itemCount: o,
             overscanCount: c
           });
-          return Y(A, T) ? T : A;
+          return Y(R, S) ? S : R;
         });
       };
-      return e.addEventListener("scroll", p), () => {
-        e.removeEventListener("scroll", p);
+      return e.addEventListener("scroll", g), () => {
+        e.removeEventListener("scroll", g);
       };
     }, [
-      z,
+      u,
       e,
-      E,
+      p,
       r,
       o,
       c
     ]);
-    const O = ae(
+    const y = ae(
       ({
-        align: p = "auto",
-        containerScrollOffset: T,
-        index: R
+        align: g = "auto",
+        containerScrollOffset: S,
+        index: E
       }) => {
-        let v = me({
-          align: p,
-          cachedBounds: z,
-          containerScrollOffset: T,
-          containerSize: E,
-          index: R,
+        let b = we({
+          align: g,
+          cachedBounds: u,
+          containerScrollOffset: S,
+          containerSize: p,
+          index: E,
           itemCount: o,
-          itemSize: h
+          itemSize: I
         });
         if (e) {
-          if (v = Z({
+          if (b = Z({
             containerElement: e,
             direction: r,
             isRtl: n,
-            scrollOffset: v
+            scrollOffset: b
           }), typeof e.scrollTo != "function") {
-            const g = W(v);
-            Y(d, g) || a(g);
+            const v = $(b);
+            Y(m, v) || O(v);
           }
-          return v;
+          return b;
         }
       }
     );
     return {
-      getCellBounds: k,
-      getEstimatedSize: S,
-      scrollToIndex: O,
-      startIndexOverscan: b,
-      startIndexVisible: u,
-      stopIndexOverscan: I,
-      stopIndexVisible: w
+      getCellBounds: w,
+      getEstimatedSize: z,
+      scrollToIndex: y,
+      startIndexOverscan: x,
+      startIndexVisible: G,
+      stopIndexOverscan: V,
+      stopIndexVisible: F
     };
   }
   function de(e) {
@@ -17840,7 +17848,7 @@ SOFTWARE.
   function ze(e) {
     return e != null && typeof e == "object" && "getAverageRowHeight" in e && typeof e.getAverageRowHeight == "function";
   }
-  const te = "data-react-window-index";
+  const se = "data-react-window-index";
   function Ae({
     children: e,
     className: t,
@@ -17854,28 +17862,28 @@ SOFTWARE.
     rowHeight: c,
     rowProps: d,
     tagName: a = "div",
-    style: u,
-    ...b
+    style: h,
+    ...p
   }) {
-    const w = de(d), I = reactExports.useMemo(
+    const I = de(d), u = reactExports.useMemo(
       () => reactExports.memo(f, ue),
       [f]
-    ), [x, m] = reactExports.useState(null), y = ze(c), E = reactExports.useMemo(() => y ? (v) => c.getRowHeight(v) ?? c.getAverageRowHeight() : c, [y, c]), {
-      getCellBounds: h,
-      getEstimatedSize: z,
-      scrollToIndex: k,
-      startIndexOverscan: S,
-      startIndexVisible: W,
-      stopIndexOverscan: O,
-      stopIndexVisible: p
-    } = ee({
-      containerElement: x,
-      containerStyle: u,
+    ), [w, m] = reactExports.useState(null), O = ze(c), G = reactExports.useMemo(() => O ? (b) => c.getRowHeight(b) ?? c.getAverageRowHeight() : c, [O, c]), {
+      getCellBounds: x,
+      getEstimatedSize: F,
+      scrollToIndex: V,
+      startIndexOverscan: z,
+      startIndexVisible: $,
+      stopIndexOverscan: y,
+      stopIndexVisible: g
+    } = te({
+      containerElement: w,
+      containerStyle: h,
       defaultContainerSize: s,
       direction: "vertical",
       itemCount: l,
-      itemProps: w,
-      itemSize: E,
+      itemProps: I,
+      itemSize: G,
       onResize: n,
       overscanCount: i
     });
@@ -17883,105 +17891,105 @@ SOFTWARE.
       r,
       () => ({
         get element() {
-          return x;
+          return w;
         },
         scrollToRow({
-          align: v = "auto",
-          behavior: g = "auto",
-          index: A
+          align: b = "auto",
+          behavior: v = "auto",
+          index: R
         }) {
-          const M = k({
-            align: v,
-            containerScrollOffset: x?.scrollTop ?? 0,
-            index: A
+          const k = V({
+            align: b,
+            containerScrollOffset: w?.scrollTop ?? 0,
+            index: R
           });
-          typeof x?.scrollTo == "function" && x.scrollTo({
-            behavior: g,
-            top: M
+          typeof w?.scrollTo == "function" && w.scrollTo({
+            behavior: v,
+            top: k
           });
         }
       }),
-      [x, k]
+      [w, V]
     ), q(() => {
-      if (!x)
+      if (!w)
         return;
-      const v = Array.from(x.children).filter((g, A) => {
-        if (g.hasAttribute("aria-hidden"))
+      const b = Array.from(w.children).filter((v, R) => {
+        if (v.hasAttribute("aria-hidden"))
           return false;
-        const M = `${S + A}`;
-        return g.setAttribute(te, M), true;
+        const k = `${z + R}`;
+        return v.setAttribute(se, k), true;
       });
-      if (y)
-        return c.observeRowElements(v);
+      if (O)
+        return c.observeRowElements(b);
     }, [
-      x,
-      y,
+      w,
+      O,
       c,
-      S,
-      O
+      z,
+      y
     ]), reactExports.useEffect(() => {
-      S >= 0 && O >= 0 && o && o(
+      z >= 0 && y >= 0 && o && o(
         {
-          startIndex: W,
-          stopIndex: p
+          startIndex: $,
+          stopIndex: g
         },
         {
-          startIndex: S,
-          stopIndex: O
+          startIndex: z,
+          stopIndex: y
         }
       );
     }, [
       o,
-      S,
-      W,
-      O,
-      p
+      z,
+      $,
+      y,
+      g
     ]);
-    const T = reactExports.useMemo(() => {
-      const v = [];
+    const S = reactExports.useMemo(() => {
+      const b = [];
       if (l > 0)
-        for (let g = S; g <= O; g++) {
-          const A = h(g);
-          v.push(
+        for (let v = z; v <= y; v++) {
+          const R = x(v);
+          b.push(
             /* @__PURE__ */ reactExports.createElement(
-              I,
+              u,
               {
-                ...w,
+                ...I,
                 ariaAttributes: {
-                  "aria-posinset": g + 1,
+                  "aria-posinset": v + 1,
                   "aria-setsize": l,
                   role: "listitem"
                 },
-                key: g,
-                index: g,
+                key: v,
+                index: v,
                 style: {
                   position: "absolute",
                   left: 0,
-                  transform: `translateY(${A.scrollOffset}px)`,
+                  transform: `translateY(${R.scrollOffset}px)`,
                   // In case of dynamic row heights, don't specify a height style
                   // otherwise a default/estimated height would mask the actual height
-                  height: y ? void 0 : A.size,
+                  height: O ? void 0 : R.size,
                   width: "100%"
                 }
               }
             )
           );
         }
-      return v;
+      return b;
     }, [
-      I,
-      h,
-      y,
+      u,
+      x,
+      O,
       l,
-      w,
-      S,
-      O
-    ]), R = /* @__PURE__ */ jsxRuntimeExports.jsx(
+      I,
+      z,
+      y
+    ]), E = /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
         "aria-hidden": true,
         style: {
-          height: z(),
+          height: F(),
           width: "100%",
           zIndex: -1
         }
@@ -17991,7 +17999,7 @@ SOFTWARE.
       a,
       {
         role: "list",
-        ...b,
+        ...p,
         className: t,
         ref: m,
         style: {
@@ -17999,12 +18007,12 @@ SOFTWARE.
           maxHeight: "100%",
           flexGrow: 1,
           overflowY: "auto",
-          ...u
+          ...h
         }
       },
-      T,
+      S,
       e,
-      R
+      E
     );
   }
 
