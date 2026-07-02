@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.38.1](../../tree/v1.38.1) *(2026-07-02)*
+*   Try to load missing album data in the "Played" tab on the profile [#441](https://github.com/cvzi/Bandcamp-script-deluxe-edition/issues/441)
 ## [1.38.0](../../tree/v1.38.0) *(2025-11-06)*
 *   Log errors
 ## [1.37.6](../../tree/v1.37.6) *(2025-11-01)*

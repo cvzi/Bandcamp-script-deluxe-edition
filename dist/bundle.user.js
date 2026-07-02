@@ -19,7 +19,7 @@
 // @connect         *.bcbits.com
 // @connect         genius.com
 // @connect         *
-// @version         1.37.6
+// @version         1.38.1
 // @homepage        https://github.com/cvzi/Bandcamp-script-deluxe-edition
 // @author          cuzi
 // @license         MIT
@@ -22312,10 +22312,31 @@ ${CAMPEXPLORER ? campExplorerCSS : ''}
     const collectionGrid = collectionItems.appendChild(document.createElement('ol'));
     collectionGrid.className = 'collection-grid';
     const myalbums = JSON.parse(await GM.getValue('myalbums', '{}'));
+    let albumDataFetchCounter = 0;
     for (const key in myalbums) {
-      const albumData = myalbums[key];
+      let albumData = myalbums[key];
       if (!albumData.listened) {
         continue;
+      }
+      if ((!('title' in albumData) || !('artist' in albumData)) && !('retriedFetchingAlbumData' in albumData)) {
+        console.warn(`Listened album ${key} has incomplete data:`, albumData);
+        let url = key;
+        if (!url.startsWith('http')) {
+          url = document.location.protocol + '//' + url;
+        }
+        if (url.includes('.com/download/')) {
+          continue; // skip download pages, they don't have TralbumData
+        }
+        if (albumDataFetchCounter < 6) {
+          console.log('Fetching new album data for ' + key);
+          albumDataFetchCounter++; // Restrict the number of fetches to avoid rate limiting or blocking by Bandcamp
+
+          const newAlbumData = await myAlbumsNewFromUrl(url);
+          newAlbumData.listened = albumData.listened;
+          newAlbumData.retriedFetchingAlbumData = true; // Don't retry fetching the album data (in case it is still empty)
+          await myAlbumsUpdateAlbum(newAlbumData);
+          albumData = newAlbumData;
+        }
       }
       const artist = albumData.artist || 'Unkown artist';
       const title = albumData.title || 'Unkown title';
