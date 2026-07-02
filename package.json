@@ -44,7 +44,7 @@
     },
     "devDependencies": {
         "@babel/cli": "^7.28.3",
-        "@babel/core": "^7.28.5",
+        "@babel/core": "^7.29.6",
         "@babel/eslint-parser": "^7.28.5",
         "@babel/plugin-syntax-import-assertions": "^7.27.1",
         "@babel/plugin-transform-class-properties": "^7.27.1",
