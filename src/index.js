@@ -4032,7 +4032,7 @@ async function showListenedListTab () {
         newAlbumData.retriedFetchingAlbumData = true // Don't retry fetching the album data (in case it is still empty)
         await myAlbumsUpdateAlbum(newAlbumData)
         albumData = newAlbumData
-        }
+      }
     }
 
     const artist = albumData.artist || 'Unkown artist'
